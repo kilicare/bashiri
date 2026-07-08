@@ -27,7 +27,7 @@ export function getUploadSignature() {
   return apiClient<UploadSignature>("/mic/upload-signature/");
 }
 
-export async function uploadVideoToCloudinary(file: Blob, sig: UploadSignature, retries = 2): Promise<{ secure_url: string; duration: number }> {
+export async function uploadVideoToCloudinary(file: File | Blob, sig: UploadSignature, retries = 2): Promise<{ secure_url: string; duration: number }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const formData = new FormData();

@@ -9,6 +9,8 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Bookmark, Share2 } from "lucide-react";
+import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
+import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
 
 export default function PredictDashboardPage() {
   const params = useParams();
@@ -40,51 +42,36 @@ export default function PredictDashboardPage() {
   const bestMarket = dashboard.markets.find((m) => m.key === "1X2");
 
   return (
-    <div className="px-5 pt-safe pt-6 pb-8">
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-xl font-black text-white">
-          {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}
-        </h1>
-        <div className="flex gap-2">
-          <button onClick={handleSave} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
-            <Bookmark size={16} style={{ color: saved ? "#00FF87" : "rgba(255,255,255,0.5)" }} fill={saved ? "#00FF87" : "none"} />
-          </button>
-          <button onClick={() => setShowShare(true)} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
-            <Share2 size={16} style={{ color: "rgba(255,255,255,0.5)" }} />
-          </button>
+    <DerbyThemeProvider matchId={matchId}>
+      <div className="px-5 pt-safe pt-6 pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-black text-white">
+            {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}
+          </h1>
+          <div className="flex gap-2">
+            <button onClick={handleSave} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
+              <Bookmark size={16} style={{ color: saved ? "#00FF87" : "rgba(255,255,255,0.5)" }} fill={saved ? "#00FF87" : "none"} />
+            </button>
+            <button onClick={() => setShowShare(true)} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
+              <Share2 size={16} style={{ color: "rgba(255,255,255,0.5)" }} />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-2 mb-5 overflow-x-auto">
-        {[
-          { label: "Overview", href: `/create/${matchId}/overview` },
-          { label: "Predict", href: `/create/${matchId}/predict`, active: true },
-          { label: "Room", href: `/match/${matchId}/room` },
-          { label: "Mic", href: `/match/${matchId}/mic` },
-        ].map((tab) => (
-          <button
-            key={tab.label}
-            onClick={() => router.push(tab.href)}
-            className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
-            style={{
-              background: tab.active ? "#00FF87" : "rgba(255,255,255,0.06)",
-              color: tab.active ? "#000" : "rgba(255,255,255,0.5)",
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <MatchHubTabs matchId={matchId} active="predict" />
 
-      <div className="space-y-3">
-        {dashboard.markets.map((market) => (
-          <MarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />
-        ))}
-      </div>
+      <div className="px-5 pb-8">
+        <div className="space-y-3">
+          {dashboard.markets.map((market) => (
+            <MarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />
+          ))}
+        </div>
 
-      <p className="text-center text-xs mt-5" style={{ color: "rgba(255,255,255,0.2)" }}>
-        Dixon-Coles Poisson Model v{dashboard.model_version} • Kwa burudani tu — si ushauri wa kamari
-      </p>
+        <p className="text-center text-xs mt-5" style={{ color: "rgba(255,255,255,0.2)" }}>
+          Dixon-Coles Poisson Model v{dashboard.model_version} • Kwa burudani tu — si ushauri wa kamari
+        </p>
+      </div>
 
       <SubscriptionSheet isOpen={showSub} onClose={() => setShowSub(false)} />
 
@@ -103,6 +90,6 @@ export default function PredictDashboardPage() {
           </BashiriButton>
         </BottomSheet>
       )}
-    </div>
+    </DerbyThemeProvider>
   );
 }

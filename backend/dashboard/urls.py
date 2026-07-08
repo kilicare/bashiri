@@ -8,6 +8,7 @@ from .views import (
     AdminCardListView,
     AdminCardToggleActiveView,
     AdminCreateDebateView,
+    AdminDeleteDebateView,
     AdminLeagueListView,
     AdminLoginView,
     AdminManualSubscriptionView,
@@ -58,6 +59,7 @@ urlpatterns = [
 
     path("debates/", AdminCreateDebateView.as_view(), name="admin-create-debate"),
     path("debates/<int:card_id>/resolve/", AdminResolveDebateView.as_view(), name="admin-resolve-debate"),
+    path("debates/<int:card_id>/", AdminDeleteDebateView.as_view(), name="admin-delete-debate"),
 
     path("matchroom-messages/<int:message_id>/hide/", AdminMatchRoomMessageHideView.as_view(), name="admin-hide-message"),
 

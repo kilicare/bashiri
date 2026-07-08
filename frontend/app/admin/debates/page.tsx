@@ -1,0 +1,136 @@
+"use client";
+import { useEffect, useState } from "react";
+import { getCards, createDebate, resolveDebate, deleteDebate } from "@/lib/api/admin";
+import { BashiriButton } from "@/components/ui/Button";
+import { Plus, X, Trash2 } from "lucide-react";
+
+export default function AdminDebatesPage() {
+  const [debates, setDebates] = useState<any[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [options, setOptions] = useState("YES,NO");
+  const [closesInHours, setClosesInHours] = useState(48);
+  const [saving, setSaving] = useState(false);
+  const [resolvingId, setResolvingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  function load() {
+    getCards("DEBATE").then((data) => setDebates(data));
+  }
+
+  async function handleCreate() {
+    setSaving(true);
+    await createDebate({
+      question,
+      options: options.split(",").map((o) => o.trim()).filter(Boolean),
+      closes_in_hours: closesInHours,
+      match_id: null,
+    });
+    setSaving(false);
+    setShowForm(false);
+    setQuestion("");
+    setOptions("YES,NO");
+    load();
+  }
+
+  async function handleResolve(cardId: number, result: string) {
+    await resolveDebate(cardId, result);
+    setResolvingId(null);
+    load();
+  }
+
+  async function handleDelete(cardId: number) {
+    if (!confirm("Una uhakika unataka kufuta debate hii?")) return;
+    setDeletingId(cardId);
+    await deleteDebate(cardId);
+    setDeletingId(null);
+    load();
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-black text-white">Debate Cards</h1>
+        <BashiriButton size="md" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <X size={16} /> : <Plus size={16} />} {showForm ? "Funga" : "Tengeneza Debate"}
+        </BashiriButton>
+      </div>
+
+      {showForm && (
+        <div className="rounded-2xl p-6 mb-6 space-y-4 max-w-lg w-full" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <input
+            className="w-full rounded-xl px-3 py-2.5 text-sm text-white bg-[#151515] outline-none"
+            placeholder="Swali la Debate (mfano: Je Yanga ataingia makundi ya CAF?)"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+          />
+          <input
+            className="w-full rounded-xl px-3 py-2.5 text-sm text-white bg-[#151515] outline-none"
+            placeholder="Options, tenganisha kwa comma (YES,NO)"
+            value={options}
+            onChange={(e) => setOptions(e.target.value)}
+          />
+          <div>
+            <label className="text-xs mb-1 block" style={{ color: "rgba(255,255,255,0.5)" }}>Inafunga baada ya (masaa)</label>
+            <input
+              type="number"
+              className="w-full rounded-xl px-3 py-2.5 text-sm text-white bg-[#151515] outline-none"
+              value={closesInHours}
+              onChange={(e) => setClosesInHours(Number(e.target.value))}
+            />
+          </div>
+          <BashiriButton className="w-full" loading={saving} onClick={handleCreate}>Hifadhi Debate</BashiriButton>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {debates.map((d: any) => (
+          <div key={d.id} className="rounded-2xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,71,87,0.15)" }}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-bold text-white">{d.data.question}</p>
+              <div className="flex items-center gap-2">
+                {d.data.is_closed ? (
+                  <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: "rgba(0,255,135,0.1)", color: "#00FF87" }}>
+                    Resolved: {d.data.result}
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600" }}>
+                    {d.data.voting_closed ? "Voting Closed" : "Open"}
+                  </span>
+                )}
+                <button
+                  onClick={() => handleDelete(d.id)}
+                  disabled={deletingId === d.id}
+                  className="p-2 rounded-lg"
+                  style={{ background: "rgba(255,71,87,0.1)", color: "#FF4757" }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+            <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Votes: {JSON.stringify(d.data.tallies)}
+            </p>
+
+            {!d.data.is_closed && (
+              resolvingId === d.id ? (
+                <div className="flex gap-2">
+                  {d.data.options.map((opt: string) => (
+                    <BashiriButton key={opt} size="md" onClick={() => handleResolve(d.id, opt)}>{opt}</BashiriButton>
+                  ))}
+                  <button onClick={() => setResolvingId(null)} className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Ghairi</button>
+                </div>
+              ) : (
+                <BashiriButton size="md" variant="outline" onClick={() => setResolvingId(d.id)}>Weka Matokeo (Resolve)</BashiriButton>
+              )
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

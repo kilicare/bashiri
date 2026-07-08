@@ -21,6 +21,7 @@ MAX_FEED_ITEMS = 200
 class FeedListView(APIView):
     """Milestone Cards ni PRIVATE — query-level filtering, sio UI-hiding."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for feed
 
     def get(self, request):
         user = request.user
@@ -119,11 +120,21 @@ class PollVoteView(APIView):
 class LeaderboardView(APIView):
     """GET /api/feed/leaderboard/?period=weekly|monthly|all — Top Predictors."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for leaderboard (cached data)
 
     def get(self, request):
+        from django.core.cache import cache
         from accounts.models import User
 
         period = request.query_params.get("period", "all")
+        
+        # Cache ranking data for 5 minutes (leaderboard changes infrequently)
+        cache_key = f"leaderboard_{period}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         qs = User.objects.filter(total_predictions__gt=0)
 
         # Kwa MVP: "weekly"/"monthly" zinatumia data ya jumla ya User (haihitaji
@@ -143,12 +154,25 @@ class LeaderboardView(APIView):
             }
             for i, u in enumerate(qs)
         ]
-        return Response({"period": period, "results": results})
+        
+        data = {"period": period, "results": results}
+        cache.set(cache_key, data, timeout=300)  # 5 minutes cache
+        
+        return Response(data)
 
 
 class DebateVoteView(APIView):
     """POST /api/feed/debates/{card_id}/vote/ — sawa na PollVoteView lakini kwa DEBATE type."""
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, card_id):
+        """Check if user has already voted on this debate."""
+        card = get_object_or_404(Card, pk=card_id, type="DEBATE")
+        try:
+            vote = PollVote.objects.get(card=card, user=request.user)
+            return Response({"voted": True, "choice": vote.choice}, status=status.HTTP_200_OK)
+        except PollVote.DoesNotExist:
+            return Response({"voted": False}, status=status.HTTP_200_OK)
 
     def post(self, request, card_id):
         card = get_object_or_404(Card, pk=card_id, type="DEBATE")

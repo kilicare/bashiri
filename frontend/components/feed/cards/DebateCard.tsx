@@ -22,9 +22,24 @@ function useCountdown(target: string) {
 export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
   const [tallies, setTallies] = useState(data.tallies || {});
   const [voted, setVoted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const countdown = useCountdown(data.closes_at);
   const total = Object.values(tallies).reduce((a: number, b: any) => a + b, 0) as number;
   const isClosed = data.is_closed || data.voting_closed;
+
+  // Check if user already voted
+  useEffect(() => {
+    async function checkVote() {
+      try {
+        await apiClient(`/feed/debates/${cardId}/vote/`, { method: "GET" });
+        setVoted(true);
+      } catch {
+        setVoted(false);
+      }
+      setLoading(false);
+    }
+    checkVote();
+  }, [cardId]);
 
   async function handleVote(choice: string) {
     if (voted || isClosed) return;
@@ -51,7 +66,7 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
           const pct = total > 0 ? count / total : 0;
           const isResult = data.is_closed && data.result === opt;
           return (
-            <button key={opt} onClick={() => handleVote(opt)} className="w-full text-left" disabled={voted || isClosed}>
+            <button key={opt} onClick={() => handleVote(opt)} className="w-full text-left" disabled={voted || isClosed || loading}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-bold" style={{ color: isResult ? "#00FF87" : "#fff" }}>
                   {opt} {isResult && "✅"}

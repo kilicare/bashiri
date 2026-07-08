@@ -23,6 +23,7 @@ from .serializers import MicReactionSerializer, MicReactionVoteSerializer
 class MicUploadSignatureView(APIView):
     """GET /api/mic/upload-signature/ — inarudisha signature ya kupakia video Cloudinary moja kwa moja."""
     permission_classes = [IsAuthenticated]
+    throttle_classes = []  # Disable throttling for video upload
 
     def get(self, request):
         timestamp = int(time.time())
@@ -42,27 +43,43 @@ class MicUploadSignatureView(APIView):
 class MicCanPostView(APIView):
     """GET /api/mic/<match_id>/can-post/ — inaangalia posting window (FT + 24h)."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for can-post check
 
     def get(self, request, match_id):
+        from django.core.cache import cache
         from predictions.models import Match
+
+        # Cache can-post result for 1 minute (match status changes infrequently)
+        cache_key = f"mic_can_post_{match_id}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
 
         match = get_object_or_404(Match, pk=match_id)
 
         if match.status != "FINISHED":
-            return Response({"can_post": False, "reason": "Mechi bado haijaisha."})
+            data = {"can_post": False, "reason": "Mechi bado haijaisha."}
+            cache.set(cache_key, data, timeout=60)
+            return Response(data)
 
         window_hours = settings.BASHIRI["MIC_POSTING_WINDOW_HOURS"]
         deadline = match.updated_at + __import__("datetime").timedelta(hours=window_hours)
 
         if timezone.now() > deadline:
-            return Response({"can_post": False, "reason": "Muda wa kupost umeisha (saa 24 baada ya Full Time)."})
+            data = {"can_post": False, "reason": "Muda wa kupost umeisha (saa 24 baada ya Full Time)."}
+            cache.set(cache_key, data, timeout=60)
+            return Response(data)
 
-        return Response({"can_post": True})
+        data = {"can_post": True}
+        cache.set(cache_key, data, timeout=60)
+        return Response(data)
 
 
 class MicReactionCreateView(APIView):
     """POST /api/mic/ — body: {match, video_url, duration_seconds, mood, team_side}"""
     permission_classes = [IsAuthenticated]
+    throttle_classes = []  # Disable throttling for video upload
 
     def post(self, request):
         serializer = MicReactionSerializer(data=request.data)
@@ -82,34 +99,63 @@ class MicReactionCreateView(APIView):
 class MicReactionListView(APIView):
     """GET /api/mic/<match_id>/?team_side=HOME"""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for mic reactions list
 
     def get(self, request, match_id):
-        qs = MicReaction.objects.filter(match_id=match_id, is_active=True).select_related("user")
+        from django.core.cache import cache
 
         team_side = request.query_params.get("team_side")
+        
+        # Cache reactions for 30 seconds (list changes frequently but not instantly)
+        cache_key = f"mic_reactions_{match_id}_{team_side or 'all'}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
+        qs = MicReaction.objects.filter(match_id=match_id, is_active=True).select_related("user")
+
         if team_side:
             qs = qs.filter(team_side=team_side)
 
-        return Response(MicReactionSerializer(qs, many=True).data)
+        data = MicReactionSerializer(qs, many=True).data
+        cache.set(cache_key, data, timeout=30)  # 30 seconds cache
+        
+        return Response(data)
 
 
 class MicMoodSummaryView(APIView):
     """GET /api/mic/<match_id>/mood-summary/ — asilimia za kila mood (Match Mood %)."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for mood summary
 
     def get(self, request, match_id):
+        from django.core.cache import cache
+
+        # Cache mood summary for 30 seconds (changes when new reactions are posted)
+        cache_key = f"mic_mood_summary_{match_id}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         reactions = MicReaction.objects.filter(match_id=match_id, is_active=True)
         total = reactions.count()
 
         if total == 0:
-            return Response({"total": 0, "breakdown": {}})
+            data = {"total": 0, "breakdown": {}}
+            cache.set(cache_key, data, timeout=30)
+            return Response(data)
 
         breakdown = {}
         for mood_key, _label in MicReaction._meta.get_field("mood").choices:
             count = reactions.filter(mood=mood_key).count()
             breakdown[mood_key] = round((count / total) * 100, 1)
 
-        return Response({"total": total, "breakdown": breakdown})
+        data = {"total": total, "breakdown": breakdown}
+        cache.set(cache_key, data, timeout=30)  # 30 seconds cache
+        
+        return Response(data)
 
 
 class MicReactionVoteView(APIView):

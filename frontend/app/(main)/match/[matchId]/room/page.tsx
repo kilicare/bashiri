@@ -6,6 +6,8 @@ import { getMatchDashboard } from "@/lib/api/predictions";
 import { useMatchRoomSocket } from "@/hooks/useMatchRoomSocket";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Send } from "lucide-react";
+import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
+import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
 
 export default function MatchRoomPage() {
   const params = useParams();
@@ -41,83 +43,68 @@ export default function MatchRoomPage() {
 
   if (roomState === "closed") {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
-        <p className="text-lg font-black text-white mb-2">Room Imefungwa</p>
-        <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
-          Mechi imekwisha. Angalia historia hapa chini (read-only).
-        </p>
-        <div className="w-full space-y-2 max-w-md">
-          {messages.map((m) => (
-            <div key={m.id} className="text-xs text-left">
-              <span className="font-bold text-white">@{m.username}: </span>
-              <span style={{ color: "rgba(255,255,255,0.5)" }}>{m.content}</span>
-            </div>
-          ))}
+      <DerbyThemeProvider matchId={matchId}>
+        <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
+          <p className="text-lg font-black text-white mb-2">Room Imefungwa</p>
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Mechi imekwisha. Angalia historia hapa chini (read-only).
+          </p>
+          <div className="w-full space-y-2 max-w-md">
+            {messages.map((m) => (
+              <div key={m.id} className="text-xs text-left">
+                <span className="font-bold text-white">@{m.username}: </span>
+                <span style={{ color: "rgba(255,255,255,0.5)" }}>{m.content}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </DerbyThemeProvider>
     );
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
-      <div className="px-5 pt-safe pt-6 pb-3 flex items-center justify-between">
-        <h1 className="text-lg font-black text-white">
-          {roomState === "watch_party" ? "🎉 Watch Party" : "💬 Match Room"}
-        </h1>
-        <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{
-          background: connected ? "rgba(0,255,135,0.1)" : "rgba(255,71,87,0.1)",
-          color: connected ? "#00FF87" : "#FF4757",
-        }}>
-          {connected ? "● Live" : "○ Inaunganisha..."}
-        </span>
-      </div>
+    <DerbyThemeProvider matchId={matchId}>
+      <div className="min-h-dvh flex flex-col">
+        <div className="px-5 pt-safe pt-6 pb-3 flex items-center justify-between">
+          <h1 className="text-lg font-black text-white">
+            {roomState === "watch_party" ? "🎉 Watch Party" : "💬 Match Room"}
+          </h1>
+          <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{
+            background: connected ? "rgba(0,255,135,0.1)" : "rgba(255,71,87,0.1)",
+            color: connected ? "#00FF87" : "#FF4757",
+          }}>
+            {connected ? "● Live" : "○ Inaunganisha..."}
+          </span>
+        </div>
 
-      <div className="px-5 flex gap-2 mb-3 overflow-x-auto">
-        {[
-          { label: "Overview", href: `/create/${matchId}/overview` },
-          { label: "Predict", href: `/create/${matchId}/predict` },
-          { label: "Room", href: `/match/${matchId}/room`, active: true },
-          { label: "Mic", href: `/match/${matchId}/mic` },
-        ].map((tab) => (
-          <button
-            key={tab.label}
-            onClick={() => router.push(tab.href)}
-            className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
-            style={{
-              background: tab.active ? "#00FF87" : "rgba(255,255,255,0.06)",
-              color: tab.active ? "#000" : "rgba(255,255,255,0.5)",
-            }}
-          >
-            {tab.label}
+        <MatchHubTabs matchId={matchId} active="room" />
+
+        {error && <p className="px-5 text-xs text-bashiri-red mb-2">{error}</p>}
+
+        <div className="flex-1 px-4 space-y-2 overflow-y-auto pb-2">
+          {messages.map((m: any) => (
+            <div key={m.id} className="text-sm">
+              <span className="font-bold" style={{ color: "#00FF87" }}>@{m.username}: </span>
+              <span className="text-white">{m.content}</span>
+            </div>
+          ))}
+          <div ref={scrollRef} />
+        </div>
+
+        <div className="px-4 py-3 pb-safe flex gap-2">
+          <input
+            className="flex-1 rounded-2xl px-4 py-3 text-sm text-white bg-[#151515] outline-none"
+            placeholder="Andika ujumbe..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            maxLength={200}
+          />
+          <button onClick={handleSend} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "#00FF87" }}>
+            <Send size={18} style={{ color: "#000" }} />
           </button>
-        ))}
+        </div>
       </div>
-
-      {error && <p className="px-5 text-xs text-bashiri-red mb-2">{error}</p>}
-
-      <div className="flex-1 px-4 space-y-2 overflow-y-auto pb-2">
-        {messages.map((m: any) => (
-          <div key={m.id} className="text-sm">
-            <span className="font-bold" style={{ color: "#00FF87" }}>@{m.username}: </span>
-            <span className="text-white">{m.content}</span>
-          </div>
-        ))}
-        <div ref={scrollRef} />
-      </div>
-
-      <div className="px-4 py-3 pb-safe flex gap-2">
-        <input
-          className="flex-1 rounded-2xl px-4 py-3 text-sm text-white bg-[#151515] outline-none"
-          placeholder="Andika ujumbe..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          maxLength={200}
-        />
-        <button onClick={handleSend} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "#00FF87" }}>
-          <Send size={18} style={{ color: "#000" }} />
-        </button>
-      </div>
-    </div>
+    </DerbyThemeProvider>
   );
 }

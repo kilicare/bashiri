@@ -16,35 +16,71 @@ from .services import UnknownTeamError, build_prediction_dashboard, head_to_head
 
 class FixturesView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for fixtures
 
     def get(self, request):
+        from django.core.cache import cache
+
+        # Cache fixtures for 2 minutes (match schedule changes infrequently)
+        cache_key = "fixtures_list"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         matches = (
             Match.objects.filter(status="SCHEDULED", kickoff_at__gte=timezone.now())
             .select_related("league", "home_team", "away_team").order_by("kickoff_at")[:100]
         )
-        return Response(MatchListSerializer(matches, many=True).data)
+        data = MatchListSerializer(matches, many=True).data
+        cache.set(cache_key, data, timeout=120)  # 2 minutes cache
+        
+        return Response(data)
 
 
 class LiveMatchesView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for live matches
 
     def get(self, request):
+        from django.core.cache import cache
+
+        # Cache live matches for 30 seconds (live status changes frequently)
+        cache_key = "live_matches"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         matches = Match.objects.filter(status="LIVE").select_related(
             "league", "home_team", "away_team"
         ).order_by("kickoff_at")
-        return Response(MatchListSerializer(matches, many=True).data)
+        data = MatchListSerializer(matches, many=True).data
+        cache.set(cache_key, data, timeout=30)  # 30 seconds cache
+        
+        return Response(data)
 
 
 class FinishedMatchesView(APIView):
     """GET /finished/ — mechi zilizoisha (kama Sofascore)"""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for finished matches
 
     def get(self, request):
+        from django.core.cache import cache
+
         # Get query params for pagination and filtering
         limit = int(request.query_params.get("limit", 20))
         offset = int(request.query_params.get("offset", 0))
         league_code = request.query_params.get("league", None)
         team_name = request.query_params.get("team", None)
+
+        # Cache key based on filters (shorter cache for filtered queries)
+        cache_key = f"finished_matches_{limit}_{offset}_{league_code or 'all'}_{team_name or 'all'}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
 
         # Base query for finished matches
         matches = Match.objects.filter(status="FINISHED").select_related(
@@ -68,26 +104,42 @@ class FinishedMatchesView(APIView):
         total = matches.count()
         matches = matches[offset:offset + limit]
 
-        return Response({
+        data = {
             "count": total,
             "results": MatchListSerializer(matches, many=True).data
-        })
+        }
+        cache.set(cache_key, data, timeout=60)  # 1 minute cache
+        
+        return Response(data)
 
 
 class MatchOverviewView(APIView):
     """GET /matches/{id}/overview/ — Hatua 2 ya Create Prediction: H2H + form, BILA masoko bado."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for match overview
 
     def get(self, request, match_id):
+        from django.core.cache import cache
+
+        # Cache overview for 2 minutes (match data changes infrequently)
+        cache_key = f"match_overview_{match_id}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         match = get_object_or_404(
             Match.objects.select_related("league", "home_team", "away_team"), pk=match_id
         )
-        return Response({
+        data = {
             "match": MatchListSerializer(match).data,
             "home_form": team_form(match.home_team_id, exclude_match_id=match.id),
             "away_form": team_form(match.away_team_id, exclude_match_id=match.id),
             "head_to_head": head_to_head(match.home_team_id, match.away_team_id),
-        })
+        }
+        cache.set(cache_key, data, timeout=120)  # 2 minutes cache
+        
+        return Response(data)
 
 
 class MatchDashboardView(APIView):
@@ -158,40 +210,77 @@ class SavedMatchesListView(APIView):
 class LeagueListView(APIView):
     """GET /api/predictions/leagues/ — kwa Settings/leagues page."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for static league data
 
     def get(self, request):
+        from django.core.cache import cache
         from .models import League
         from .serializers import LeagueSerializer
 
+        # Cache leagues for 1 hour (static data rarely changes)
+        cache_key = "leagues_list"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         leagues = League.objects.filter(is_active=True)
-        return Response(LeagueSerializer(leagues, many=True).data)
+        data = LeagueSerializer(leagues, many=True).data
+        cache.set(cache_key, data, timeout=3600)  # 1 hour cache
+        
+        return Response(data)
 
 
 class TeamListView(APIView):
     """GET /api/predictions/teams/?league=EPL — kwa Settings/teams page."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for static team data
 
     def get(self, request):
+        from django.core.cache import cache
         from .models import Team
         from .serializers import TeamSerializer
 
         league_code = request.query_params.get("league")
+        
+        # Cache teams for 1 hour (static data rarely changes)
+        cache_key = f"teams_list_{league_code or 'all'}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         qs = Team.objects.select_related("league").all()
         if league_code:
             qs = qs.filter(league__poisson_key=league_code)
-        return Response(TeamSerializer(qs.order_by("name"), many=True).data)
+        data = TeamSerializer(qs.order_by("name"), many=True).data
+        cache.set(cache_key, data, timeout=3600)  # 1 hour cache
+        
+        return Response(data)
 
 
 class ActiveDerbyView(APIView):
     """GET /api/predictions/active-derby/ — inarudisha derby inayoendelea sasa (null kama hakuna)."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for active derby
 
     def get(self, request):
+        from django.core.cache import cache
+
+        # Cache active derby for 1 minute (derby status changes infrequently)
+        cache_key = "active_derby"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
         now = timezone.now()
         derby = ActiveDerby.objects.filter(is_active=True, starts_at__lte=now, ends_at__gte=now).first()
 
         if not derby:
-            return Response({"active": False})
+            data = {"active": False}
+            cache.set(cache_key, data, timeout=60)
+            return Response(data)
 
         data = ActiveDerbySerializer(derby).data
         data["active"] = True
@@ -199,4 +288,6 @@ class ActiveDerbyView(APIView):
         # Derby Hub extra data — H2H kati ya timu hizi mbili
         data["head_to_head"] = head_to_head(derby.home_team_id, derby.away_team_id, n=10)
 
+        cache.set(cache_key, data, timeout=60)  # 1 minute cache
+        
         return Response(data)

@@ -11,6 +11,16 @@ def calculate_card_score(card, user) -> int:
     if card.match_id and getattr(card.match, "is_big_match", False):
         score += BIG_MATCH_BONUS
 
+    # Derby bonus — card za mechi zilizo sehemu ya ActiveDerby zinapewa kipaumbele
+    if card.match_id:
+        from predictions.models import ActiveDerby
+
+        is_derby_match = ActiveDerby.objects.filter(
+            match_id=card.match_id, is_active=True
+        ).exists()
+        if is_derby_match:
+            score += 25
+
     if user and user.is_authenticated and card.match_id:
         favorite_team_ids = set(user.favorite_teams.values_list("id", flat=True))
         if favorite_team_ids and (

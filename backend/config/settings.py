@@ -116,6 +116,21 @@ CLOUDINARY_STORAGE = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ============================================================
+# CACHES — Redis-based caching for static data
+# ============================================================
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config("REDIS_URL", default="redis://redis:6379/2"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "bashiri",
+        "TIMEOUT": 3600,  # Default 1 hour
+    }
+}
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -241,7 +256,7 @@ BASHIRI = {
     ),
 
     "MIC_POSTING_WINDOW_HOURS": 24,
-    "MIC_MAX_VIDEO_SECONDS": 20,
+    "MIC_MAX_VIDEO_SECONDS": 30,
 }
 
 # ============================================================
@@ -252,6 +267,8 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [config("CHANNELS_REDIS_URL", default="redis://redis:6379/1")],
+            "capacity": 1500,
+            "expiry": 10,
         },
     },
 }

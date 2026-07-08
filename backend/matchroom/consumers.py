@@ -7,6 +7,7 @@ anajiunga na "group" ya Channels. Ujumbe wowote unaotumwa unasambazwa
 """
 import json
 import time
+import asyncio
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -15,6 +16,18 @@ from .moderation import contains_banned_words
 
 RATE_LIMIT_SECONDS = 3
 MAX_MESSAGE_LENGTH = 200
+
+
+async def retry_redis_operation(operation, max_retries=3, delay=1):
+    """Retry Redis operations with exponential backoff"""
+    for attempt in range(max_retries):
+        try:
+            return await operation()
+        except Exception as e:
+            if "timeout" in str(e).lower() and attempt < max_retries - 1:
+                await asyncio.sleep(delay * (2 ** attempt))
+                continue
+            raise
 
 
 class MatchRoomConsumer(AsyncWebsocketConsumer):
@@ -30,22 +43,22 @@ class MatchRoomConsumer(AsyncWebsocketConsumer):
 
         self.user = user
 
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await retry_redis_operation(lambda: self.channel_layer.group_add(self.room_group_name, self.channel_name))
         await self.accept()
 
-        await self.channel_layer.group_send(
+        await retry_redis_operation(lambda: self.channel_layer.group_send(
             self.room_group_name,
             {"type": "presence_update", "action": "join", "username": user.username},
-        )
+        ))
 
     async def disconnect(self, close_code):
         if hasattr(self, "room_group_name"):
-            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+            await retry_redis_operation(lambda: self.channel_layer.group_discard(self.room_group_name, self.channel_name))
             if hasattr(self, "user") and self.user.is_authenticated:
-                await self.channel_layer.group_send(
+                await retry_redis_operation(lambda: self.channel_layer.group_send(
                     self.room_group_name,
                     {"type": "presence_update", "action": "leave", "username": self.user.username},
-                )
+                ))
 
     async def receive(self, text_data):
         if not hasattr(self, "user") or not self.user.is_authenticated:
@@ -78,10 +91,10 @@ class MatchRoomConsumer(AsyncWebsocketConsumer):
         self.last_message_time = now
         message = await self._save_message(self.user.id, self.match_id, content)
 
-        await self.channel_layer.group_send(
+        await retry_redis_operation(lambda: self.channel_layer.group_send(
             self.room_group_name,
             {"type": "chat_message", "message": message},
-        )
+        ))
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({"type": "message", "message": event["message"]}))

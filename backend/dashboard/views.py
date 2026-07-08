@@ -579,6 +579,19 @@ class AdminResolveDebateView(APIView):
         return Response(AdminCardSerializer(card).data)
 
 
+class AdminDeleteDebateView(APIView):
+    """DELETE /api/dashboard/debates/{card_id}/ — admin anafuta debate card."""
+    permission_classes = [IsBashiriAdmin]
+
+    def delete(self, request, card_id):
+        card = get_object_or_404(Card, pk=card_id, type="DEBATE")
+        question = card.data.get("question", "Unknown")
+        card.delete()
+
+        _log_action(request.user, "DELETE_CARD", f"Debate Card #{card_id}", {"question": question})
+        return Response({"detail": "Debate imefutwa kikamilifu."}, status=status.HTTP_204_NO_CONTENT)
+
+
 class AdminMatchRoomMessageHideView(APIView):
     permission_classes = [IsBashiriAdmin]
 

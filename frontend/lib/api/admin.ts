@@ -62,6 +62,10 @@ export function getUserPredictions(id: number) {
   return adminFetch(`/dashboard/users/${id}/predictions/`);
 }
 
+export function getTeams() {
+  return adminFetch("/dashboard/teams/");
+}
+
 export function getMatches(params: { status?: string; league?: string } = {}) {
   const query = new URLSearchParams(params as Record<string, string>);
   return adminFetch(`/dashboard/matches/?${query.toString()}`);
@@ -88,4 +92,65 @@ export function getMLStatus() {
 
 export function getActionLog() {
   return adminFetch("/dashboard/action-log/");
+}
+
+// ============================================================
+// LOCAL DERBY MODE MANAGEMENT
+// ============================================================
+export function getDerbies() {
+  return adminFetch("/dashboard/derbies/");
+}
+export function createDerby(payload: {
+  home_team: number;
+  away_team: number;
+  match?: number | null;
+  derby_name: string;
+  starts_at: string;
+  ends_at: string;
+  theme_accent_color: string;
+  banner_text: string;
+}) {
+  return adminFetch("/dashboard/derbies/", { method: "POST", body: JSON.stringify(payload) });
+}
+export function updateDerby(id: number, payload: any) {
+  return adminFetch(`/dashboard/derbies/${id}/`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+// ============================================================
+// DEBATE CARD MANAGEMENT
+// ============================================================
+export function createDebate(payload: {
+  question: string;
+  options: string[];
+  closes_in_hours: number;
+  match_id?: number | null;
+}) {
+  return adminFetch("/dashboard/debates/", { method: "POST", body: JSON.stringify(payload) });
+}
+export function resolveDebate(cardId: number, result: string) {
+  return adminFetch(`/dashboard/debates/${cardId}/resolve/`, { method: "POST", body: JSON.stringify({ result }) });
+}
+export function deleteDebate(cardId: number) {
+  return adminFetch(`/dashboard/debates/${cardId}/`, { method: "DELETE" });
+}
+export function getCards(type?: string) {
+  const q = type ? `?type=${type}` : "";
+  return adminFetch(`/dashboard/cards/${q}`);
+}
+
+// ============================================================
+// MATCH ROOM MODERATION
+// ============================================================
+export function hideRoomMessage(messageId: number) {
+  return adminFetch(`/dashboard/matchroom-messages/${messageId}/hide/`, { method: "PATCH" });
+}
+
+// ============================================================
+// BASHIRI MIC MODERATION
+// ============================================================
+export function getMicReactionsAdmin() {
+  return adminFetch("/dashboard/mic-reactions/");
+}
+export function toggleMicReactionActive(reactionId: number) {
+  return adminFetch(`/dashboard/mic-reactions/${reactionId}/toggle/`, { method: "PATCH" });
 }
