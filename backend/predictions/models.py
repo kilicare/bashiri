@@ -1,0 +1,118 @@
+"""
+predictions/models.py
+
+MUHIMU: League.poisson_key LAZIMA iendane EXACTLY na keys za
+bashiri_prediction_models.json: "EPL", "LaLiga", "Bundesliga", "Ligue1".
+Team.name LAZIMA iendane EXACTLY na majina ya football-data.org (ndio
+maana Team hazitengenezwi kwa mkono — sync_football_data inazitengeneza).
+"""
+from django.conf import settings
+from django.db import models
+
+
+class League(models.Model):
+    code = models.CharField(max_length=10, unique=True, help_text="Kodi ya football-data.org: PL, PD, BL1, FL1")
+    name = models.CharField(max_length=100)
+    poisson_key = models.CharField(max_length=30, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "predictions_league"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Team(models.Model):
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name="teams")
+    name = models.CharField(max_length=150)
+    crest_url = models.URLField(max_length=500, blank=True, default="")
+    external_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+
+    class Meta:
+        db_table = "predictions_team"
+        unique_together = ["league", "name"]
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Match(models.Model):
+    STATUS_CHOICES = [
+        ("SCHEDULED", "Scheduled"),
+        ("LIVE", "Live"),
+        ("FINISHED", "Finished"),
+        ("POSTPONED", "Postponed"),
+        ("CANCELLED", "Cancelled"),
+    ]
+
+    external_id = models.PositiveIntegerField(unique=True)
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name="matches")
+    home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="home_matches")
+    away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="away_matches")
+    kickoff_at = models.DateTimeField(db_index=True)
+    matchday = models.PositiveSmallIntegerField(null=True, blank=True)
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="SCHEDULED")
+    home_score = models.PositiveSmallIntegerField(null=True, blank=True)
+    away_score = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_big_match = models.BooleanField(
+        default=False,
+        help_text="Weka True kwa mkono (derby, top-of-table) — inaongeza bonus ya score kwenye Feed ranking, SI card type tofauti.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "predictions_match"
+        ordering = ["kickoff_at"]
+
+    def __str__(self):
+        return f"{self.home_team} vs {self.away_team} ({self.kickoff_at:%Y-%m-%d})"
+
+    @property
+    def is_finished(self):
+        return self.status == "FINISHED"
+
+
+class SavedMatch(models.Model):
+    """'💾 Save Match' — BURE kwa mtumiaji yeyote aliye-login."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="saved_matches")
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="saved_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "predictions_savedmatch"
+        unique_together = ["user", "match"]
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} saved {self.match}"
+
+
+class ActiveDerby(models.Model):
+    """Config ya 'Derby Week' — admin anaiweka kwa mkono kwa mechi maalum."""
+    home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="derby_home")
+    away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="derby_away")
+    match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True, related_name="derby_config")
+    derby_name = models.CharField(max_length=100, help_text="mfano: 'Kariakoo Derby'")
+    starts_at = models.DateTimeField(help_text="Wakati Derby Mode inaanza kuonekana (kawaida masaa 48 kabla ya kickoff)")
+    ends_at = models.DateTimeField(help_text="Wakati Derby Mode inaisha (kawaida masaa 2 baada ya FT)")
+    theme_accent_color = models.CharField(max_length=7, default="#FF4757", help_text="Hex color, mfano #FF4757")
+    banner_text = models.CharField(max_length=150, blank=True, default="")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "predictions_activederby"
+        ordering = ["-starts_at"]
+
+    def __str__(self):
+        return f"{self.derby_name}: {self.home_team} vs {self.away_team}"
+
+    @property
+    def is_currently_active(self):
+        from django.utils import timezone
+        now = timezone.now()
+        return self.is_active and self.starts_at <= now <= self.ends_at

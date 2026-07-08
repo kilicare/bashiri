@@ -1,0 +1,41 @@
+"use client";
+import { useState } from "react";
+import { voteOnPoll } from "@/lib/api/feed";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+
+export function PollCard({ cardId, data }: { cardId: number; data: any }) {
+  const [tallies, setTallies] = useState(data.tallies || {});
+  const [voted, setVoted] = useState(false);
+  const total = Object.values(tallies).reduce((a: number, b: any) => a + b, 0) as number;
+
+  async function handleVote(choice: string) {
+    if (voted) return;
+    try {
+      await voteOnPoll(cardId, choice);
+      setTallies((prev: any) => ({ ...prev, [choice]: (prev[choice] || 0) + 1 }));
+      setVoted(true);
+    } catch {}
+  }
+
+  return (
+    <div className="rounded-3xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <span className="text-[10px] font-black uppercase tracking-widest mb-3 block" style={{ color: "#FFD600" }}>Poll</span>
+      <p className="text-sm font-bold text-white mb-4">{data.question}</p>
+      <div className="space-y-2">
+        {data.options.map((opt: string) => {
+          const count = tallies[opt] || 0;
+          const pct = total > 0 ? count / total : 0;
+          return (
+            <button key={opt} onClick={() => handleVote(opt)} className="w-full text-left" disabled={voted}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-white">{opt}</span>
+                {voted && <span className="text-xs font-bold" style={{ color: "#00FF87" }}>{Math.round(pct * 100)}%</span>}
+              </div>
+              {voted && <ProgressBar value={pct} />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

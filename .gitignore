@@ -1,0 +1,36 @@
+# ==== Python / Django (backend) ====
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/*.so
+backend/venv/
+backend/.venv/
+backend/*.egg-info/
+backend/*.log
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/local_settings.py
+backend/predictions/ml/data/*.json
+backend/predictions/ml/data/*.pkl
+!backend/predictions/ml/data/.gitkeep
+
+# ==== Node / Next.js (frontend) ====
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# ==== Env files (zote mbili) ====
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env.local
+
+# ==== IDE / OS ====
+.vscode/
+.idea/
+.DS_Store
