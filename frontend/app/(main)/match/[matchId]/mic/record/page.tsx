@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useMediaRecorder } from "@/hooks/useMediaRecorder";
-import { MoodSelector } from "@/components/mic/MoodSelector";
 import { BashiriButton } from "@/components/ui/Button";
 import { getUploadSignature, uploadVideoToCloudinary, createMicReaction } from "@/lib/api/mic";
 import { Upload, Video, X, Camera } from "lucide-react";
+
+const MoodSelector = dynamic(() => import("@/components/mic/MoodSelector"), { ssr: false });
 
 export default function MicRecordPage() {
   const router = useRouter();

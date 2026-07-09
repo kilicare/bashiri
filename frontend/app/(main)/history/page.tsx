@@ -47,7 +47,7 @@ export default function HistoryPage() {
   return (
     <div>
       <div className="px-5 pt-safe pt-6 pb-4 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2">
+        <button onClick={() => router.back()} className="p-2" aria-label="Rudi nyuma">
           <ChevronLeft size={24} style={{ color: "rgba(255,255,255,0.6)" }} />
         </button>
         <h1 className="text-2xl font-black text-white">Historia ya Predictions</h1>

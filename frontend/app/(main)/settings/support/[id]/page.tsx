@@ -44,7 +44,7 @@ export default function SupportTicketThreadPage() {
   return (
     <div className="min-h-dvh flex flex-col">
       <div className="px-5 pt-safe pt-6 pb-3 flex items-center gap-3">
-        <button onClick={() => router.back()}><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
+        <button onClick={() => router.back()} aria-label="Rudi nyuma"><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
         <div className="flex-1">
           <h1 className="text-base font-black text-white">{ticket.subject}</h1>
           <span className="text-[10px] font-bold" style={{ color: STATUS_COLORS[ticket.status] }}>{ticket.status}</span>
@@ -81,7 +81,7 @@ export default function SupportTicketThreadPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
           />
-          <button onClick={handleSend} disabled={sending} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "#00FF87" }}>
+          <button onClick={handleSend} disabled={sending} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "#00FF87" }} aria-label="Tuma ujumbe">
             <Send size={18} style={{ color: "#000" }} />
           </button>
         </div>

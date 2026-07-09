@@ -9,6 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.cache_utils import cache_response
+
 from .models import ActiveDerby, Match, SavedMatch
 from .serializers import ActiveDerbySerializer, MatchListSerializer, SavedMatchSerializer
 from .services import UnknownTeamError, build_prediction_dashboard, head_to_head, team_form
@@ -212,23 +214,13 @@ class LeagueListView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = []  # Disable throttling for static league data
 
+    @cache_response("leagues", timeout=3600)  # saa 1 — ligi hazibadiliki mara kwa mara
     def get(self, request):
-        from django.core.cache import cache
         from .models import League
         from .serializers import LeagueSerializer
 
-        # Cache leagues for 1 hour (static data rarely changes)
-        cache_key = "leagues_list"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data is not None:
-            return Response(cached_data)
-
         leagues = League.objects.filter(is_active=True)
-        data = LeagueSerializer(leagues, many=True).data
-        cache.set(cache_key, data, timeout=3600)  # 1 hour cache
-        
-        return Response(data)
+        return Response(LeagueSerializer(leagues, many=True).data)
 
 
 class TeamListView(APIView):
@@ -236,27 +228,16 @@ class TeamListView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = []  # Disable throttling for static team data
 
+    @cache_response("teams", timeout=3600)  # saa 1 — timu hazibadiliki mara kwa mara
     def get(self, request):
-        from django.core.cache import cache
         from .models import Team
         from .serializers import TeamSerializer
 
         league_code = request.query_params.get("league")
-        
-        # Cache teams for 1 hour (static data rarely changes)
-        cache_key = f"teams_list_{league_code or 'all'}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data is not None:
-            return Response(cached_data)
-
         qs = Team.objects.select_related("league").all()
         if league_code:
             qs = qs.filter(league__poisson_key=league_code)
-        data = TeamSerializer(qs.order_by("name"), many=True).data
-        cache.set(cache_key, data, timeout=3600)  # 1 hour cache
-        
-        return Response(data)
+        return Response(TeamSerializer(qs.order_by("name"), many=True).data)
 
 
 class ActiveDerbyView(APIView):

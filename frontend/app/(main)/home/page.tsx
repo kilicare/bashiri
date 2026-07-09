@@ -46,7 +46,10 @@ export default function HomePage() {
           <span className="text-white">BASHIRI</span>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD54A] to-[#FFB300]">.AI</span>
         </h1>
-        <button className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all duration-300 hover:scale-110">
+        <button 
+          className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all duration-300 hover:scale-110"
+          aria-label="Tafuta"
+        >
           <Search size={20} className="text-white/60" />
         </button>
       </div>

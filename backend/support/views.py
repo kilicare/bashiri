@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .models import ContentReport, SupportMessage, SupportTicket
@@ -82,6 +83,8 @@ class SupportTicketReplyView(APIView):
 class ContentReportCreateView(APIView):
     """POST /api/support/reports/ — body: {content_type, object_id, reason, note}"""
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "content_report"
 
     def post(self, request):
         serializer = ContentReportSerializer(data=request.data)

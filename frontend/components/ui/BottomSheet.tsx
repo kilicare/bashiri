@@ -34,7 +34,11 @@ export function BottomSheet({ isOpen, onClose, title, children }: Props) {
             <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-2" style={{ background: "rgba(255,255,255,0.2)" }} />
             <div className="flex items-center justify-between px-5 pt-2 pb-3">
               {title && <h2 className="text-lg font-black text-white">{title}</h2>}
-              <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center ml-auto bg-white/5">
+              <button 
+                onClick={onClose} 
+                className="w-8 h-8 rounded-xl flex items-center justify-center ml-auto bg-white/5"
+                aria-label="Funga"
+              >
                 <X size={16} style={{ color: "rgba(255,255,255,0.5)" }} />
               </button>
             </div>

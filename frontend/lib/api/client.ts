@@ -1,6 +1,6 @@
 /**
  * lib/api/client.ts
- * Fetch wrapper yenye JWT attach + auto-refresh kwenye 401.
+ * Fetch wrapper yenye JWT attach + auto-refresh HALISI kwenye 401.
  */
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -11,24 +11,45 @@ interface ApiOptions extends RequestInit {
   skipContentType?: boolean;
 }
 
+let refreshPromise: Promise<string | null> | null = null;
+
 async function refreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise; // epuka refresh nyingi zinazoshindana
+
   const refresh = useAuthStore.getState().refresh;
   if (!refresh) return null;
 
-  const res = await fetch(`${API_BASE_URL}/auth/verify-otp/refresh-placeholder/`, {
-    method: "POST",
-  }).catch(() => null);
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh }),
+      });
+      if (!res.ok) {
+        useAuthStore.getState().logout();
+        return null;
+      }
+      const data = await res.json();
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        useAuthStore.getState().setSession(data.access, refresh, currentUser);
+      }
+      return data.access as string;
+    } catch {
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
 
-  // simplejwt haitoi refresh endpoint ya kawaida hapa — tunatumia
-  // rest_framework_simplejwt.views badala yake (ongeza kwenye backend
-  // ukihitaji /api/auth/token/refresh/). Kwa sasa: tokens za siku 7,
-  // mtumiaji ata-re-login kwa OTP baada ya kuisha (acceptable kwa MVP).
-  return null;
+  return refreshPromise;
 }
 
 export async function apiClient<T = any>(
   endpoint: string,
-  options: ApiOptions = {}
+  options: ApiOptions = {},
+  _isRetry = false
 ): Promise<T> {
   const { skipAuth, skipContentType, headers, ...rest } = options;
   const token = useAuthStore.getState().access;
@@ -50,8 +71,11 @@ export async function apiClient<T = any>(
     headers: finalHeaders,
   });
 
-  if (res.status === 401 && !skipAuth) {
-    useAuthStore.getState().logout();
+  if (res.status === 401 && !skipAuth && !_isRetry) {
+    const newAccess = await refreshAccessToken();
+    if (newAccess) {
+      return apiClient<T>(endpoint, options, true); // jaribu MARA MOJA tena
+    }
     throw new Error("Session imeisha. Ingia tena.");
   }
 

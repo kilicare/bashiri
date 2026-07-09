@@ -21,6 +21,7 @@ function DerbyCard({ derby, index, countdown }: { derby: ActiveDerby; index: num
     <motion.button
       onClick={() => router.push("/derby")}
       className="w-full mx-4 mb-4 rounded-3xl p-5 text-left"
+      aria-label={`Nenda kwenye derby: ${derby.home_team_detail?.name} vs ${derby.away_team_detail?.name}`}
       style={{
         background: `linear-gradient(135deg, ${derby.theme_accent_color}22, #0A0A0A)`,
         border: `1px solid ${derby.theme_accent_color}55`,

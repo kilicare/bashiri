@@ -149,6 +149,7 @@ REST_FRAMEWORK = {
         "anon": "100/hour",
         "user": "1000/hour",
         "otp": "5/minute",
+        "content_report": "10/hour",
     },
 }
 
@@ -177,6 +178,13 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": config("CACHE_REDIS_URL", default="redis://redis:6379/2"),
+    }
+}
 
 FOOTBALL_DATA_API_KEY = config("FOOTBALL_DATA_API_KEY", default="")
 GROQ_API_KEY = config("GROQ_API_KEY", default="")

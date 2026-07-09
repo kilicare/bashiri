@@ -27,7 +27,7 @@ export default function LanguageSettingsPage() {
   return (
     <div>
       <div className="px-5 pt-safe pt-6 pb-4 flex items-center gap-3">
-        <button onClick={() => router.back()}><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
+        <button onClick={() => router.back()} aria-label="Rudi nyuma"><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
         <h1 className="text-xl font-black text-white">Lugha</h1>
       </div>
 

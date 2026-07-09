@@ -107,7 +107,7 @@ export default function MatchRoomPage() {
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             maxLength={200}
           />
-          <button onClick={handleSend} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "#00FF87" }}>
+          <button onClick={handleSend} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "#00FF87" }} aria-label="Tuma ujumbe">
             <Send size={18} style={{ color: "#000" }} />
           </button>
         </div>

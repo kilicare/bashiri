@@ -52,6 +52,7 @@ export function BottomNav() {
           className="w-14 h-14 rounded-2xl flex items-center justify-center -mt-6 mx-2 shrink-0"
           style={{ background: "#00FF87", boxShadow: "0 8px 25px rgba(0,255,135,0.5)" }}
           whileTap={{ scale: 0.9 }}
+          aria-label="Unda ubashiri mpya"
         >
           <Plus size={26} strokeWidth={2.8} style={{ color: "#051006" }} />
         </motion.button>

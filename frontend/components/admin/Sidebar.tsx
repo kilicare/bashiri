@@ -60,10 +60,14 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
         {/* Mobile Close Button */}
         <div className="md:hidden flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <h1 className="text-lg font-black" style={{ color: "#00FF87" }}>BASHIRI ADMIN</h1>
-          <button onClick={() => {
-            console.log('Close button clicked');
-            if (onClose) onClose();
-          }} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+          <button 
+            onClick={() => {
+              console.log('Close button clicked');
+              if (onClose) onClose();
+            }} 
+            className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"
+            aria-label="Funga menyu"
+          >
             <X size={18} className="text-white/60" />
           </button>
         </div>
