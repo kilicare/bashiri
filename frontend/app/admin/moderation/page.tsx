@@ -30,7 +30,7 @@ export default function AdminModerationPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-black text-white mb-4">Content Moderation</h1>
       <div className="flex gap-2 mb-6">
         {(["mic", "user-predictions", "reports"] as const).map((t) => (

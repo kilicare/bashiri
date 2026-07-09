@@ -42,7 +42,7 @@ export default function SupportTicketThreadPage() {
   if (!ticket) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="max-w-2xl mx-auto min-h-dvh flex flex-col">
       <div className="px-5 pt-safe pt-6 pb-3 flex items-center gap-3">
         <button onClick={() => router.back()} aria-label="Rudi nyuma"><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
         <div className="flex-1">

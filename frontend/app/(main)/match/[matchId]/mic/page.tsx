@@ -92,9 +92,9 @@ export default function BashiriMicPage() {
           ))}
         </div>
 
-        <div className="px-4 space-y-4">
+        <div className="px-4 md:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {reactions.length === 0 ? (
-            <p className="text-center text-sm py-10" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="col-span-full text-center text-sm py-10" style={{ color: "rgba(255,255,255,0.4)" }}>
               Hakuna reactions bado. {canPostNow && "Kuwa wa kwanza kupost!"}
             </p>
           ) : (

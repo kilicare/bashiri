@@ -33,7 +33,7 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
-      <div className="px-4 space-y-2">
+      <div className="max-w-2xl mx-auto px-4 space-y-2">
         {loading ? [1, 2, 3].map((i) => <CardSkeleton key={i} />) : results.map((r) => (
           <div key={r.rank} className="rounded-2xl p-4 flex items-center gap-3" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
             <span className="text-lg w-8">{r.rank <= 3 ? MEDALS[r.rank - 1] : `#${r.rank}`}</span>

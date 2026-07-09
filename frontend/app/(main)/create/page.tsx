@@ -26,14 +26,14 @@ export default function CreatePredictionStep1() {
         <h1 className="text-2xl font-black text-white">Chagua Mechi</h1>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Anza prediction yako ya AI</p>
       </div>
-      <div className="px-4 space-y-5">
+      <div className="px-4 md:px-6 lg:px-8 space-y-5">
         {loading ? (
           [1, 2].map((i) => <CardSkeleton key={i} />)
         ) : (
           Object.entries(grouped).map(([league, leagueMatches]) => (
             <div key={league}>
               <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{league}</p>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {leagueMatches.map((m) => (
                   <button
                     key={m.id}

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getActiveDerby, ActiveDerby } from "@/lib/api/derby";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 
@@ -15,20 +15,28 @@ const HUB_ITEMS = [
 
 export default function DerbyHubPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [derby, setDerby] = useState<ActiveDerby | null>(null);
 
   useEffect(() => {
     getActiveDerby().then((data) => {
       if (data.active && data.derbies.length > 0) {
-        setDerby(data.derbies[0]);
+        // Get derby ID from URL query parameter, or use the first one
+        const derbyId = searchParams.get("id");
+        const selectedDerby = derbyId
+          ? data.derbies.find(d => d.id === Number(derbyId))
+          : data.derbies[0];
+        if (selectedDerby) {
+          setDerby(selectedDerby);
+        }
       }
     });
-  }, []);
+  }, [searchParams]);
 
   if (!derby) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
 
   return (
-    <div style={{ background: `linear-gradient(180deg, ${derby.theme_accent_color}15, #0A0A0A 40%)` }} className="min-h-dvh">
+    <div className="max-w-4xl mx-auto min-h-dvh" style={{ background: `linear-gradient(180deg, ${derby.theme_accent_color}15, #0A0A0A 40%)` }}>
       <div className="px-5 pt-safe pt-6 pb-6 text-center">
         <p className="text-sm font-black uppercase tracking-widest mb-2" style={{ color: derby.theme_accent_color }}>
           🔥 {derby.derby_name} 🔥
@@ -40,7 +48,7 @@ export default function DerbyHubPage() {
         </div>
       </div>
 
-      <div className="px-4 grid grid-cols-2 gap-3 pointer-events-auto">
+      <div className="px-4 md:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-3 gap-3 pointer-events-auto">
         {HUB_ITEMS.map((item) => (
           <button
             key={item.key}
@@ -50,9 +58,9 @@ export default function DerbyHubPage() {
                 return;
               }
               if (item.key === "room") {
-                router.push(`/match/${derby.match_id}/room`);
+                router.push(`/match/${derby.match_id}/room?derbyId=${derby.id}`);
               } else {
-                router.push(`/match/${derby.match_id}/overview?tab=${item.key}`);
+                router.push(`/match/${derby.match_id}/overview?tab=${item.key}&derbyId=${derby.id}`);
               }
             }}
             className="rounded-2xl p-4 text-center cursor-pointer hover:scale-105 transition-transform pointer-events-auto"

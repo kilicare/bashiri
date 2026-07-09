@@ -77,46 +77,48 @@ export default function MatchesPage() {
         </div>
       </div>
 
-      <div className="px-4 space-y-3">
-        {loading ? (
-          [1, 2, 3].map((i) => <CardSkeleton key={i} />)
-        ) : matches.length === 0 ? (
-          <p className="text-center text-sm py-10" style={{ color: "rgba(255,255,255,0.4)" }}>Hakuna mechi kwa sasa.</p>
-        ) : (
-          matches.map((m, index) => (
-            <motion.div
-              key={m.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <GlassCard hover className="p-4">
-                <button
-                  onClick={() => router.push(`/create/${m.id}/overview`)}
-                  className="w-full flex items-center justify-between"
-                >
-                  <div className="text-left">
-                    <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{m.league.name}</p>
-                    <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
-                  </div>
-                  {m.status === "LIVE" ? (
-                    <span className="text-sm font-black" style={{ color: "#00FF87" }}>{m.home_score}-{m.away_score}</span>
-                  ) : m.status === "FINISHED" ? (
-                    <span className="text-sm font-black text-white">{m.home_score}-{m.away_score}</span>
-                  ) : (
-                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                      {new Date(m.kickoff_at).toLocaleDateString("sw-TZ", { day: "numeric", month: "short" })}
-                    </span>
-                  )}
-                </button>
-              </GlassCard>
-            </motion.div>
-          ))
-        )}
+      <div className="px-4 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {loading ? (
+            [1, 2, 3].map((i) => <CardSkeleton key={i} />)
+          ) : matches.length === 0 ? (
+            <p className="col-span-full text-center text-sm py-10" style={{ color: "rgba(255,255,255,0.4)" }}>Hakuna mechi kwa sasa.</p>
+          ) : (
+            matches.map((m, index) => (
+              <motion.div
+                key={m.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <GlassCard hover className="p-4">
+                  <button
+                    onClick={() => router.push(`/create/${m.id}/overview`)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <div className="text-left">
+                      <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{m.league.name}</p>
+                      <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
+                    </div>
+                    {m.status === "LIVE" ? (
+                      <span className="text-sm font-black" style={{ color: "#00FF87" }}>{m.home_score}-{m.away_score}</span>
+                    ) : m.status === "FINISHED" ? (
+                      <span className="text-sm font-black text-white">{m.home_score}-{m.away_score}</span>
+                    ) : (
+                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {new Date(m.kickoff_at).toLocaleDateString("sw-TZ", { day: "numeric", month: "short" })}
+                      </span>
+                    )}
+                  </button>
+                </GlassCard>
+              </motion.div>
+            ))
+          )}
+        </div>
         {tab === "finished" && hasMore && !loading && (
           <button
             onClick={loadMoreFinished}
-            className="w-full py-3 text-sm font-bold rounded-2xl"
+            className="w-full py-3 text-sm font-bold rounded-2xl mt-4"
             style={{ color: "#00FF87", background: "rgba(0,255,135,0.06)" }}
           >
             Pakia Zaidi

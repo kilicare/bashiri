@@ -39,7 +39,7 @@ export default function NewSupportTicketPage() {
   }
 
   return (
-    <div className="px-5 pt-safe pt-6 pb-6">
+    <div className="max-w-md mx-auto px-5 pt-safe pt-6 pb-6">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} aria-label="Rudi nyuma"><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
         <h1 className="text-xl font-black text-white">Ticket Mpya</h1>

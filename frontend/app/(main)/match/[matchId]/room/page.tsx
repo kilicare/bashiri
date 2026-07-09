@@ -48,12 +48,12 @@ export default function MatchRoomPage() {
   if (roomState === "closed") {
     return (
       <DerbyThemeProvider matchId={matchId}>
-        <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
+        <div className="max-w-2xl mx-auto min-h-dvh flex flex-col items-center justify-center px-6 text-center">
           <p className="text-lg font-black text-white mb-2">Room Imefungwa</p>
           <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
             Mechi imekwisha. Angalia historia hapa chini (read-only).
           </p>
-          <div className="w-full space-y-2 max-w-md">
+          <div className="w-full space-y-2">
             {messages.map((m) => (
               <div key={m.id} className="text-xs text-left">
                 <span className="font-bold text-white">@{m.username}: </span>
@@ -68,7 +68,7 @@ export default function MatchRoomPage() {
 
   return (
     <DerbyThemeProvider matchId={matchId}>
-      <div className="min-h-dvh flex flex-col">
+      <div className="max-w-2xl mx-auto min-h-dvh flex flex-col">
         <div className="px-5 pt-safe pt-6 pb-3 flex items-center justify-between">
           <h1 className="text-lg font-black text-white">
             {roomState === "watch_party" ? "🎉 Watch Party" : "💬 Match Room"}

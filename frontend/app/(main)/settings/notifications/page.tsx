@@ -47,7 +47,7 @@ export default function NotificationSettingsPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <div className="px-5 pt-safe pt-6 pb-4 flex items-center gap-3">
         <button onClick={() => router.back()} aria-label="Rudi nyuma"><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
         <h1 className="text-xl font-black text-white">Notifications</h1>

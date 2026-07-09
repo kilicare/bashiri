@@ -57,7 +57,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-dvh bg-[#050508] pb-24">
+    <div className="max-w-2xl mx-auto min-h-dvh bg-[#050508] pb-24">
       {/* Premium Header */}
       <div className="px-5 pt-safe pt-6 pb-4 animate-fadeIn">
         <h1 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
 
         {/* Stats Grid */}
         <motion.div 
-          className="grid grid-cols-2 gap-4"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}

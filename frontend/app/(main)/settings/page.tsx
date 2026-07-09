@@ -13,7 +13,7 @@ const SETTINGS_ITEMS = [
 export default function SettingsPage() {
   const router = useRouter();
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <div className="px-5 pt-safe pt-6 pb-4"><h1 className="text-2xl font-black text-white">Settings</h1></div>
       <div className="px-4 space-y-2">
         {SETTINGS_ITEMS.map((item) => (

@@ -17,7 +17,7 @@ export default function AdminSupportPage() {
   }, [statusFilter]);
 
   return (
-    <div>
+    <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-black text-white mb-4">Support Inbox</h1>
 
       <div className="flex gap-2 mb-4">

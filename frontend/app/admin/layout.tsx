@@ -15,7 +15,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!access && pathname !== "/admin/login") {
       router.push("/admin/login");
     }
-  }, [access, pathname, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [access, pathname]);
 
   // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {

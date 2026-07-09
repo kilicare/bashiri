@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import { getActiveDerby, ActiveDerby, ActiveDerbyResponse } from "@/lib/api/derby";
 
 interface Props {
@@ -13,13 +14,17 @@ interface Props {
  * tokens za msingi — ni overlay ya muda juu ya rangi za kawaida).
  */
 export function DerbyThemeProvider({ matchId, children }: Props) {
+  const searchParams = useSearchParams();
   const [derby, setDerby] = useState<ActiveDerby | null>(null);
 
   useEffect(() => {
     getActiveDerby().then((data: ActiveDerbyResponse) => {
       if (data.active && data.derbies.length > 0) {
-        // Find the derby that matches this matchId, or use the first one if no matchId provided
-        const matchingDerby = matchId
+        // Priority: 1) derbyId from URL, 2) matchId matching, 3) first derby
+        const derbyId = searchParams.get("derbyId");
+        const matchingDerby = derbyId
+          ? data.derbies.find(d => d.id === Number(derbyId))
+          : matchId
           ? data.derbies.find(d => d.match_id === matchId)
           : data.derbies[0];
         if (matchingDerby) {
@@ -27,7 +32,7 @@ export function DerbyThemeProvider({ matchId, children }: Props) {
         }
       }
     });
-  }, [matchId]);
+  }, [matchId, searchParams]);
 
   if (!derby) return <>{children}</>;
 

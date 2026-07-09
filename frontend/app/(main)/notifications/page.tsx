@@ -12,7 +12,7 @@ export default function NotificationsPage() {
   }, []);
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <div className="px-5 pt-safe pt-6 pb-4"><h1 className="text-2xl font-black text-white">Notifications</h1></div>
       <div className="px-4 space-y-2">
         {loading ? [1, 2].map((i) => <CardSkeleton key={i} />) : items.length === 0 ? (

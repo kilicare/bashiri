@@ -51,7 +51,7 @@ export default function PredictDashboardPage() {
 
   return (
     <DerbyThemeProvider matchId={matchId}>
-      <div className="px-5 pt-safe pt-6 pb-4">
+      <div className="max-w-2xl mx-auto px-5 pt-safe pt-6 pb-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-black text-white">
             {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}
@@ -69,7 +69,7 @@ export default function PredictDashboardPage() {
 
       <MatchHubTabs matchId={matchId} active="predict" />
 
-      <div className="px-5 pb-8">
+      <div className="max-w-2xl mx-auto px-5 pb-8">
         <div className="space-y-3">
           {dashboard.markets.map((market) => (
             <MarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />

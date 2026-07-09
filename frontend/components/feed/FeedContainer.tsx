@@ -50,21 +50,25 @@ export function FeedContainer() {
 
   if (loading) {
     return (
-      <div className="px-4 py-5 space-y-4">
-        {[1, 2, 3].map((i) => <CardSkeleton key={i} />)}
+      <div className="px-4 py-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => <CardSkeleton key={i} />)}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="px-4 py-5 space-y-4">
-      {cards.map((card) => (
-        <div key={card.id}>{renderCard(card)}</div>
-      ))}
+    <div className="px-4 py-5 md:px-6 lg:px-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cards.map((card) => (
+          <div key={card.id}>{renderCard(card)}</div>
+        ))}
+      </div>
       {hasMore && (
         <button
           onClick={() => loadMore()}
-          className="w-full py-3 text-sm font-bold rounded-2xl"
+          className="w-full py-3 text-sm font-bold rounded-2xl mt-4"
           style={{ color: "#00FF87", background: "rgba(0,255,135,0.06)" }}
         >
           Pakia Zaidi

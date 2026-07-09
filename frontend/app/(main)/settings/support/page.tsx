@@ -24,7 +24,7 @@ export default function SupportListPage() {
   }, []);
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <div className="px-5 pt-safe pt-6 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => router.back()} aria-label="Rudi nyuma"><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
