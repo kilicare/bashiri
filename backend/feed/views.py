@@ -25,7 +25,7 @@ class FeedListView(APIView):
 
     def get(self, request):
         user = request.user
-        since = timezone.now() - timedelta(minutes=FEED_WINDOW_DAYS)
+        since = timezone.now() - timedelta(days=FEED_WINDOW_DAYS)
 
         base_qs = Card.objects.filter(is_active=True, created_at__gte=since).select_related(
             "match", "match__home_team", "match__away_team", "match__league"
@@ -38,6 +38,16 @@ class FeedListView(APIView):
 
         cards = list(visible[:MAX_FEED_ITEMS])
         ranked = rank_cards(cards, user)
+
+        # Add user_vote for DEBATE/POLL cards if user is authenticated
+        if user and user.is_authenticated:
+            card_ids = [c.id for c in ranked if c.type in ("DEBATE", "POLL")]
+            if card_ids:
+                user_votes = PollVote.objects.filter(card_id__in=card_ids, user=user).select_related("card")
+                vote_map = {vote.card_id: vote.choice for vote in user_votes}
+                for card in ranked:
+                    if card.type in ("DEBATE", "POLL"):
+                        card.data["user_vote"] = vote_map.get(card.id)
 
         try:
             limit = int(request.query_params.get("limit", 20))
@@ -114,7 +124,11 @@ class PollVoteView(APIView):
         card.data["vote_count"] = card.data.get("vote_count", 0) + 1
         card.save(update_fields=["data"])
 
-        return Response(PollVoteSerializer(vote).data, status=status.HTTP_201_CREATED)
+        return Response({
+            "vote": PollVoteSerializer(vote).data,
+            "tallies": card.data["tallies"],
+            "vote_count": card.data["vote_count"],
+        }, status=status.HTTP_201_CREATED)
 
 
 class LeaderboardView(APIView):
@@ -194,4 +208,8 @@ class DebateVoteView(APIView):
         card.data["vote_count"] = card.data.get("vote_count", 0) + 1
         card.save(update_fields=["data"])
 
-        return Response(PollVoteSerializer(vote).data, status=status.HTTP_201_CREATED)
+        return Response({
+            "vote": PollVoteSerializer(vote).data,
+            "tallies": card.data["tallies"],
+            "vote_count": card.data["vote_count"],
+        }, status=status.HTTP_201_CREATED)

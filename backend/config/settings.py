@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "dashboard",
     "matchroom",
     "mic",
+    "support",
 ]
 
 MIDDLEWARE = [
@@ -257,6 +258,8 @@ BASHIRI = {
 
     "MIC_POSTING_WINDOW_HOURS": 24,
     "MIC_MAX_VIDEO_SECONDS": 30,
+
+    "CONTENT_REPORT_AUTO_HIDE_THRESHOLD": 3,
 }
 
 # ============================================================

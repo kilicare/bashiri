@@ -18,7 +18,11 @@ export default function DerbyHubPage() {
   const [derby, setDerby] = useState<ActiveDerby | null>(null);
 
   useEffect(() => {
-    getActiveDerby().then((data) => setDerby(data.active ? data : null));
+    getActiveDerby().then((data) => {
+      if (data.active && data.derbies.length > 0) {
+        setDerby(data.derbies[0]);
+      }
+    });
   }, []);
 
   if (!derby) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
@@ -36,13 +40,27 @@ export default function DerbyHubPage() {
         </div>
       </div>
 
-      <div className="px-4 grid grid-cols-2 gap-3">
+      <div className="px-4 grid grid-cols-2 gap-3 pointer-events-auto">
         {HUB_ITEMS.map((item) => (
           <button
             key={item.key}
-            onClick={() => derby.match_id && router.push(`/match/${derby.match_id}/${item.key === "room" ? "room" : "overview"}`)}
-            className="rounded-2xl p-4 text-center"
-            style={{ background: "#111111", border: `1px solid ${derby.theme_accent_color}33` }}
+            onClick={() => {
+              if (!derby.match_id) {
+                alert('Derby haina mechi iliyounganishwa. Tafadhali admin alink derby na mechi halisi.');
+                return;
+              }
+              if (item.key === "room") {
+                router.push(`/match/${derby.match_id}/room`);
+              } else {
+                router.push(`/match/${derby.match_id}/overview?tab=${item.key}`);
+              }
+            }}
+            className="rounded-2xl p-4 text-center cursor-pointer hover:scale-105 transition-transform pointer-events-auto"
+            style={{ 
+              background: derby.match_id ? "#111111" : "rgba(255,255,255,0.03)", 
+              border: `1px solid ${derby.theme_accent_color}33`,
+              opacity: derby.match_id ? 1 : 0.5
+            }}
           >
             <span className="text-sm font-bold text-white">{item.label}</span>
           </button>

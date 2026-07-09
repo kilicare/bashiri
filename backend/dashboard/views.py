@@ -31,10 +31,13 @@ from .serializers import (
     AdminActionLogSerializer,
     AdminActiveDerbySerializer,
     AdminCardSerializer,
+    AdminContentReportSerializer,
     AdminLeagueSerializer,
     AdminLoginSerializer,
     AdminMatchSerializer,
     AdminSubscriptionSerializer,
+    AdminSupportTicketDetailSerializer,
+    AdminSupportTicketListSerializer,
     AdminTeamSerializer,
     AdminTransactionSerializer,
     AdminUserDetailSerializer,
@@ -520,6 +523,16 @@ class AdminActiveDerbyDetailView(APIView):
         _log_action(request.user, "UPDATE_MATCH", f"ActiveDerby #{derby.id}", request.data)
         return Response(AdminActiveDerbySerializer(derby).data)
 
+    def delete(self, request, derby_id):
+        from predictions.models import ActiveDerby
+
+        derby = get_object_or_404(ActiveDerby, pk=derby_id)
+        derby_name = derby.derby_name
+        derby.delete()
+
+        _log_action(request.user, "DELETE_CARD", f"ActiveDerby #{derby_id}", {"derby_name": derby_name})
+        return Response({"detail": "Derby imefutwa kikamilifu."}, status=status.HTTP_204_NO_CONTENT)
+
 
 # ============================================================
 # DEBATE CARD MANAGEMENT
@@ -552,6 +565,7 @@ class AdminCreateDebateView(APIView):
                 "vote_count": 0,
                 "closes_at": closes_at.isoformat(),
                 "is_closed": False,
+                "voting_closed": False,
                 "result": None,
             },
         )
@@ -633,3 +647,97 @@ class AdminMicReactionToggleActiveView(APIView):
             f"MicReaction #{reaction.id}",
         )
         return Response(MicReactionSerializer(reaction).data)
+
+
+# ============================================================
+# SUPPORT SYSTEM MANAGEMENT
+# ============================================================
+class AdminSupportTicketListView(APIView):
+    permission_classes = [IsBashiriAdmin]
+
+    def get(self, request):
+        from support.models import SupportTicket
+
+        from .serializers import AdminSupportTicketListSerializer
+
+        qs = SupportTicket.objects.select_related("user").order_by("-updated_at")
+
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        type_filter = request.query_params.get("type")
+        if type_filter:
+            qs = qs.filter(type=type_filter)
+
+        return Response(AdminSupportTicketListSerializer(qs[:100], many=True).data)
+
+
+class AdminSupportTicketDetailView(APIView):
+    permission_classes = [IsBashiriAdmin]
+
+    def get(self, request, ticket_id):
+        from support.models import SupportTicket
+
+        from .serializers import AdminSupportTicketDetailSerializer
+
+        ticket = get_object_or_404(SupportTicket.objects.prefetch_related("messages"), pk=ticket_id)
+        return Response(AdminSupportTicketDetailSerializer(ticket).data)
+
+    def patch(self, request, ticket_id):
+        from support.models import SupportTicket
+
+        from .serializers import AdminSupportTicketDetailSerializer
+
+        ticket = get_object_or_404(SupportTicket, pk=ticket_id)
+        new_status = request.data.get("status")
+        if new_status in dict(SupportTicket.STATUS_CHOICES):
+            ticket.status = new_status
+            ticket.save(update_fields=["status", "updated_at"])
+
+        return Response(AdminSupportTicketDetailSerializer(ticket).data)
+
+
+class AdminSupportTicketReplyView(APIView):
+    permission_classes = [IsBashiriAdmin]
+
+    def post(self, request, ticket_id):
+        from support.models import SupportMessage, SupportTicket
+
+        from .serializers import AdminSupportTicketDetailSerializer
+
+        ticket = get_object_or_404(SupportTicket, pk=ticket_id)
+        content = (request.data.get("content") or "").strip()
+        if not content:
+            return Response({"detail": "content inahitajika."}, status=status.HTTP_400_BAD_REQUEST)
+
+        SupportMessage.objects.create(ticket=ticket, sender_type="ADMIN", sender=request.user, content=content)
+
+        if ticket.status == "OPEN":
+            ticket.status = "IN_PROGRESS"
+        ticket.save(update_fields=["status", "updated_at"])
+
+        if ticket.user:
+            from notifications.models import Notification
+
+            Notification.objects.create(
+                user=ticket.user, type="SUPPORT_REPLY",
+                title="Jibu Jipya kwenye Ticket Yako",
+                body=content[:100],
+                data={"ticket_id": ticket.id},
+            )
+
+        _log_action(request.user, "UPDATE_MATCH", f"SupportTicket #{ticket.id} replied")
+        return Response(AdminSupportTicketDetailSerializer(ticket).data)
+
+
+class AdminContentReportListView(APIView):
+    permission_classes = [IsBashiriAdmin]
+
+    def get(self, request):
+        from support.models import ContentReport
+
+        from .serializers import AdminContentReportSerializer
+
+        reports = ContentReport.objects.select_related("reporter").order_by("-created_at")[:100]
+        return Response(AdminContentReportSerializer(reports, many=True).data)

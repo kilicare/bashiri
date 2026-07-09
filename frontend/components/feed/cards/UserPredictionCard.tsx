@@ -1,4 +1,6 @@
-export function UserPredictionCard({ data }: { data: any }) {
+import { ReportButton } from "@/components/report/ReportButton";
+
+export function UserPredictionCard({ cardId, data }: { cardId: number; data: any }) {
   return (
     <div className="rounded-3xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>
       <div className="flex items-center gap-2 mb-3">
@@ -31,6 +33,9 @@ export function UserPredictionCard({ data }: { data: any }) {
         Pick: <span className="font-bold">{data.selection}</span> ({data.market})
       </p>
       {data.note && <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>"{data.note}"</p>}
+      <div className="mt-2">
+        <ReportButton contentType="USER_PREDICTION_CARD" objectId={cardId} />
+      </div>
     </div>
   );
 }

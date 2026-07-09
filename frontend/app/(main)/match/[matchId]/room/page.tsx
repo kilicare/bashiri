@@ -8,6 +8,8 @@ import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Send } from "lucide-react";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { ReportButton } from "@/components/report/ReportButton";
 
 export default function MatchRoomPage() {
   const params = useParams();
@@ -18,6 +20,7 @@ export default function MatchRoomPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { requireAuth, isAuthed } = useRequireAuth();
 
   useEffect(() => {
     getRoomHistory(matchId).then((data) => {
@@ -34,6 +37,7 @@ export default function MatchRoomPage() {
   }, [messages]);
 
   function handleSend() {
+    if (!requireAuth("Ingia ili kutuma ujumbe kwenye Match Room.")) return;
     if (!input.trim()) return;
     sendMessage(input);
     setInput("");
@@ -83,9 +87,12 @@ export default function MatchRoomPage() {
 
         <div className="flex-1 px-4 space-y-2 overflow-y-auto pb-2">
           {messages.map((m: any) => (
-            <div key={m.id} className="text-sm">
-              <span className="font-bold" style={{ color: "#00FF87" }}>@{m.username}: </span>
-              <span className="text-white">{m.content}</span>
+            <div key={m.id} className="text-sm flex items-start justify-between gap-2">
+              <div>
+                <span className="font-bold" style={{ color: "#00FF87" }}>@{m.username}: </span>
+                <span className="text-white">{m.content}</span>
+              </div>
+              <ReportButton contentType="ROOM_MESSAGE" objectId={m.id} />
             </div>
           ))}
           <div ref={scrollRef} />
@@ -94,7 +101,7 @@ export default function MatchRoomPage() {
         <div className="px-4 py-3 pb-safe flex gap-2">
           <input
             className="flex-1 rounded-2xl px-4 py-3 text-sm text-white bg-[#151515] outline-none"
-            placeholder="Andika ujumbe..."
+            placeholder={isAuthed ? "Andika ujumbe..." : "Ingia kutuma ujumbe..."}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}

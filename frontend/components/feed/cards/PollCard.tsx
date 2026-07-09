@@ -1,26 +1,38 @@
 "use client";
 import { useState } from "react";
-import { voteOnPoll } from "@/lib/api/feed";
+import { apiClient } from "@/lib/api/client";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export function PollCard({ cardId, data }: { cardId: number; data: any }) {
   const [tallies, setTallies] = useState(data.tallies || {});
-  const [voted, setVoted] = useState(false);
+  const [voted, setVoted] = useState(!!data.user_vote);
+  const [error, setError] = useState("");
   const total = Object.values(tallies).reduce((a: number, b: any) => a + b, 0) as number;
+  const { requireAuth } = useRequireAuth();
 
   async function handleVote(choice: string) {
     if (voted) return;
+    if (!requireAuth("Ingia ili kupiga kura.")) return;
+    setError("");
     try {
-      await voteOnPoll(cardId, choice);
-      setTallies((prev: any) => ({ ...prev, [choice]: (prev[choice] || 0) + 1 }));
+      const response = await apiClient(`/feed/polls/${cardId}/vote/`, { method: "POST", body: JSON.stringify({ choice }) });
+      setTallies(response.tallies || data.tallies);
       setVoted(true);
-    } catch {}
+    } catch (e: any) {
+      setError(e.message || "Imeshindwa kupiga kura. Tafadhali jaribu tena.");
+    }
   }
 
   return (
     <div className="rounded-3xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>
       <span className="text-[10px] font-black uppercase tracking-widest mb-3 block" style={{ color: "#FFD600" }}>Poll</span>
       <p className="text-sm font-bold text-white mb-4">{data.question}</p>
+
+      {error && (
+        <p className="text-xs mb-3" style={{ color: "#FF4757" }}>{error}</p>
+      )}
+
       <div className="space-y-2">
         {data.options.map((opt: string) => {
           const count = tallies[opt] || 0;

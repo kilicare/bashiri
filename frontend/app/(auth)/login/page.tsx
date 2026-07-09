@@ -9,6 +9,7 @@ import { requestOTP, verifyOTP, completeProfile } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth.store";
 import { ArrowLeft, Shield, User, Calendar } from "lucide-react";
 import { clsx } from "clsx";
+import { consumeReturnTo } from "@/lib/return-to";
 
 type Step = "phone" | "otp" | "profile";
 
@@ -56,7 +57,7 @@ export default function LoginPage() {
       const data = await verifyOTP(phone, code);
       setSession(data.access, data.refresh, data.user);
       if (data.profile_complete) {
-        router.push("/home");
+        router.push(consumeReturnTo() || "/home");
       } else {
         setStep("profile");
       }

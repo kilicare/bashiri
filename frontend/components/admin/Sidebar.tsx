@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, Calendar, CreditCard, Bell, Brain, LogOut, Flame, MessageSquare, ShieldAlert, X } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, CreditCard, Bell, Brain, LogOut, Flame, MessageSquare, ShieldAlert, Ticket, X } from "lucide-react";
 import { useAdminAuthStore } from "@/stores/admin-auth.store";
 import { useEffect } from "react";
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/admin/derbies", icon: Flame, label: "Derby Mode" },
   { href: "/admin/debates", icon: MessageSquare, label: "Debates" },
   { href: "/admin/moderation", icon: ShieldAlert, label: "Moderation" },
+  { href: "/admin/support", icon: Ticket, label: "Support" },
   { href: "/admin/transactions", icon: CreditCard, label: "Malipo" },
   { href: "/admin/notifications", icon: Bell, label: "Notifications" },
   { href: "/admin/ml-status", icon: Brain, label: "ML Model" },

@@ -7,6 +7,7 @@ const SETTINGS_ITEMS = [
   { label: "Ligi Ninazopenda", href: "/settings/leagues" },
   { label: "Notifications", href: "/settings/notifications" },
   { label: "Lugha (SW/EN)", href: "/settings/language" },
+  { label: "Msaada na Maoni", href: "/settings/support" },
 ];
 
 export default function SettingsPage() {

@@ -242,12 +242,25 @@ def close_expired_debates():
     for debate in debates:
         closes_at_str = debate.data.get("closes_at")
         if not closes_at_str:
+            logger.warning(f"Debate #{debate.id} haina closes_at field")
             continue
-        closes_at = datetime.fromisoformat(closes_at_str)
-        if timezone.now() >= closes_at:
-            # Funga voting (is_closed=True) lakini result inabaki None mpaka admin aiweke
+
+        try:
+            closes_at = datetime.fromisoformat(closes_at_str)
+        except (ValueError, TypeError) as e:
+            logger.error(f"Debate #{debate.id}: parsing closes_at failed: {e}")
+            continue
+
+        # Make sure closes_at is timezone-aware
+        if timezone.is_naive(closes_at):
+            closes_at = timezone.make_aware(closes_at)
+
+        now = timezone.now()
+        if now >= closes_at:
             debate.data["voting_closed"] = True
             debate.save(update_fields=["data"])
             closed_count += 1
+            logger.info(f"Debate #{debate.id} voting closed: closes_at={closes_at}, now={now}")
 
+    logger.info(f"close_expired_debates: {closed_count} debates closed")
     return f"Debates zilizofungwa voting: {closed_count}"

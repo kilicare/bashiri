@@ -29,4 +29,5 @@ urlpatterns = [
     path("api/dashboard/", include("dashboard.urls")),
     path("api/matchroom/", include("matchroom.urls")),
     path("api/mic/", include("mic.urls")),
+    path("api/support/", include("support.urls")),
 ]

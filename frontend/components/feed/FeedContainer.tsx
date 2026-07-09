@@ -20,7 +20,7 @@ function renderCard(card: Card) {
     case "RESULT_RECAP": return <ResultRecapCard data={card.data} />;
     case "STAT": return <StatCard data={card.data} />;
     case "POLL": return <PollCard cardId={card.id} data={card.data} />;
-    case "USER_PREDICTION": return <UserPredictionCard data={card.data} />;
+    case "USER_PREDICTION": return <UserPredictionCard cardId={card.id} data={card.data} />;
     case "MILESTONE": return <MilestoneCard data={card.data} />;
     case "AI_WEEKLY_REPORT": return <AIWeeklyReportCard data={card.data} />;
     case "DID_YOU_KNOW": return <DidYouKnowCard data={card.data} />;

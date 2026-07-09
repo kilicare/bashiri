@@ -1,15 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getMicReactionsAdmin, toggleMicReactionActive, getCards, } from "@/lib/api/admin";
+import { getMicReactionsAdmin, toggleMicReactionActive, getCards, getAdminContentReports } from "@/lib/api/admin";
 
 export default function AdminModerationPage() {
-  const [tab, setTab] = useState<"mic" | "user-predictions">("mic");
+  const [tab, setTab] = useState<"mic" | "user-predictions" | "reports">("mic");
   const [micReactions, setMicReactions] = useState<any[]>([]);
   const [userPredictionCards, setUserPredictionCards] = useState<any[]>([]);
+  const [contentReports, setContentReports] = useState<any[]>([]);
 
   useEffect(() => {
     loadMic();
     loadUserPredictions();
+    loadReports();
   }, []);
 
   function loadMic() {
@@ -17,6 +19,9 @@ export default function AdminModerationPage() {
   }
   function loadUserPredictions() {
     getCards("USER_PREDICTION").then(setUserPredictionCards);
+  }
+  function loadReports() {
+    getAdminContentReports().then(setContentReports);
   }
 
   async function handleToggleMic(id: number) {
@@ -28,14 +33,14 @@ export default function AdminModerationPage() {
     <div>
       <h1 className="text-2xl font-black text-white mb-4">Content Moderation</h1>
       <div className="flex gap-2 mb-6">
-        {(["mic", "user-predictions"] as const).map((t) => (
+        {(["mic", "user-predictions", "reports"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className="px-3 py-1.5 rounded-full text-xs font-bold"
             style={{ background: tab === t ? "#00FF87" : "rgba(255,255,255,0.06)", color: tab === t ? "#000" : "rgba(255,255,255,0.5)" }}
           >
-            {t === "mic" ? "Bashiri Mic Videos" : "User Predictions"}
+            {t === "mic" ? "Bashiri Mic Videos" : t === "user-predictions" ? "User Predictions" : "Content Reports"}
           </button>
         ))}
       </div>
@@ -69,6 +74,31 @@ export default function AdminModerationPage() {
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{c.data.note}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === "reports" && (
+        <div className="space-y-2">
+          {contentReports.length === 0 ? (
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Hakuna ripoti bado.</p>
+          ) : (
+            contentReports.map((r: any) => (
+              <div key={r.id} className="rounded-2xl p-4" style={{ background: "#111111", border: "1px solid rgba(255,71,87,0.15)" }}>
+                <p className="text-sm font-bold text-white">
+                  @{r.reporter_username} aliripoti {r.content_type} #{r.object_id}
+                </p>
+                <p className="text-xs" style={{ color: "#FF4757" }}>{r.reason}</p>
+                {r.note && <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>"{r.note}"</p>}
+                <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  {new Date(r.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))
+          )}
+          <p className="text-xs mt-4" style={{ color: "rgba(255,255,255,0.35)" }}>
+            Ikiwa maudhui yameripotiwa mara 3+ na watumiaji tofauti, yanafichwa moja kwa moja
+            na ticket inaundwa kwenye "Support" kwa uamuzi wako wa mwisho.
+          </p>
         </div>
       )}
     </div>

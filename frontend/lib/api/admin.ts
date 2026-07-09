@@ -115,6 +115,9 @@ export function createDerby(payload: {
 export function updateDerby(id: number, payload: any) {
   return adminFetch(`/dashboard/derbies/${id}/`, { method: "PATCH", body: JSON.stringify(payload) });
 }
+export function deleteDerby(id: number) {
+  return adminFetch(`/dashboard/derbies/${id}/`, { method: "DELETE" });
+}
 
 // ============================================================
 // DEBATE CARD MANAGEMENT
@@ -153,4 +156,26 @@ export function getMicReactionsAdmin() {
 }
 export function toggleMicReactionActive(reactionId: number) {
   return adminFetch(`/dashboard/mic-reactions/${reactionId}/toggle/`, { method: "PATCH" });
+}
+
+// ============================================================
+// SUPPORT SYSTEM
+// ============================================================
+export function getAdminTickets(params: { status?: string; type?: string } = {}) {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.type) query.set("type", params.type);
+  return adminFetch(`/dashboard/support/tickets/?${query.toString()}`);
+}
+export function getAdminTicketDetail(id: number) {
+  return adminFetch(`/dashboard/support/tickets/${id}/`);
+}
+export function replyAdminTicket(id: number, content: string) {
+  return adminFetch(`/dashboard/support/tickets/${id}/reply/`, { method: "POST", body: JSON.stringify({ content }) });
+}
+export function updateTicketStatus(id: number, statusValue: string) {
+  return adminFetch(`/dashboard/support/tickets/${id}/`, { method: "PATCH", body: JSON.stringify({ status: statusValue }) });
+}
+export function getAdminContentReports() {
+  return adminFetch("/dashboard/support/content-reports/");
 }

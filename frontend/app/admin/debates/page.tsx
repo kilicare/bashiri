@@ -13,6 +13,7 @@ export default function AdminDebatesPage() {
   const [saving, setSaving] = useState(false);
   const [resolvingId, setResolvingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     load();
@@ -38,18 +39,25 @@ export default function AdminDebatesPage() {
   }
 
   async function handleResolve(cardId: number, result: string) {
+    if (!confirm(`Una uhakika unataka kuweka "${result}" kama matokeo ya mwisho? Hali hii haiwezi kubadilishwa.`)) return;
     await resolveDebate(cardId, result);
     setResolvingId(null);
     load();
   }
 
-  async function handleDelete(cardId: number) {
-    if (!confirm("Una uhakika unataka kufuta debate hii?")) return;
-    setDeletingId(cardId);
-    await deleteDebate(cardId);
+  async function handleDeleteConfirm() {
+    if (deletingId === null) return;
+    await deleteDebate(deletingId);
+    setShowDeleteConfirm(false);
     setDeletingId(null);
     load();
   }
+
+  function handleDeleteClick(cardId: number) {
+    setDeletingId(cardId);
+    setShowDeleteConfirm(true);
+  }
+
 
   return (
     <div>
@@ -103,7 +111,7 @@ export default function AdminDebatesPage() {
                   </span>
                 )}
                 <button
-                  onClick={() => handleDelete(d.id)}
+                  onClick={() => handleDeleteClick(d.id)}
                   disabled={deletingId === d.id}
                   className="p-2 rounded-lg"
                   style={{ background: "rgba(255,71,87,0.1)", color: "#FF4757" }}
@@ -117,20 +125,48 @@ export default function AdminDebatesPage() {
             </p>
 
             {!d.data.is_closed && (
-              resolvingId === d.id ? (
-                <div className="flex gap-2">
-                  {d.data.options.map((opt: string) => (
-                    <BashiriButton key={opt} size="md" onClick={() => handleResolve(d.id, opt)}>{opt}</BashiriButton>
-                  ))}
-                  <button onClick={() => setResolvingId(null)} className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Ghairi</button>
-                </div>
+              d.data.voting_closed ? (
+                resolvingId === d.id ? (
+                  <div className="flex gap-2">
+                    {d.data.options.map((opt: string) => (
+                      <BashiriButton key={opt} size="md" onClick={() => handleResolve(d.id, opt)}>{opt}</BashiriButton>
+                    ))}
+                    <button onClick={() => setResolvingId(null)} className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Ghairi</button>
+                  </div>
+                ) : (
+                  <BashiriButton size="md" variant="outline" onClick={() => setResolvingId(d.id)}>Weka Matokeo (Resolve)</BashiriButton>
+                )
               ) : (
-                <BashiriButton size="md" variant="outline" onClick={() => setResolvingId(d.id)}>Weka Matokeo (Resolve)</BashiriButton>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Voting bado inaendelea — Resolve itapatikana baada ya muda wa kupiga kura umekwisha.
+                </p>
               )
             )}
           </div>
         ))}
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="rounded-2xl p-6 max-w-sm w-full" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <h3 className="text-lg font-black text-white mb-2">Futa Debate?</h3>
+            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Una uhakika unataka kufuta debate hii? Hatua hii haiwezi kurudishwa.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <BashiriButton variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+                Ghairi
+              </BashiriButton>
+              <BashiriButton
+                onClick={handleDeleteConfirm}
+                style={{ background: "#FF4757", borderColor: "#FF4757" }}
+              >
+                Futa
+              </BashiriButton>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { saveOnboardingPreferences } from "@/lib/api/auth";
 import { getLeagues } from "@/lib/api/settings";
 import { useAuthStore } from "@/stores/auth.store";
 import { CardSkeleton } from "@/components/ui/Skeleton";
+import { consumeReturnTo } from "@/lib/return-to";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -41,18 +42,18 @@ export default function OnboardingPage() {
     setLoading(true);
     try {
       await saveOnboardingPreferences({ favorite_leagues: Array.from(selectedLeagues) });
-      router.push("/home");
+      router.push(consumeReturnTo() || "/home");
     } catch (error) {
       console.error("Failed to save preferences:", error);
       // Still redirect even if save fails
-      router.push("/home");
+      router.push(consumeReturnTo() || "/home");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSkip = () => {
-    router.push("/home");
+    router.push(consumeReturnTo() || "/home");
   };
 
   return (

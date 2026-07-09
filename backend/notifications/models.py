@@ -8,6 +8,7 @@ class Notification(models.Model):
         ("FAVORITE_TEAM_MATCH", "Favorite Team Match"),
         ("HIGH_CONFIDENCE", "High Confidence Alert"),
         ("RESULT", "Result"),
+        ("SUPPORT_REPLY", "Support Reply"),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")

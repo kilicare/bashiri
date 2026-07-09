@@ -11,6 +11,7 @@ import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Bookmark, Share2 } from "lucide-react";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function PredictDashboardPage() {
   const params = useParams();
@@ -21,14 +22,21 @@ export default function PredictDashboardPage() {
   const [saved, setSaved] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [note, setNote] = useState("");
+  const { requireAuth } = useRequireAuth();
 
   useEffect(() => {
     getMatchDashboard(matchId).then(setDashboard);
   }, [matchId]);
 
   async function handleSave() {
+    if (!requireAuth("Ingia ili kuhifadhi mechi hii.")) return;
     await saveMatch(matchId);
     setSaved(true);
+  }
+
+  function openShare() {
+    if (!requireAuth("Ingia ili kushiriki prediction yako.")) return;
+    setShowShare(true);
   }
 
   async function handleShare(market: string, selection: string) {
@@ -52,7 +60,7 @@ export default function PredictDashboardPage() {
             <button onClick={handleSave} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
               <Bookmark size={16} style={{ color: saved ? "#00FF87" : "rgba(255,255,255,0.5)" }} fill={saved ? "#00FF87" : "none"} />
             </button>
-            <button onClick={() => setShowShare(true)} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
+            <button onClick={openShare} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
               <Share2 size={16} style={{ color: "rgba(255,255,255,0.5)" }} />
             </button>
           </div>

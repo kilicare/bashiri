@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, ReactNode } from "react";
-import { getActiveDerby, ActiveDerby } from "@/lib/api/derby";
+import { getActiveDerby, ActiveDerby, ActiveDerbyResponse } from "@/lib/api/derby";
 
 interface Props {
   matchId?: number;
@@ -16,9 +16,15 @@ export function DerbyThemeProvider({ matchId, children }: Props) {
   const [derby, setDerby] = useState<ActiveDerby | null>(null);
 
   useEffect(() => {
-    getActiveDerby().then((data) => {
-      if (data.active && (!matchId || data.match_id === matchId)) {
-        setDerby(data);
+    getActiveDerby().then((data: ActiveDerbyResponse) => {
+      if (data.active && data.derbies.length > 0) {
+        // Find the derby that matches this matchId, or use the first one if no matchId provided
+        const matchingDerby = matchId
+          ? data.derbies.find(d => d.match_id === matchId)
+          : data.derbies[0];
+        if (matchingDerby) {
+          setDerby(matchingDerby);
+        }
       }
     });
   }, [matchId]);

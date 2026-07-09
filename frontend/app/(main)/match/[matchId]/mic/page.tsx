@@ -8,6 +8,7 @@ import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Mic } from "lucide-react";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const MOOD_LABELS: Record<string, { emoji: string; color: string }> = {
   FUNNY: { emoji: "😂", color: "#FFD600" },
@@ -22,12 +23,18 @@ export default function BashiriMicPage() {
   const router = useRouter();
   const params = useParams();
   const matchId = Number(params.matchId);
+  const { requireAuth } = useRequireAuth();
 
   const [reactions, setReactions] = useState<MicReaction[]>([]);
   const [teamFilter, setTeamFilter] = useState<"ALL" | "HOME" | "AWAY">("ALL");
   const [moodSummary, setMoodSummary] = useState<{ total: number; breakdown: Record<string, number> } | null>(null);
   const [canPostNow, setCanPostNow] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  function handlePostClick() {
+    if (!requireAuth("Ingia ili kupost video ya Bashiri Mic.")) return;
+    router.push(`/match/${matchId}/mic/record`);
+  }
 
   useEffect(() => {
     Promise.all([
@@ -51,7 +58,7 @@ export default function BashiriMicPage() {
           <h1 className="text-xl font-black text-white flex items-center gap-2">
             <Mic size={20} style={{ color: "#00FF87" }} /> Bashiri Mic
           </h1>
-          <BashiriButton size="md" onClick={() => router.push(`/match/${matchId}/mic/record`)}>
+          <BashiriButton size="md" onClick={handlePostClick}>
             🎤 Post
           </BashiriButton>
         </div>

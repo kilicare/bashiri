@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { MicReaction, voteOnReaction } from "@/lib/api/mic";
+import { ReportButton } from "@/components/report/ReportButton";
 
 const MOOD_EMOJI: Record<string, string> = {
   FUNNY: "😂", FIRE: "🔥", ANGRY: "😡", RESPECT: "👏", SHOCK: "🤯", PAIN: "💔",
@@ -41,6 +42,7 @@ export function MicReactionPlayer({ reaction }: { reaction: MicReaction }) {
             </button>
           ))}
           <span className="ml-auto text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{voteCount}</span>
+          <ReportButton contentType="MIC_REACTION" objectId={reaction.id} />
         </div>
       </div>
     </div>

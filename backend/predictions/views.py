@@ -267,27 +267,29 @@ class ActiveDerbyView(APIView):
     def get(self, request):
         from django.core.cache import cache
 
-        # Cache active derby for 1 minute (derby status changes infrequently)
-        cache_key = "active_derby"
+        # Cache active derbies for 1 minute (derby status changes infrequently)
+        cache_key = "active_derbies"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
             return Response(cached_data)
 
         now = timezone.now()
-        derby = ActiveDerby.objects.filter(is_active=True, starts_at__lte=now, ends_at__gte=now).first()
+        derbies = ActiveDerby.objects.filter(is_active=True, starts_at__lte=now, ends_at__gte=now).order_by("starts_at")
 
-        if not derby:
-            data = {"active": False}
+        if not derbies.exists():
+            data = {"active": False, "derbies": []}
             cache.set(cache_key, data, timeout=60)
             return Response(data)
 
-        data = ActiveDerbySerializer(derby).data
-        data["active"] = True
+        derbies_data = []
+        for derby in derbies:
+            derby_data = ActiveDerbySerializer(derby).data
+            # Derby Hub extra data — H2H kati ya timu hizi mbili
+            derby_data["head_to_head"] = head_to_head(derby.home_team_id, derby.away_team_id, n=10)
+            derbies_data.append(derby_data)
 
-        # Derby Hub extra data — H2H kati ya timu hizi mbili
-        data["head_to_head"] = head_to_head(derby.home_team_id, derby.away_team_id, n=10)
-
+        data = {"active": True, "derbies": derbies_data}
         cache.set(cache_key, data, timeout=60)  # 1 minute cache
         
         return Response(data)

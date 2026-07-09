@@ -1,7 +1,6 @@
 import { apiClient } from "./client";
 
 export interface ActiveDerby {
-  active: boolean;
   id?: number;
   home_team?: number;
   home_team_detail?: { id: number; name: string; crest_url: string };
@@ -16,6 +15,11 @@ export interface ActiveDerby {
   head_to_head?: any[];
 }
 
+export interface ActiveDerbyResponse {
+  active: boolean;
+  derbies: ActiveDerby[];
+}
+
 export function getActiveDerby() {
-  return apiClient<ActiveDerby>("/predictions/active-derby/", { skipAuth: true });
+  return apiClient<ActiveDerbyResponse>("/predictions/active-derby/", { skipAuth: true });
 }

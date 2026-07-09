@@ -5,6 +5,7 @@ from accounts.models import User
 from feed.models import Card
 from payments.models import Subscription, Transaction
 from predictions.models import ActiveDerby, League, Match, Team
+from support.models import ContentReport, SupportMessage, SupportTicket
 
 from .models import AdminActionLog
 
@@ -118,3 +119,54 @@ class AdminActiveDerbySerializer(serializers.ModelSerializer):
             "match", "derby_name", "starts_at", "ends_at", "theme_accent_color",
             "banner_text", "is_active", "created_at",
         ]
+
+
+class AdminSupportMessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SupportMessage
+        fields = ["id", "sender_type", "sender_username", "content", "created_at"]
+        read_only_fields = fields
+
+    def get_sender_username(self, obj):
+        return obj.sender.username if obj.sender else None
+
+
+class AdminSupportTicketListSerializer(serializers.ModelSerializer):
+    user_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SupportTicket
+        fields = [
+            "id", "user", "user_username", "guest_phone", "guest_name", "type",
+            "subject", "status", "related_content_type", "related_object_id",
+            "created_at", "updated_at",
+        ]
+
+    def get_user_username(self, obj):
+        return obj.user.username if obj.user else None
+
+
+class AdminSupportTicketDetailSerializer(serializers.ModelSerializer):
+    user_username = serializers.SerializerMethodField()
+    messages = AdminSupportMessageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SupportTicket
+        fields = [
+            "id", "user", "user_username", "guest_phone", "guest_name", "type",
+            "subject", "status", "related_content_type", "related_object_id",
+            "created_at", "updated_at", "messages",
+        ]
+
+    def get_user_username(self, obj):
+        return obj.user.username if obj.user else None
+
+
+class AdminContentReportSerializer(serializers.ModelSerializer):
+    reporter_username = serializers.CharField(source="reporter.username", read_only=True)
+
+    class Meta:
+        model = ContentReport
+        fields = ["id", "reporter", "reporter_username", "content_type", "object_id", "reason", "note", "created_at"]

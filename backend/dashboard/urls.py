@@ -7,6 +7,7 @@ from .views import (
     AdminBroadcastNotificationView,
     AdminCardListView,
     AdminCardToggleActiveView,
+    AdminContentReportListView,
     AdminCreateDebateView,
     AdminDeleteDebateView,
     AdminLeagueListView,
@@ -20,6 +21,9 @@ from .views import (
     AdminMLModelStatusView,
     AdminResolveDebateView,
     AdminSubscriptionListView,
+    AdminSupportTicketDetailView,
+    AdminSupportTicketListView,
+    AdminSupportTicketReplyView,
     AdminTeamListView,
     AdminTransactionListView,
     AdminUserDetailView,
@@ -65,4 +69,9 @@ urlpatterns = [
 
     path("mic-reactions/", AdminMicReactionListView.as_view(), name="admin-mic-list"),
     path("mic-reactions/<int:reaction_id>/toggle/", AdminMicReactionToggleActiveView.as_view(), name="admin-mic-toggle"),
+
+    path("support/tickets/", AdminSupportTicketListView.as_view(), name="admin-support-list"),
+    path("support/tickets/<int:ticket_id>/", AdminSupportTicketDetailView.as_view(), name="admin-support-detail"),
+    path("support/tickets/<int:ticket_id>/reply/", AdminSupportTicketReplyView.as_view(), name="admin-support-reply"),
+    path("support/content-reports/", AdminContentReportListView.as_view(), name="admin-content-reports"),
 ]
