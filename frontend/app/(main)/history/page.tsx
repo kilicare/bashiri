@@ -4,21 +4,29 @@ import { useRouter } from "next/navigation";
 import { getMyPredictions, deleteMyPrediction } from "@/lib/api/feed";
 import { Trash2, ChevronLeft } from "lucide-react";
 import { BashiriButton } from "@/components/ui/Button";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function HistoryPage() {
   const router = useRouter();
+  const { requireAuth } = useRequireAuth();
   const [predictions, setPredictions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
   useEffect(() => {
+    if (!requireAuth("Fungua historia yako ya predictions — jisajili kwa dakika chache!")) {
+      router.push("/home");
+      return;
+    }
     loadPredictions();
-  }, []);
+  }, [requireAuth, router]);
 
   async function loadPredictions() {
     try {
       const data = await getMyPredictions();
-      setPredictions(data);
+      if (data) {
+        setPredictions(data);
+      }
     } catch (error) {
       console.error("Failed to load predictions:", error);
     } finally {

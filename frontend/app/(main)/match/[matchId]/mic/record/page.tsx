@@ -7,7 +7,7 @@ import { BashiriButton } from "@/components/ui/Button";
 import { getUploadSignature, uploadVideoToCloudinary, createMicReaction } from "@/lib/api/mic";
 import { Upload, Video, X, Camera } from "lucide-react";
 
-const MoodSelector = dynamic(() => import("@/components/mic/MoodSelector"), { ssr: false });
+const MoodSelector = dynamic(() => import("@/components/mic/MoodSelector").then(mod => ({ default: mod.MoodSelector })), { ssr: false });
 
 export default function MicRecordPage() {
   const router = useRouter();

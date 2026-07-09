@@ -76,6 +76,10 @@ export async function apiClient<T = any>(
     if (newAccess) {
       return apiClient<T>(endpoint, options, true); // jaribu MARA MOJA tena
     }
+    // Guest users (hakuna token) - return null instead of throwing error
+    if (!token) {
+      return null as T;
+    }
     throw new Error("Session imeisha. Ingia tena.");
   }
 

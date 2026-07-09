@@ -32,7 +32,7 @@ export default function BashiriMicPage() {
   const [loading, setLoading] = useState(true);
 
   function handlePostClick() {
-    if (!requireAuth("Ingia ili kupost video ya Bashiri Mic.")) return;
+    if (!requireAuth("Post video yako — kuwa nyota wa Bashiri Mic!")) return;
     router.push(`/match/${matchId}/mic/record`);
   }
 

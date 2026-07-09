@@ -2,14 +2,33 @@
 import { useEffect, useState } from "react";
 import { getNotifications, markRead } from "@/lib/api/notifications";
 import { CardSkeleton } from "@/components/ui/Skeleton";
+import { useAuthStore } from "@/stores/auth.store";
+import { useRouter } from "next/navigation";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function NotificationsPage() {
+  const { requireAuth } = useRequireAuth();
+  const user = useAuthStore((s) => s.user);
+  const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getNotifications().then((data) => { setItems(data); setLoading(false); });
-  }, []);
+    if (!requireAuth("Fungua notifications zako — jisajili kwa dakika chache!")) {
+      router.push("/home");
+      return;
+    }
+    if (user) {
+      getNotifications().then((data) => { 
+        if (data) {
+          setItems(data); 
+        }
+        setLoading(false); 
+      }).catch(() => {
+        setLoading(false);
+      });
+    }
+  }, [user, requireAuth, router]);
 
   return (
     <div className="max-w-2xl mx-auto">

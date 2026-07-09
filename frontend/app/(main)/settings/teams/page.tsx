@@ -6,9 +6,11 @@ import { League, Team } from "@/lib/api/predictions";
 import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { ArrowLeft, Check } from "lucide-react";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function FavoriteTeamsPage() {
   const router = useRouter();
+  const { requireAuth } = useRequireAuth();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [teamsByLeague, setTeamsByLeague] = useState<Record<string, Team[]>>({});
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -17,20 +19,26 @@ export default function FavoriteTeamsPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
+    if (!requireAuth("Weka timu unazopenda — jisajili kwa dakika chache!")) {
+      router.push("/home");
+      return;
+    }
     async function load() {
       const [leaguesData, favData] = await Promise.all([getLeagues(), getFavoriteTeams()]);
-      setLeagues(leaguesData);
-      setSelected(new Set(favData.team_ids));
+      if (favData) {
+        setLeagues(leaguesData);
+        setSelected(new Set(favData.team_ids));
 
-      const teamsMap: Record<string, Team[]> = {};
-      for (const league of leaguesData) {
-        teamsMap[league.poisson_key] = await getTeams(league.poisson_key);
+        const teamsMap: Record<string, Team[]> = {};
+        for (const league of leaguesData) {
+          teamsMap[league.poisson_key] = await getTeams(league.poisson_key);
+        }
+        setTeamsByLeague(teamsMap);
       }
-      setTeamsByLeague(teamsMap);
       setLoading(false);
     }
     load();
-  }, []);
+  }, [requireAuth, router]);
 
   function toggle(teamId: number) {
     setSaved(false);

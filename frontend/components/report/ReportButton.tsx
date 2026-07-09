@@ -27,7 +27,7 @@ export function ReportButton({ contentType, objectId }: Props) {
   const [error, setError] = useState("");
 
   function openSheet() {
-    if (!requireAuth("Ingia ili kuripoti maudhui haya.")) return;
+    if (!requireAuth("Tusaidie kuweka jamii salama — jisajili kwa sekunde!")) return;
     setIsOpen(true);
   }
 

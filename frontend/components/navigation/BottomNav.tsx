@@ -19,7 +19,7 @@ export function BottomNav() {
   const { requireAuth } = useRequireAuth();
 
   function navigate(item: any) {
-    if (item.requiresAuth && !requireAuth("Ingia ili kuona Profile yako.")) return;
+    if (item.requiresAuth && !requireAuth("Fungua Profile yako — jisajili kwa dakika chache!")) return;
     router.push(item.href);
   }
 

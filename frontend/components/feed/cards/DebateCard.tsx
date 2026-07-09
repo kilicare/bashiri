@@ -32,10 +32,14 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
 
   async function handleVote(choice: string) {
     if (voted || isClosed) return;
-    if (!requireAuth("Ingia ili kupiga kura.")) return;
+    if (!requireAuth("Piga kura yako sasa — jisajili kwa dakika chache!")) return;
     setError("");
     try {
       const response = await apiClient(`/feed/debates/${cardId}/vote/`, { method: "POST", body: JSON.stringify({ choice }) });
+      if (!response) {
+        requireAuth("Piga kura yako sasa — jisajili kwa dakika chache!");
+        return;
+      }
       setTallies(response.tallies || data.tallies);
       setVoted(true);
     } catch (e: any) {

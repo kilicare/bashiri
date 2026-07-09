@@ -29,13 +29,13 @@ export default function PredictDashboardPage() {
   }, [matchId]);
 
   async function handleSave() {
-    if (!requireAuth("Ingia ili kuhifadhi mechi hii.")) return;
+    if (!requireAuth("Hifadhi mechi zako unazopenda — jisajili sasa!")) return;
     await saveMatch(matchId);
     setSaved(true);
   }
 
   function openShare() {
-    if (!requireAuth("Ingia ili kushiriki prediction yako.")) return;
+    if (!requireAuth("Shiriki mawazo yako na wenzako — jisajili kwa haraka!")) return;
     setShowShare(true);
   }
 

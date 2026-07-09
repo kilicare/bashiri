@@ -21,11 +21,17 @@ export default function HomePage() {
   const bestStreak = user?.best_streak || 0;
 
   useEffect(() => {
-    getNotifications().then((notifications) => {
-      const unread = notifications.filter((n: any) => !n.is_read).length;
-      setUnreadCount(unread);
-    });
-  }, []);
+    if (user) {
+      getNotifications().then((notifications) => {
+        if (notifications) {
+          const unread = notifications.filter((n: any) => !n.is_read).length;
+          setUnreadCount(unread);
+        }
+      }).catch(() => {
+        // Silently fail for guest users
+      });
+    }
+  }, [user]);
 
   return (
     <div className="min-h-dvh bg-[#050508] pb-24">

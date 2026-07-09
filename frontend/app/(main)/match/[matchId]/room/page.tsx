@@ -37,7 +37,7 @@ export default function MatchRoomPage() {
   }, [messages]);
 
   function handleSend() {
-    if (!requireAuth("Ingia ili kutuma ujumbe kwenye Match Room.")) return;
+    if (!requireAuth("Jiunge na mazungumzo — jisajili kwa sekunde chache!")) return;
     if (!input.trim()) return;
     sendMessage(input);
     setInput("");

@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { BashiriButton } from "@/components/ui/Button";
 import { initiateSubscription, getTransactionStatus } from "@/lib/api/payments";
 import { useAuthStore } from "@/stores/auth.store";
 import { getMe } from "@/lib/api/auth";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 type Stage = "confirm" | "waiting" | "success" | "failed";
 
@@ -18,9 +20,10 @@ const PLAN_DETAILS: Record<string, { label: string; price: string }> = {
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = 30; // dakika 1.5 (30 x 3s)
 
-export default function SubscribePage() {
+function SubscribeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { requireAuth } = useRequireAuth();
   const plan = (searchParams.get("plan") || "monthly") as "weekly" | "monthly";
   const { user, setUser } = useAuthStore();
 
@@ -30,6 +33,13 @@ export default function SubscribePage() {
   const checkoutIdRef = useRef<string>("");
 
   const planInfo = PLAN_DETAILS[plan] || PLAN_DETAILS.monthly;
+
+  useEffect(() => {
+    if (!requireAuth("Jiunge na Bashiri PRO — fungua masoko yote!")) {
+      router.push("/home");
+      return;
+    }
+  }, [requireAuth, router]);
 
   async function handlePay() {
     setError("");
@@ -96,7 +106,7 @@ export default function SubscribePage() {
       {stage === "waiting" && (
         <motion.div className="text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <Loader2 size={48} className="animate-spin mx-auto mb-4" style={{ color: "#00FF87" }} />
-          <h1 className="text-xl font-black text-white mb-2">Angalia Simu Yako</h1>
+          <h1 className="text-xl font-black text-white mb-2">Angalia Simo Yako</h1>
           <p className="text-sm max-w-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
             Utapokea ujumbe wa M-Pesa STK Push. Weka PIN yako kukamilisha malipo.
           </p>
@@ -127,5 +137,13 @@ export default function SubscribePage() {
         </motion.div>
       )}
     </div>
+  );
+}
+
+export default function SubscribePage() {
+  return (
+    <Suspense fallback={<div className="min-h-dvh flex items-center justify-center text-white">Loading...</div>}>
+      <SubscribeContent />
+    </Suspense>
   );
 }

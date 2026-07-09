@@ -6,9 +6,11 @@ import { League } from "@/lib/api/predictions";
 import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { ArrowLeft, Check } from "lucide-react";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function FavoriteLeaguesPage() {
   const router = useRouter();
+  const { requireAuth } = useRequireAuth();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -16,12 +18,20 @@ export default function FavoriteLeaguesPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
+    if (!requireAuth("Weka ligi unazopenda — jisajili kwa dakika chache!")) {
+      router.push("/home");
+      return;
+    }
     Promise.all([getLeagues(), getFavoriteLeagues()]).then(([leaguesData, favData]) => {
-      setLeagues(leaguesData);
-      setSelected(new Set(favData.league_ids));
+      if (favData) {
+        setLeagues(leaguesData);
+        setSelected(new Set(favData.league_ids));
+      }
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
-  }, []);
+  }, [requireAuth, router]);
 
   function toggle(leagueId: number) {
     setSaved(false);
