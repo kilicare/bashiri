@@ -29,10 +29,10 @@ export function BottomNav() {
     return (
       <button onClick={() => navigate(item)} className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl flex-1">
         <Icon size={20} style={{
-          color: isActive ? "#00FF87" : "rgba(255,255,255,0.4)",
-          filter: isActive ? "drop-shadow(0 0 6px rgba(0,255,135,0.6))" : "none",
+          color: isActive ? "#F5A623" : "rgba(255,255,255,0.4)",
+          filter: isActive ? "drop-shadow(0 0 6px rgba(245,166,35,0.6))" : "none",
         }} />
-        <span className="text-[10px] font-bold" style={{ color: isActive ? "#00FF87" : "rgba(255,255,255,0.35)" }}>
+        <span className="text-[10px] font-bold" style={{ color: isActive ? "#F5A623" : "rgba(255,255,255,0.35)" }}>
           {item.label}
         </span>
       </button>
@@ -50,7 +50,7 @@ export function BottomNav() {
         <motion.button
           onClick={() => router.push("/create")}
           className="w-14 h-14 rounded-2xl flex items-center justify-center -mt-6 mx-2 shrink-0"
-          style={{ background: "#00FF87", boxShadow: "0 8px 25px rgba(0,255,135,0.5)" }}
+          style={{ background: "#F5A623", boxShadow: "0 8px 25px rgba(245,166,35,0.5)" }}
           whileTap={{ scale: 0.9 }}
           aria-label="Unda ubashiri mpya"
         >

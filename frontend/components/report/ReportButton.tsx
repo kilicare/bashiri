@@ -52,13 +52,18 @@ export function ReportButton({ contentType, objectId }: Props) {
 
   return (
     <>
-      <button onClick={openSheet} className="flex items-center gap-1 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-        <Flag size={12} /> Ripoti
+      <button 
+        onClick={openSheet} 
+        className="flex items-center justify-center w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-all"
+        style={{ color: "rgba(255,255,255,0.8)" }}
+        aria-label="Ripoti"
+      >
+        <Flag size={14} />
       </button>
 
       <BottomSheet isOpen={isOpen} onClose={handleClose} title="Ripoti Maudhui">
         {submitted ? (
-          <p className="text-sm text-center py-4" style={{ color: "#00FF87" }}>
+          <p className="text-sm text-center py-4" style={{ color: "#F5A623" }}>
             Asante — ripoti yako imetumwa kwa timu yetu.
           </p>
         ) : (

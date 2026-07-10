@@ -26,7 +26,14 @@ export default function MatchOverviewPage() {
   return (
     <DerbyThemeProvider matchId={matchId}>
       <div className="max-w-2xl mx-auto px-5 pt-safe pt-6 pb-4">
-        <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{match.league.name}</p>
+        <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+          {match.league.name}
+          {match.stage_display && (
+            <span className="ml-2 px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600" }}>
+              {match.stage_display}{match.group_name ? ` • ${match.group_name}` : ""}
+            </span>
+          )}
+        </p>
         <h1 className="text-xl font-black text-white mb-4">{match.home_team.name} vs {match.away_team.name}</h1>
       </div>
 

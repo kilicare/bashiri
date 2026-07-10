@@ -12,6 +12,8 @@ export interface MicReaction {
   team_side: string;
   is_fan_of_match: boolean;
   vote_count: number;
+  user_voted: boolean;
+  user_vote_emoji: string | null;
   created_at: string;
 }
 

@@ -36,7 +36,7 @@ interface PremiumCardProps {
 export function PremiumCard({ children, className, variant = "default", hover = false }: PremiumCardProps) {
   const variants = {
     default: "bg-[#1A1A24] border-white/10",
-    gold: "bg-gradient-to-br from-[#FFD54A]/10 to-[#FFB300]/5 border-[#FFD54A]/20",
+    gold: "bg-gradient-to-br from-[#F5A623]/10 to-[#E8892A]/5 border-[#F5A623]/20",
     purple: "bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20",
     gradient: "bg-gradient-to-br from-[#1A1A24] to-[#22222E] border-white/10",
   };

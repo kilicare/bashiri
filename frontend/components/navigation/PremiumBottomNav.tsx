@@ -67,7 +67,7 @@ export function PremiumBottomNav() {
           {/* Floating Center Button */}
           <button 
             onClick={() => router.push("/create")}
-            className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-[#FFD54A] to-[#FFB300] rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,213,74,0.4)] hover:shadow-[0_0_40px_rgba(255,213,74,0.5)] transition-all duration-300 -mt-4 md:-mt-8 border-4 border-[#050508]"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-[#F5A623] to-[#E8892A] rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(245,166,35,0.4)] hover:shadow-[0_0_40px_rgba(245,166,35,0.5)] transition-all duration-300 -mt-4 md:-mt-8 border-4 border-[#050508]"
             aria-label="Unda ubashiri mpya"
           >
             <svg className="w-6 h-6 md:w-7 md:h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">

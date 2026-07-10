@@ -21,6 +21,9 @@ export interface Match {
   home_score: number | null;
   away_score: number | null;
   is_big_match: boolean;
+  stage: string;
+  stage_display: string;
+  group_name: string;
 }
 
 export function getFixtures() {

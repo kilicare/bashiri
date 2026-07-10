@@ -84,8 +84,12 @@ def predict_all_markets(home_team, away_team, team_params, home_advantage, leagu
         draw /= total_prob
         away_win /= total_prob
 
-    # Muundo wa matokeo ya mwisho kabisa kwa ajili ya Django API/Views
+    # Muundo wa matokeo ya mwisho kabisa kwa ajili ya Django API/Views (Umeratibiwa vizuri)
     result = {
+        "expected_goals": {
+            "home_xg": round(home_xg, 2),
+            "away_xg": round(away_xg, 2),
+        },
         "match_result": {
             "home_win": round(home_win * 100, 1),
             "draw": round(draw * 100, 1),
@@ -103,17 +107,13 @@ def predict_all_markets(home_team, away_team, team_params, home_advantage, leagu
         "over_under": {f"over_{line}": round(prob * 100, 1) for line, prob in over.items()},
         "btts": {
             "yes": round(btts_yes * 100, 1),
-            "no": round((1.0 - btts_yes) * 100, 1),
-        },
-        "expected_goals": {
-            "home_xg": round(home_xg, 2),
-            "away_xg": round(away_xg, 2),
+            "no": round(max(0.0, 1.0 - btts_yes) * 100, 1), # Ulinzi wa namba hasi
         },
     }
 
     # Kuongeza masoko ya Under 0.5 hadi Under 4.5
     for line, prob in over.items():
-        result["over_under"][f"under_{line}"] = round((1.0 - prob) * 100, 1)
+        result["over_under"][f"under_{line}"] = round(max(0.0, 1.0 - prob) * 100, 1)
 
     # Kupata chaguo bora zaidi la AI (AI Pick) la kuonyesha kwenye skrini
     picks = {"Home Win": home_win, "Draw": draw, "Away Win": away_win}

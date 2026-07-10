@@ -29,8 +29,8 @@ export function PremiumButton({
   };
   
   const variants = {
-    primary: "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 hover:scale-[1.02] active:scale-[0.98]",
-    gold: "bg-gradient-to-r from-[#FFD54A] to-[#FFB300] text-black shadow-lg shadow-yellow-500/25 hover:shadow-xl hover:shadow-yellow-500/35 hover:scale-[1.02] active:scale-[0.98]",
+    primary: "bg-gradient-to-r from-[#F5A623] to-[#E8892A] text-black shadow-lg shadow-[rgba(245,166,35,0.25)] hover:shadow-xl hover:shadow-[rgba(245,166,35,0.35)] hover:scale-[1.02] active:scale-[0.98]",
+    gold: "bg-gradient-to-r from-[#F5A623] to-[#E8892A] text-black shadow-lg shadow-[rgba(245,166,35,0.25)] hover:shadow-xl hover:shadow-[rgba(245,166,35,0.35)] hover:scale-[1.02] active:scale-[0.98]",
     outline: "border border-white/20 text-white bg-white/5 hover:bg-white/10 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]",
     ghost: "text-white/70 hover:text-white hover:bg-white/5 hover:scale-[1.02] active:scale-[0.98]",
     danger: "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/35 hover:scale-[1.02] active:scale-[0.98]",

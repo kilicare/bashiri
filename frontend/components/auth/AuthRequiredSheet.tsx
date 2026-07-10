@@ -20,11 +20,11 @@ export function AuthRequiredSheet() {
         {/* Modern gradient icon container */}
         <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 relative overflow-hidden" 
              style={{ 
-               background: "linear-gradient(135deg, rgba(0,255,135,0.15) 0%, rgba(0,255,135,0.05) 100%)",
-               border: "1px solid rgba(0,255,135,0.2)"
+               background: "linear-gradient(135deg, rgba(245,166,35,0.15) 0%, rgba(245,166,35,0.05) 100%)",
+               border: "1px solid rgba(245,166,35,0.2)"
              }}>
           <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20" />
-          <Lock size={32} style={{ color: "#00FF87" }} />
+          <Lock size={32} style={{ color: "#F5A623" }} />
           <Sparkles size={16} className="absolute top-3 right-3" style={{ color: "#FFD600" }} />
         </div>
 
@@ -44,8 +44,8 @@ export function AuthRequiredSheet() {
           size="lg" 
           onClick={handleLogin}
           style={{
-            background: "linear-gradient(135deg, #00FF87 0%, #00CC6A 100%)",
-            boxShadow: "0 4px 20px rgba(0,255,135,0.3)"
+            background: "linear-gradient(135deg, #F5A623 0%, #E8892A 100%)",
+            boxShadow: "0 4px 20px rgba(245,166,35,0.3)"
           }}
         >
           <span className="flex items-center justify-center gap-2">

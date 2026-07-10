@@ -41,16 +41,16 @@ export default function HomePage() {
           onClick={() => router.push("/notifications")}
           className="relative w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all duration-300 hover:scale-110"
         >
-          <Bell size={20} className="text-gradient-to-r from-[#FFD54A] to-[#FFB300]" style={{ color: "#FFD54A" }} />
+          <Bell size={20} className="text-gradient-to-r from-[#F5A623] to-[#E8892A]" style={{ color: "#F5A623" }} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-[#FFD54A] to-[#FFB300] rounded-full flex items-center justify-center text-xs font-bold text-black">
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-[#F5A623] to-[#E8892A] rounded-full flex items-center justify-center text-xs font-bold text-black">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </button>
         <h1 className="text-2xl font-black tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
           <span className="text-white">BASHIRI</span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD54A] to-[#FFB300]">.AI</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5A623] to-[#E8892A]">.AI</span>
         </h1>
         <button 
           className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all duration-300 hover:scale-110"
@@ -68,8 +68,8 @@ export default function HomePage() {
               <p className="text-white/50 text-xs font-medium mb-1">Your Accuracy</p>
               <p className="text-4xl font-black text-white">{accuracy}%</p>
             </div>
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FFD54A]/20 to-[#FFB300]/10 flex items-center justify-center">
-              <TrendingUp size={32} className="text-[#FFD54A]" />
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#F5A623]/20 to-[#E8892A]/10 flex items-center justify-center">
+              <TrendingUp size={32} className="text-[#F5A623]" />
             </div>
           </div>
           <div className="flex gap-3">
@@ -103,8 +103,8 @@ export default function HomePage() {
             <p className="text-white/40 text-xs">Best Streak</p>
           </PremiumCard>
           <PremiumCard hover className="p-4 text-center">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-[#FFD54A]/20 to-[#FFB300]/10 flex items-center justify-center">
-              <TrendingUp size={20} className="text-[#FFD54A]" />
+            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-[#F5A623]/20 to-[#E8892A]/10 flex items-center justify-center">
+              <TrendingUp size={20} className="text-[#F5A623]" />
             </div>
             <p className="text-2xl font-bold text-white mb-1">{accuracy}%</p>
             <p className="text-white/40 text-xs">Accuracy</p>

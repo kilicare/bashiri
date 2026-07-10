@@ -54,6 +54,14 @@ class Match(models.Model):
     away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="away_matches")
     kickoff_at = models.DateTimeField(db_index=True)
     matchday = models.PositiveSmallIntegerField(null=True, blank=True)
+    stage = models.CharField(
+        max_length=30, blank=True, default="",
+        help_text="mfano: GROUP_STAGE, LAST_16, QUARTER_FINALS, SEMI_FINALS, FINAL (kwa mashindano kama World Cup)",
+    )
+    group_name = models.CharField(
+        max_length=20, blank=True, default="",
+        help_text="mfano: 'Group A' (kwa Group Stage pekee)",
+    )
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="SCHEDULED")
     home_score = models.PositiveSmallIntegerField(null=True, blank=True)
     away_score = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -74,6 +82,20 @@ class Match(models.Model):
     @property
     def is_finished(self):
         return self.status == "FINISHED"
+
+    @property
+    def stage_display(self):
+        """Jina la kusomeka la stage, kwa UI."""
+        labels = {
+            "GROUP_STAGE": "Group Stage",
+            "LAST_32": "Round of 32",
+            "LAST_16": "Round of 16",
+            "QUARTER_FINALS": "Quarter-Final",
+            "SEMI_FINALS": "Semi-Final",
+            "THIRD_PLACE": "Third Place Play-off",
+            "FINAL": "Final",
+        }
+        return labels.get(self.stage, self.stage)
 
 
 class SavedMatch(models.Model):

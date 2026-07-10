@@ -243,6 +243,7 @@ BASHIRI = {
         "PD": "LaLiga",
         "BL1": "Bundesliga",
         "FL1": "Ligue1",
+        "WC": "WorldCup",
     },
 
     "FOOTBALL_DATA_BASE_URL": "https://api.football-data.org/v4",

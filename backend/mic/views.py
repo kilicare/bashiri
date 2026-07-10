@@ -107,7 +107,9 @@ class MicReactionListView(APIView):
         team_side = request.query_params.get("team_side")
         
         # Cache reactions for 30 seconds (list changes frequently but not instantly)
-        cache_key = f"mic_reactions_{match_id}_{team_side or 'all'}"
+        # Include user ID in cache key for authenticated users to get their vote status
+        user_id = request.user.id if request.user.is_authenticated else "anon"
+        cache_key = f"mic_reactions_{match_id}_{team_side or 'all'}_{user_id}"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
@@ -118,7 +120,7 @@ class MicReactionListView(APIView):
         if team_side:
             qs = qs.filter(team_side=team_side)
 
-        data = MicReactionSerializer(qs, many=True).data
+        data = MicReactionSerializer(qs, many=True, context={'request': request}).data
         cache.set(cache_key, data, timeout=30)  # 30 seconds cache
         
         return Response(data)
@@ -163,6 +165,8 @@ class MicReactionVoteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, reaction_id):
+        from django.core.cache import cache
+        
         reaction = get_object_or_404(MicReaction, pk=reaction_id)
         emoji = request.data.get("emoji")
 
@@ -172,6 +176,19 @@ class MicReactionVoteView(APIView):
         if not created:
             vote.emoji = emoji
             vote.save(update_fields=["emoji"])
+
+        # Invalidate cache for this match's reactions to ensure fresh data
+        match_id = reaction.match_id
+        cache_keys_to_clear = [
+            f"mic_reactions_{match_id}_all_anon",
+            f"mic_reactions_{match_id}_all_{request.user.id}",
+            f"mic_reactions_{match_id}_HOME_anon",
+            f"mic_reactions_{match_id}_HOME_{request.user.id}",
+            f"mic_reactions_{match_id}_AWAY_anon",
+            f"mic_reactions_{match_id}_AWAY_{request.user.id}",
+        ]
+        for cache_key in cache_keys_to_clear:
+            cache.delete(cache_key)
 
         return Response(MicReactionVoteSerializer(vote).data, status=status.HTTP_201_CREATED)
 

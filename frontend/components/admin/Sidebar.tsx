@@ -59,7 +59,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       >
         {/* Mobile Close Button */}
         <div className="md:hidden flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <h1 className="text-lg font-black" style={{ color: "#00FF87" }}>BASHIRI ADMIN</h1>
+          <h1 className="text-lg font-black" style={{ color: "#F5A623" }}>BASHIRI ADMIN</h1>
           <button 
             onClick={() => {
               console.log('Close button clicked');
@@ -74,7 +74,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
 
         {/* Desktop Header */}
         <div className="hidden md:block px-5 py-6">
-          <h1 className="text-lg font-black" style={{ color: "#00FF87" }}>BASHIRI ADMIN</h1>
+          <h1 className="text-lg font-black" style={{ color: "#F5A623" }}>BASHIRI ADMIN</h1>
           <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>@{admin?.username}</p>
         </div>
 
@@ -88,8 +88,8 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                 onClick={() => handleNavClick(item.href)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold"
                 style={{
-                  background: active ? "rgba(0,255,135,0.1)" : "transparent",
-                  color: active ? "#00FF87" : "rgba(255,255,255,0.6)",
+                  background: active ? "rgba(245,166,35,0.1)" : "transparent",
+                  color: active ? "#F5A623" : "rgba(255,255,255,0.6)",
                 }}
               >
                 <Icon size={18} />

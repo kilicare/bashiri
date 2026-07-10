@@ -4,7 +4,7 @@ export function UserPredictionCard({ cardId, data }: { cardId: number; data: any
   return (
     <div className="rounded-3xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center" style={{ background: "#00FF87" }}>
+        <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center" style={{ background: "#F5A623" }}>
           {data.avatar_url ? (
             <img src={data.avatar_url} alt={data.username} className="w-full h-full object-cover" />
           ) : (

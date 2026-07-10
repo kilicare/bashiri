@@ -45,7 +45,10 @@ export default function MatchOverviewPage() {
 
   return (
     <div className="px-5 pt-safe pt-6 pb-6">
-      <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{match.league.name}</p>
+      <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+        {match.league.name}
+        {match.stage_display && ` • ${match.stage_display}`}
+      </p>
       <h1 className="text-xl font-black text-white mb-5">{match.home_team.name} vs {match.away_team.name}</h1>
 
       <div className="flex gap-2 mb-5 overflow-x-auto">
@@ -77,9 +80,9 @@ export default function MatchOverviewPage() {
             onClick={() => handleTabChange(tab.key)}
             className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all"
             style={{
-              background: activeTab === tab.key ? "rgba(255,213,74,0.15)" : "rgba(255,255,255,0.06)",
-              color: activeTab === tab.key ? "#FFD54A" : "rgba(255,255,255,0.5)",
-              border: activeTab === tab.key ? "1px solid rgba(255,213,74,0.3)" : "1px solid transparent",
+              background: activeTab === tab.key ? "rgba(245,166,35,0.15)" : "rgba(255,255,255,0.06)",
+              color: activeTab === tab.key ? "#F5A623" : "rgba(255,255,255,0.5)",
+              border: activeTab === tab.key ? "1px solid rgba(245,166,35,0.3)" : "1px solid transparent",
             }}
           >
             {tab.label}
@@ -172,7 +175,7 @@ export default function MatchOverviewPage() {
               <button className="w-full p-3 rounded-xl text-left transition-all hover:scale-[1.02]" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <p className="text-sm font-bold text-white">{match.away_team.name}</p>
                 <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
-                  <div className="h-full rounded-full" style={{ width: "35%", background: "#FFD54A" }}></div>
+                  <div className="h-full rounded-full" style={{ width: "35%", background: "#F5A623" }}></div>
                 </div>
                 <p className="text-xs text-white/50 mt-1">35%</p>
               </button>
@@ -204,7 +207,7 @@ export default function MatchOverviewPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-bold text-white">{h.home_team}</span>
-                      <span className="text-lg font-black" style={{ color: "#FFD54A" }}>{h.home_score}-{h.away_score}</span>
+                      <span className="text-lg font-black" style={{ color: "#F5A623" }}>{h.home_score}-{h.away_score}</span>
                       <span className="text-sm font-bold text-white">{h.away_team}</span>
                     </div>
                   </div>

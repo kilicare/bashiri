@@ -69,7 +69,7 @@ export function FeedContainer() {
         <button
           onClick={() => loadMore()}
           className="w-full py-3 text-sm font-bold rounded-2xl mt-4"
-          style={{ color: "#00FF87", background: "rgba(0,255,135,0.06)" }}
+          style={{ color: "#F5A623", background: "rgba(245,166,35,0.06)" }}
         >
           Pakia Zaidi
         </button>

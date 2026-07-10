@@ -18,8 +18,8 @@ export function MoodSelector({ selected, onSelect }: { selected: string; onSelec
           onClick={() => onSelect(m.key)}
           className="rounded-2xl p-3 text-center"
           style={{
-            background: selected === m.key ? "rgba(0,255,135,0.12)" : "#151515",
-            border: selected === m.key ? "2px solid #00FF87" : "1px solid rgba(255,255,255,0.08)",
+            background: selected === m.key ? "rgba(245,166,35,0.12)" : "#151515",
+            border: selected === m.key ? "2px solid #F5A623" : "1px solid rgba(255,255,255,0.08)",
           }}
         >
           <p className="text-2xl mb-1">{m.emoji}</p>

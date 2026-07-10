@@ -5,7 +5,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Market } from "@/lib/api/predictions";
 import { PremiumCard } from "@/components/ui/GlassCard";
 
-const COLORS = ["#00FF87", "#FFD600", "#FF4757"];
+const COLORS = ["#F5A623", "#FFD600", "#FF4757"];
 
 export function MarketRow({ market, onLockedClick }: { market: Market; onLockedClick: () => void }) {
   return (
@@ -27,7 +27,7 @@ export function MarketRow({ market, onLockedClick }: { market: Market; onLockedC
               <span className="text-xs font-bold" style={{ color: "#FFD600" }}>PRO</span>
             </div>
           ) : market.ai_pick ? (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,135,0.1)", color: "#00FF87" }}>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(245,166,35,0.1)", color: "#F5A623" }}>
               AI Pick ✓
             </span>
           ) : null}
@@ -49,7 +49,7 @@ export function MarketRow({ market, onLockedClick }: { market: Market; onLockedC
                   <span className="text-xs font-bold w-10 text-right" style={{ color: COLORS[idx % COLORS.length] }}>
                     {Math.round((opt.prob || 0) * 100)}%
                   </span>
-                  {market.ai_pick === opt.key && <Check size={12} style={{ color: "#00FF87" }} />}
+                  {market.ai_pick === opt.key && <Check size={12} style={{ color: "#F5A623" }} />}
                 </>
               )}
             </div>

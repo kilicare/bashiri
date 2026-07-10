@@ -1,4 +1,5 @@
 "use client";
+import { useCallback } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useAuthGateStore } from "@/stores/authGate.store";
 import { saveReturnTo } from "@/lib/return-to";
@@ -12,14 +13,14 @@ export function useRequireAuth() {
   const access = useAuthStore((s) => s.access);
   const openGate = useAuthGateStore((s) => s.open);
 
-  function requireAuth(message?: string): boolean {
+  const requireAuth = useCallback((message?: string): boolean => {
     if (access) return true;
     if (typeof window !== "undefined") {
       saveReturnTo(window.location.pathname);
     }
     openGate(message);
     return false;
-  }
+  }, [access, openGate]);
 
   return { requireAuth, isAuthed: !!access };
 }

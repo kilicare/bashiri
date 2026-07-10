@@ -11,7 +11,7 @@ export function AIPickCard({ data }: { data: any }) {
   };
 
   const confidenceColor = ai_pick.confidence >= 70 ? "from-green-500/20 to-green-600/10 border-green-500/30" : 
-                          ai_pick.confidence >= 50 ? "from-[#FFD54A]/20 to-[#FFB300]/10 border-[#FFD54A]/30" : 
+                          ai_pick.confidence >= 50 ? "from-[#F5A623]/20 to-[#E8892A]/10 border-[#F5A623]/30" : 
                           "from-red-500/20 to-red-600/10 border-red-500/30";
 
   return (
@@ -71,7 +71,7 @@ export function AIPickCard({ data }: { data: any }) {
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} className={ai_pick.confidence >= 70 ? "text-green-400" : ai_pick.confidence >= 50 ? "text-[#FFD54A]" : "text-red-400"} />
+            <TrendingUp size={16} className={ai_pick.confidence >= 70 ? "text-green-400" : ai_pick.confidence >= 50 ? "text-[#F5A623]" : "text-red-400"} />
             <span className="text-sm font-bold text-white">Prediction</span>
           </div>
           <ConfidenceBadge confidence={ai_pick.confidence} />
@@ -90,7 +90,7 @@ export function AIPickCard({ data }: { data: any }) {
         <p className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Why This Pick?</p>
         {reasons.map((r: string, i: number) => (
           <div key={i} className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#FFD54A] mt-1.5 flex-shrink-0" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#F5A623] mt-1.5 flex-shrink-0" />
             <p className="text-sm text-white/70 leading-relaxed">{r}</p>
           </div>
         ))}

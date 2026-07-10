@@ -24,9 +24,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               className="w-32 h-32 object-contain rounded-full"
               animate={{
                 boxShadow: [
-                  '0 0 20px rgba(168,85,247,0.5)',
-                  '0 0 40px rgba(168,85,247,0.8)',
-                  '0 0 20px rgba(168,85,247,0.5)',
+                  '0 0 20px rgba(245,166,35,0.5)',
+                  '0 0 40px rgba(245,166,35,0.8)',
+                  '0 0 20px rgba(245,166,35,0.5)',
                 ],
               }}
               transition={{ duration: 2.5, repeat: Infinity }}

@@ -33,6 +33,7 @@ LEAGUE_SEED = [
     {"code": "PD", "name": "La Liga", "poisson_key": "LaLiga"},
     {"code": "BL1", "name": "Bundesliga", "poisson_key": "Bundesliga"},
     {"code": "FL1", "name": "Ligue 1", "poisson_key": "Ligue1"},
+    {"code": "WC", "name": "FIFA World Cup 2026", "poisson_key": "WorldCup"},
 ]
 
 
@@ -72,7 +73,7 @@ def ensure_leagues_exist() -> Dict[str, League]:
         )
         leagues[seed["code"]] = league
         if created:
-            logger.info(f"Created new league: {league.name} ({code})")
+            logger.info(f"Created new league: {league.name} ({league.code})")
     return leagues
 
 
@@ -106,6 +107,9 @@ def sync_match_from_api(
     """
     kickoff_at = parse_datetime(match_data["utcDate"])
     status = STATUS_MAP.get(match_data["status"], "SCHEDULED")
+    stage = match_data.get("stage") or ""
+    group_name = match_data.get("group") or ""
+    is_knockout = stage not in ("", "GROUP_STAGE", "REGULAR_SEASON")
     
     match, created = Match.objects.update_or_create(
         external_id=match_data["id"],
@@ -115,9 +119,12 @@ def sync_match_from_api(
             "away_team": away_team,
             "kickoff_at": kickoff_at,
             "matchday": match_data.get("matchday"),
+            "stage": stage,
+            "group_name": group_name,
             "status": status,
             "home_score": match_data["score"]["fullTime"]["home"],
             "away_score": match_data["score"]["fullTime"]["away"],
+            "is_big_match": is_knockout,
         },
     )
     return match, created

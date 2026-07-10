@@ -32,8 +32,8 @@ export function SubscriptionSheet({ isOpen, onClose }: { isOpen: boolean; onClos
       <div className="space-y-2 mb-5">
         {LOCKED_FEATURES.map((f, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "rgba(0,255,135,0.15)" }}>
-              <Check size={11} style={{ color: "#00FF87" }} />
+            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "rgba(245,166,35,0.15)" }}>
+              <Check size={11} style={{ color: "#F5A623" }} />
             </div>
             <span className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{f}</span>
           </div>
@@ -47,8 +47,8 @@ export function SubscriptionSheet({ isOpen, onClose }: { isOpen: boolean; onClos
             onClick={() => setSelected(plan.key)}
             className="flex-1 rounded-2xl p-3 text-center relative"
             style={{
-              background: selected === plan.key ? "rgba(0,255,135,0.1)" : "rgba(255,255,255,0.04)",
-              border: selected === plan.key ? "2px solid #00FF87" : "1px solid rgba(255,255,255,0.08)",
+              background: selected === plan.key ? "rgba(245,166,35,0.1)" : "rgba(255,255,255,0.04)",
+              border: selected === plan.key ? "2px solid #F5A623" : "1px solid rgba(255,255,255,0.08)",
             }}
           >
             {plan.popular && (
@@ -57,7 +57,7 @@ export function SubscriptionSheet({ isOpen, onClose }: { isOpen: boolean; onClos
               </span>
             )}
             <p className="text-sm font-bold text-white">{plan.label}</p>
-            <p className="text-lg font-black mt-0.5" style={{ color: "#00FF87" }}>{plan.price}</p>
+            <p className="text-lg font-black mt-0.5" style={{ color: "#F5A623" }}>{plan.price}</p>
           </button>
         ))}
       </div>

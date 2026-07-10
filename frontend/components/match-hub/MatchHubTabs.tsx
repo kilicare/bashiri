@@ -65,7 +65,7 @@ export function MatchHubTabs({ matchId, active }: Props) {
             onClick={() => navigateTo(tab.key)}
             className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
             style={{
-              background: isActive ? "#00FF87" : "rgba(255,255,255,0.06)",
+              background: isActive ? "#F5A623" : "rgba(255,255,255,0.06)",
               color: isActive ? "#000" : "rgba(255,255,255,0.5)",
             }}
           >

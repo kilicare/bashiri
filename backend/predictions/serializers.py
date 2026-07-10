@@ -19,12 +19,14 @@ class MatchListSerializer(serializers.ModelSerializer):
     home_team = TeamSerializer()
     away_team = TeamSerializer()
     league = LeagueSerializer()
+    stage_display = serializers.ReadOnlyField()
 
     class Meta:
         model = Match
         fields = [
             "id", "league", "home_team", "away_team", "kickoff_at",
             "status", "home_score", "away_score", "is_big_match",
+            "stage", "stage_display", "group_name",
         ]
 
 

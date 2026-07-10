@@ -80,7 +80,7 @@ export default function OnboardingPage() {
         {/* Header with Logo */}
         <div className="flex flex-col items-center gap-6 mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#FFD54A] to-[#FFB300] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,213,74,0.4)]">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#F5A623] to-[#E8892A] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(245,166,35,0.4)]">
               <span className="text-2xl">⚽</span>
             </div>
             <span className="text-white font-black text-2xl tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
@@ -94,7 +94,7 @@ export default function OnboardingPage() {
           <h1 className="text-white text-4xl md:text-5xl font-black mb-2 tracking-tight leading-none" style={{ fontFamily: "Poppins, sans-serif" }}>
             Chagua Ligi
           </h1>
-          <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD54A] to-[#FFB300] text-4xl md:text-5xl font-black mb-6 tracking-tight leading-none" style={{ fontFamily: "Poppins, sans-serif" }}>
+          <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5A623] to-[#E8892A] text-4xl md:text-5xl font-black mb-6 tracking-tight leading-none" style={{ fontFamily: "Poppins, sans-serif" }}>
             Unazopenda
           </h1>
           <p className="text-white/50 text-sm md:text-base leading-relaxed max-w-md mx-auto" style={{ fontFamily: "Inter, sans-serif" }}>
@@ -127,7 +127,7 @@ export default function OnboardingPage() {
           <button 
             onClick={handleContinue}
             disabled={loading}
-            className="w-full h-[60px] rounded-full bg-gradient-to-r from-[#FFD54A] to-[#FFB300] text-black font-black text-lg tracking-tight flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(255,213,74,0.4)] hover:shadow-[0_0_50px_rgba(255,213,74,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-[60px] rounded-full bg-gradient-to-r from-[#F5A623] to-[#E8892A] text-black font-black text-lg tracking-tight flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(245,166,35,0.4)] hover:shadow-[0_0_50px_rgba(245,166,35,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="w-6 h-6 border-3 border-black border-t-transparent rounded-full animate-spin" />

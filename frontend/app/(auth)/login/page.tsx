@@ -155,7 +155,7 @@ export default function LoginPage() {
                 value={phone}
                 onChange={setPhone}
                 error={error}
-                className="bg-white/5 border-white/10 focus:border-purple-500/50 focus:ring-purple-500/20"
+                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20"
               />
               {error && (
                 <motion.p 
@@ -176,7 +176,7 @@ export default function LoginPage() {
               fullWidth 
               loading={loading} 
               onClick={handleRequestOtp}
-              className="shadow-lg shadow-purple-500/25"
+              className="shadow-lg shadow-[#F5A623]/25"
             >
               Tuma OTP
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,14 +199,14 @@ export default function LoginPage() {
 
             {/* Header */}
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#FFD54A]/20 to-[#FFB300]/10 flex items-center justify-center border border-[#FFD54A]/20">
-                <Shield size={32} className="text-[#FFD54A]" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#F5A623]/20 to-[#E8892A]/10 flex items-center justify-center border border-[#F5A623]/20">
+                <Shield size={32} className="text-[#F5A623]" />
               </div>
               <h1 className="text-3xl font-black text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
                 Weka OTP
               </h1>
               <p className="text-base text-white/60 leading-relaxed">
-                Tumetuma namba ya uthibitisho kwa <span className="text-[#FFD54A] font-semibold">{phone}</span>
+                Tumetuma namba ya uthibitisho kwa <span className="text-[#F5A623] font-semibold">{phone}</span>
               </p>
             </div>
 
@@ -220,7 +220,7 @@ export default function LoginPage() {
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="123456"
                 error={error}
-                className="bg-white/5 border-white/10 focus:border-[#FFD54A]/50 focus:ring-[#FFD54A]/20 text-center text-2xl tracking-widest"
+                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20 text-center text-2xl tracking-widest"
               />
               {error && (
                 <motion.p 
@@ -255,8 +255,8 @@ export default function LoginPage() {
           <div className="space-y-8">
             {/* Header */}
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/10 flex items-center justify-center border border-green-500/20">
-                <User size={32} className="text-green-400" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#F5A623]/20 to-[#E8892A]/10 flex items-center justify-center border border-[#F5A623]/20">
+                <User size={32} className="text-[#F5A623]" />
               </div>
               <h1 className="text-3xl font-black text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
                 Kamilisha Profile
@@ -280,7 +280,7 @@ export default function LoginPage() {
                 }}
                 placeholder="lastmateru" 
                 error={usernameError}
-                className="bg-white/5 border-white/10 focus:border-green-500/50 focus:ring-green-500/20"
+                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20"
               />
               {usernameError && (
                 <motion.p 
@@ -308,7 +308,7 @@ export default function LoginPage() {
                   setDobError("");
                 }}
                 error={dobError}
-                className="bg-white/5 border-white/10 focus:border-green-500/50 focus:ring-green-500/20"
+                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20"
               />
               {dobError && (
                 <motion.p 
@@ -340,7 +340,7 @@ export default function LoginPage() {
               fullWidth 
               loading={loading} 
               onClick={handleCompleteProfile}
-              className="shadow-lg shadow-purple-500/25"
+              className="shadow-lg shadow-[#F5A623]/25"
             >
               Endelea
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

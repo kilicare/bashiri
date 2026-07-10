@@ -97,7 +97,14 @@ export default function MatchesPage() {
                     className="w-full flex items-center justify-between"
                   >
                     <div className="text-left">
-                      <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{m.league.name}</p>
+                      <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {m.league.name}
+                        {m.stage_display && (
+                          <span className="ml-2 px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600" }}>
+                            {m.stage_display}{m.group_name ? ` • ${m.group_name}` : ""}
+                          </span>
+                        )}
+                      </p>
                       <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
                     </div>
                     {m.status === "LIVE" ? (
