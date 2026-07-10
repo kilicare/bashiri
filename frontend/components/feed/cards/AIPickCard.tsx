@@ -1,100 +1,81 @@
 "use client";
 import { motion } from "framer-motion";
 import { ConfidenceBadge, PremiumBadge } from "@/components/ui/Badge";
-import { Brain, TrendingUp, Clock } from "lucide-react";
+import { Brain, TrendingUp, Clock, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 
 export function AIPickCard({ data }: { data: any }) {
   const { match, ai_pick, reasons } = data;
   const selectionLabel: Record<string, string> = {
-    "Home Win": match.home_team, Draw: "Sare", "Away Win": match.away_team,
+    "Home Win": match.home_team,
+    Draw: "Sare",
+    "Away Win": match.away_team,
   };
 
-  const confidenceColor = ai_pick.confidence >= 70 ? "from-green-500/20 to-green-600/10 border-green-500/30" : 
-                          ai_pick.confidence >= 50 ? "from-[#F5A623]/20 to-[#E8892A]/10 border-[#F5A623]/30" : 
-                          "from-red-500/20 to-red-600/10 border-red-500/30";
+  const isStrong = ai_pick.confidence >= 70;
+  const hasEdge = ai_pick.confidence >= 55;
 
   return (
-    <motion.div
+    <motion.article
       className={clsx(
-        "rounded-3xl p-5 border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl",
-        "bg-gradient-to-br from-[#1A1A24] to-[#22222E] border-white/10"
+        "group overflow-hidden rounded-[28px] border border-white/10 bg-[#09090f] shadow-[0_40px_120px_rgba(0,0,0,0.16)] transition-transform duration-300",
+        "hover:-translate-y-1 hover:shadow-[0_48px_140px_rgba(0,0,0,0.24)]"
       )}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 flex items-center justify-center">
-            <Brain size={16} className="text-purple-400" />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-wider text-white/60">
-            AI Pick
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-white/40">{match.league}</span>
-          {match.live && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-red-400">LIVE</span>
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#11121a] via-[#12131f] to-[#181a24] p-5">
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#7c3aed]/20 to-transparent opacity-70 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.26em] text-white/70">
+              <Brain size={14} /> AI PICK
             </div>
-          )}
-        </div>
-      </div>
+            <div className="mt-4 max-w-[14rem]">
+              <p className="text-2xl font-black text-white">{selectionLabel[ai_pick.selection]}</p>
+              <p className="mt-2 text-sm text-white/40">Prediction for {match.home_team} vs {match.away_team}</p>
+            </div>
+          </div>
 
-      {/* Match Teams */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex-1">
-          <p className="text-base font-bold text-white mb-1">{match.home_team}</p>
-          <p className="text-xs text-white/40">Home</p>
-        </div>
-        <div className="px-4">
-          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-            <span className="text-sm font-bold text-white/60">VS</span>
+          <div className="flex flex-col items-end gap-2">
+            <PremiumBadge variant={isStrong ? "green" : hasEdge ? "gold" : "red"}>
+              {isStrong ? "High Confidence" : hasEdge ? "Edge" : "Caution"}
+            </PremiumBadge>
+            <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-2 text-right">
+              <p className="text-xs uppercase tracking-[0.3em] text-white/50">Confidence</p>
+              <p className="text-lg font-black text-white">{ai_pick.confidence}%</p>
+            </div>
           </div>
         </div>
-        <div className="flex-1 text-right">
-          <p className="text-base font-bold text-white mb-1">{match.away_team}</p>
-          <p className="text-xs text-white/40">Away</p>
-        </div>
       </div>
 
-      {/* AI Prediction Box */}
-      <div 
-        className={clsx(
-          "rounded-2xl p-4 border mb-4 transition-all duration-300",
-          "bg-gradient-to-br", confidenceColor
-        )}
-      >
-        <div className="flex items-center justify-between mb-2">
+      <div className="border-y border-white/10 bg-[#0f1018] px-5 py-4">
+        <div className="flex items-center justify-between gap-4 text-sm text-white/60">
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} className={ai_pick.confidence >= 70 ? "text-green-400" : ai_pick.confidence >= 50 ? "text-[#F5A623]" : "text-red-400"} />
-            <span className="text-sm font-bold text-white">Prediction</span>
+            <TrendingUp className={clsx("h-4 w-4", isStrong ? "text-emerald-400" : hasEdge ? "text-amber-400" : "text-rose-400")} />
+            <span>Market: {ai_pick.market}</span>
           </div>
-          <ConfidenceBadge confidence={ai_pick.confidence} />
-        </div>
-        <p className="text-lg font-black text-white mb-1">
-          {selectionLabel[ai_pick.selection]}
-        </p>
-        <div className="flex items-center gap-2 text-xs text-white/50">
-          <Clock size={12} />
-          <span>{match.time}</span>
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-white/40" />
+            <span>{match.kickoff_at ? new Date(match.kickoff_at).toLocaleString("sw-TZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "N/A"}</span>
+          </div>
         </div>
       </div>
 
-      {/* Reasons */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Why This Pick?</p>
-        {reasons.map((r: string, i: number) => (
-          <div key={i} className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#F5A623] mt-1.5 flex-shrink-0" />
-            <p className="text-sm text-white/70 leading-relaxed">{r}</p>
-          </div>
-        ))}
+      <div className="p-5">
+        <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-white/50">
+          <Sparkles className="h-4 w-4 text-violet-400" />
+          <span>Reasoning</span>
+        </div>
+
+        <div className="grid gap-3">
+          {reasons.map((reason: string, index: number) => (
+            <div key={index} className="rounded-3xl border border-white/10 bg-white/5 p-4 transition-colors duration-200 hover:border-white/15 hover:bg-white/10">
+              <p className="text-sm leading-6 text-white/80">{reason}</p>
+            </div>
+          ))}
+        </div>
       </div>
-    </motion.div>
+    </motion.article>
   );
 }

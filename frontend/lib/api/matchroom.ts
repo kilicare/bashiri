@@ -7,6 +7,12 @@ export interface RoomMessage {
   created_at: string;
 }
 
+export interface RoomHistoryResponse {
+  room_state: string;
+  messages: RoomMessage[];
+  kickoff_at?: string;
+}
+
 export function getRoomHistory(matchId: number) {
-  return apiClient<{ room_state: string; messages: RoomMessage[] }>(`/matchroom/${matchId}/history/`, { skipAuth: true });
+  return apiClient<RoomHistoryResponse>(`/matchroom/${matchId}/history/`, { skipAuth: true });
 }

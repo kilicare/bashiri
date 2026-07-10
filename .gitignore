@@ -18,6 +18,7 @@ backend/predictions/ml/data/*.pkl
 # ==== Node / Next.js (frontend) ====
 frontend/node_modules/
 frontend/.next/
+frontend/.pnpm-store/
 frontend/out/
 frontend/build/
 frontend/*.tsbuildinfo

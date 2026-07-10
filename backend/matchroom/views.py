@@ -35,6 +35,7 @@ class MatchRoomHistoryView(APIView):
         return Response({
             "room_state": self._compute_room_state(match),
             "messages": MatchRoomMessageSerializer(reversed(list(messages)), many=True).data,
+            "kickoff_at": match.kickoff_at.isoformat() if match.kickoff_at else None,
         })
 
     @staticmethod
@@ -49,6 +50,6 @@ class MatchRoomHistoryView(APIView):
             return ROOM_STATE["LIVE"]
         if match.status == "FINISHED":
             return ROOM_STATE["CLOSED"]
-        if match.status == "SCHEDULED" and match.kickoff_at - timedelta(minutes=30) <= now < match.kickoff_at:
+        if match.status == "SCHEDULED" and match.kickoff_at - timedelta(hours=6) <= now < match.kickoff_at:
             return ROOM_STATE["WATCH_PARTY"]
         return ROOM_STATE["WATCH_PARTY"] if match.kickoff_at > now else ROOM_STATE["CLOSED"]

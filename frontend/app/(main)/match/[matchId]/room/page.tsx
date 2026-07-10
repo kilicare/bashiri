@@ -11,6 +11,16 @@ import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { ReportButton } from "@/components/report/ReportButton";
 
+function getCountdown(target?: string): string {
+  if (!target) return "00:00:00";
+  const diff = new Date(target).getTime() - Date.now();
+  if (diff <= 0) return "00:00:00";
+  const hours = Math.floor(diff / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
 export default function MatchRoomPage() {
   const params = useParams();
   const router = useRouter();
@@ -19,16 +29,34 @@ export default function MatchRoomPage() {
   const [initialMessages, setInitialMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [kickoffAt, setKickoffAt] = useState<string>("");
+  const [countdown, setCountdown] = useState<string>("00:00:00");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { requireAuth, isAuthed } = useRequireAuth();
 
   useEffect(() => {
     getRoomHistory(matchId).then((data) => {
       setRoomState(data.room_state);
       setInitialMessages(data.messages);
+      setKickoffAt(data.kickoff_at || "");
       setLoading(false);
     });
   }, [matchId]);
+
+  useEffect(() => {
+    if (!kickoffAt) return;
+    
+    setCountdown(getCountdown(kickoffAt));
+    
+    intervalRef.current = setInterval(() => {
+      setCountdown(getCountdown(kickoffAt));
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [kickoffAt]);
 
   const { messages, connected, error, sendMessage } = useMatchRoomSocket(matchId, initialMessages);
 
@@ -70,9 +98,16 @@ export default function MatchRoomPage() {
     <DerbyThemeProvider matchId={matchId}>
       <div className="max-w-2xl mx-auto min-h-dvh flex flex-col">
         <div className="px-5 pt-safe pt-6 pb-3 flex items-center justify-between">
-          <h1 className="text-lg font-black text-white">
-            {roomState === "watch_party" ? "🎉 Watch Party" : "💬 Match Room"}
-          </h1>
+          <div>
+            <h1 className="text-lg font-black text-white">
+              {roomState === "watch_party" ? "🎉 Watch Party" : "💬 Match Room"}
+            </h1>
+            {roomState === "watch_party" && countdown !== "00:00:00" && (
+              <p className="text-xs font-mono font-bold mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+                ⏱️ Anza: {countdown}
+              </p>
+            )}
+          </div>
           <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{
             background: connected ? "rgba(0,255,135,0.1)" : "rgba(255,71,87,0.1)",
             color: connected ? "#00FF87" : "#FF4757",

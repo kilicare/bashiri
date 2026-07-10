@@ -24,6 +24,7 @@ export interface Match {
   stage: string;
   stage_display: string;
   group_name: string;
+  matchday?: number | null;
 }
 
 export function getFixtures() {

@@ -7,6 +7,16 @@ import { CardSkeleton } from "@/components/ui/Skeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 
+function formatMatchDate(kickoffAt: string): string {
+  const date = new Date(kickoffAt);
+  return date.toLocaleDateString("sw-TZ", { 
+    day: "numeric", 
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
 export default function MatchesPage() {
   const router = useRouter();
   const [tab, setTab] = useState<"fixtures" | "live" | "finished">("fixtures");
@@ -24,10 +34,10 @@ export default function MatchesPage() {
     } else if (tab === "live") {
       getLiveMatches().then((data) => { setMatches(data); setLoading(false); });
     } else if (tab === "finished") {
-      getFinishedMatches(20, 0).then((data) => { 
-        setMatches(data.results); 
+      getFinishedMatches(20, 0).then((data) => {
+        setMatches(data.results);
         setHasMore(data.count > 20);
-        setLoading(false); 
+        setLoading(false);
       });
     }
   }, [tab]);
@@ -94,27 +104,47 @@ export default function MatchesPage() {
                 <GlassCard hover className="p-4">
                   <button
                     onClick={() => router.push(`/create/${m.id}/overview`)}
-                    className="w-full flex items-center justify-between"
+                    className="w-full"
                   >
-                    <div className="text-left">
-                      <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
-                        {m.league.name}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="text-left flex-1">
+                        <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                          {m.league.name}
+                        </p>
+                        <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
+                      </div>
+                      {m.status === "LIVE" ? (
+                        <span className="text-sm font-black ml-2" style={{ color: "#00FF87" }}>{m.home_score}-{m.away_score}</span>
+                      ) : m.status === "FINISHED" ? (
+                        <span className="text-sm font-black ml-2 text-white">{m.home_score}-{m.away_score}</span>
+                      ) : null}
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      <div className="flex items-center gap-2">
+                        <span>📅 {formatMatchDate(m.kickoff_at)}</span>
+                        {m.matchday && <span>• Matchday {m.matchday}</span>}
+                      </div>
+                      {m.status === "SCHEDULED" && (
+                        <span className="px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,135,0.1)", color: "#00FF87" }}>
+                          Upcoming
+                        </span>
+                      )}
+                    </div>
+
+                    {(m.stage_display || m.group_name) && (
+                      <div className="mt-2 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {m.stage_display && (
-                          <span className="ml-2 px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600" }}>
-                            {m.stage_display}{m.group_name ? ` • ${m.group_name}` : ""}
+                          <span className="px-1.5 py-0.5 rounded-full mr-1" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600" }}>
+                            {m.stage_display}
                           </span>
                         )}
-                      </p>
-                      <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
-                    </div>
-                    {m.status === "LIVE" ? (
-                      <span className="text-sm font-black" style={{ color: "#00FF87" }}>{m.home_score}-{m.away_score}</span>
-                    ) : m.status === "FINISHED" ? (
-                      <span className="text-sm font-black text-white">{m.home_score}-{m.away_score}</span>
-                    ) : (
-                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                        {new Date(m.kickoff_at).toLocaleDateString("sw-TZ", { day: "numeric", month: "short" })}
-                      </span>
+                        {m.group_name && (
+                          <span className="px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
+                            {m.group_name}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </button>
                 </GlassCard>

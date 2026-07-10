@@ -26,7 +26,7 @@ class MatchListSerializer(serializers.ModelSerializer):
         fields = [
             "id", "league", "home_team", "away_team", "kickoff_at",
             "status", "home_score", "away_score", "is_big_match",
-            "stage", "stage_display", "group_name",
+            "stage", "stage_display", "group_name", "matchday",
         ]
 
 
