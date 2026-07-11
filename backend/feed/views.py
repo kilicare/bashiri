@@ -27,28 +27,23 @@ class FeedListView(APIView):
         user = request.user
         since = timezone.now() - timedelta(days=FEED_WINDOW_DAYS)
 
-        # Standard cards (not USER_PREDICTION) use the 2-day window
-        standard_qs = Card.objects.filter(
-            is_active=True,
-            created_at__gte=since
-        ).exclude(type="USER_PREDICTION").select_related(
-            "match", "match__home_team", "match__away_team", "match__league"
-        )
-
         # USER_PREDICTION cards use match-based logic: visible until match finishes, then 12 hours after kickoff
         user_pred_cutoff = timezone.now() - timedelta(hours=12)
-        prediction_qs = Card.objects.filter(
-            is_active=True,
-            type="USER_PREDICTION"
+        
+        # Build a single query with Q objects to avoid union() issues
+        base_qs = Card.objects.filter(
+            is_active=True
+        ).filter(
+            # Standard cards (not USER_PREDICTION) use the 2-day window
+            (Q(type="USER_PREDICTION") & (
+                Q(match__status__in=["SCHEDULED", "LIVE", "POSTPONED"]) |
+                Q(match__status="FINISHED", match__kickoff_at__gte=user_pred_cutoff)
+            )) |
+            # Non-USER_PREDICTION cards use the 2-day window
+            (~Q(type="USER_PREDICTION") & Q(created_at__gte=since))
         ).select_related(
             "match", "match__home_team", "match__away_team", "match__league"
-        ).filter(
-            Q(match__status__in=["SCHEDULED", "LIVE", "POSTPONED"]) |
-            Q(match__status="FINISHED", match__kickoff_at__gte=user_pred_cutoff)
         )
-
-        # Combine both querysets
-        base_qs = standard_qs.union(prediction_qs)
 
         if user and user.is_authenticated:
             visible = base_qs.filter(Q(~Q(type="MILESTONE")) | Q(type="MILESTONE", data__user_id=user.id))

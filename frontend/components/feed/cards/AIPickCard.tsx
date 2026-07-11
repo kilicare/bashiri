@@ -18,62 +18,58 @@ export function AIPickCard({ data }: { data: any }) {
   return (
     <motion.article
       className={clsx(
-        "group overflow-hidden rounded-[28px] border border-white/10 bg-[#09090f] shadow-[0_40px_120px_rgba(0,0,0,0.16)] transition-transform duration-300",
+        "group overflow-hidden rounded-3xl border border-white/10 bg-[#09090f] shadow-[0_40px_120px_rgba(0,0,0,0.16)] transition-transform duration-300",
         "hover:-translate-y-1 hover:shadow-[0_48px_140px_rgba(0,0,0,0.24)]"
       )}
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#11121a] via-[#12131f] to-[#181a24] p-5">
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#7c3aed]/20 to-transparent opacity-70 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.26em] text-white/70">
-              <Brain size={14} /> AI PICK
-            </div>
-            <div className="mt-4 max-w-[14rem]">
-              <p className="text-2xl font-black text-white">{selectionLabel[ai_pick.selection]}</p>
-              <p className="mt-2 text-sm text-white/40">Prediction for {match.home_team} vs {match.away_team}</p>
-            </div>
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-white/70">
+            <Brain size={12} /> AI PICK
           </div>
-
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
             <PremiumBadge variant={isStrong ? "green" : hasEdge ? "gold" : "red"}>
-              {isStrong ? "High Confidence" : hasEdge ? "Edge" : "Caution"}
+              {isStrong ? "High" : hasEdge ? "Edge" : "Low"}
             </PremiumBadge>
-            <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-2 text-right">
-              <p className="text-xs uppercase tracking-[0.3em] text-white/50">Confidence</p>
-              <p className="text-lg font-black text-white">{ai_pick.confidence}%</p>
+            <div className="rounded-xl border border-white/10 bg-white/5 px-2 py-1">
+              <p className="text-xs font-black text-white">{ai_pick.confidence}%</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="border-y border-white/10 bg-[#0f1018] px-5 py-4">
-        <div className="flex items-center justify-between gap-4 text-sm text-white/60">
-          <div className="flex items-center gap-2">
-            <TrendingUp className={clsx("h-4 w-4", isStrong ? "text-emerald-400" : hasEdge ? "text-amber-400" : "text-rose-400")} />
-            <span>Market: {ai_pick.market}</span>
+        <div className="mt-3">
+          <p className="text-xl font-black text-white">{selectionLabel[ai_pick.selection]}</p>
+          <p className="mt-1 text-xs text-white/40">{match.home_team} vs {match.away_team}</p>
+        </div>
+
+        <div className="mt-3 flex items-center gap-3 text-xs text-white/60">
+          <div className="flex items-center gap-1">
+            <TrendingUp className={clsx("h-3 w-3", isStrong ? "text-emerald-400" : hasEdge ? "text-amber-400" : "text-rose-400")} />
+            <span>{ai_pick.market}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-white/40" />
+          <div className="flex items-center gap-1">
+            <Clock className="h-3 w-3 text-white/40" />
             <span>{match.kickoff_at ? new Date(match.kickoff_at).toLocaleString("sw-TZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "N/A"}</span>
           </div>
         </div>
-      </div>
 
-      <div className="p-5">
-        <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-white/50">
-          <Sparkles className="h-4 w-4 text-violet-400" />
-          <span>Reasoning</span>
-        </div>
-
-        <div className="grid gap-3">
-          {reasons.map((reason: string, index: number) => (
-            <div key={index} className="rounded-3xl border border-white/10 bg-white/5 p-4 transition-colors duration-200 hover:border-white/15 hover:bg-white/10">
-              <p className="text-sm leading-6 text-white/80">{reason}</p>
-            </div>
-          ))}
+        <div className="mt-3">
+          <div className="mb-2 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/50">
+            <Sparkles className="h-3 w-3 text-violet-400" />
+            <span>Reasoning</span>
+          </div>
+          <div className="space-y-2">
+            {reasons.slice(0, 2).map((reason: string, index: number) => (
+              <div key={index} className="rounded-xl border border-white/10 bg-white/5 p-2 transition-colors duration-200 hover:border-white/15 hover:bg-white/10">
+                <p className="text-xs leading-5 text-white/80">{reason}</p>
+              </div>
+            ))}
+            {reasons.length > 2 && (
+              <p className="text-[10px] text-white/40">+{reasons.length - 2} more reasons</p>
+            )}
+          </div>
         </div>
       </div>
     </motion.article>
