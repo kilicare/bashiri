@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+"""Setup Celery Beat schedules for Bashiri."""
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
+
+from django_celery_beat.models import CrontabSchedule, PeriodicTask, IntervalSchedule
+
+
+def make_task(name, task, cron_kwargs):
+    schedule, _ = CrontabSchedule.objects.get_or_create(**cron_kwargs)
+    obj, created = PeriodicTask.objects.get_or_create(name=name, defaults={"crontab": schedule, "task": task})
+    if not created:
+        obj.crontab = schedule
+        obj.task = task
+        obj.enabled = True
+        obj.save()
+    print(f"{'Imeundwa' if created else 'Imethibitishwa'}: {name}")
+
+
+def make_interval_task(name, task, every_minutes):
+    schedule, _ = IntervalSchedule.objects.get_or_create(every=every_minutes, period=IntervalSchedule.MINUTES)
+    obj, created = PeriodicTask.objects.get_or_create(name=name, defaults={"interval": schedule, "task": task})
+    if not created:
+        obj.interval = schedule
+        obj.crontab = None
+        obj.enabled = True
+        obj.save()
+    print(f"{'Imeundwa' if created else 'Imethibitishwa'}: {name}")
+
+
+# Sync KAMILI — mara moja kwa siku (fixtures mpya + backup ya matokeo)
+make_task("Sync Football Data", "predictions.tasks.sync_daily_task", {"minute": "0", "hour": "3"})
+
+# Sync NDOGO — mpya, kila dakika 15 (status/score za mechi za sasa)
+make_interval_task("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 15)
+
+# AI Picks — kila siku asubuhi
+make_task("Generate Daily Picks", "predictions.tasks.generate_daily_picks", {"minute": "0", "hour": "6"})
+
+# Feed tasks
+make_task("Generate Result Recaps", "feed.tasks.generate_result_recaps", {"minute": "*/30", "hour": "*"})
+make_task("Generate Stat Cards", "feed.tasks.generate_stat_cards", {"minute": "0", "hour": "5"})
+make_task("Generate Poll Cards", "feed.tasks.generate_poll_cards", {"minute": "0", "hour": "5"})
+make_task("Update Live Match Cards", "feed.tasks.update_live_match_cards", {"minute": "*/2", "hour": "*"})
+make_task("Generate Weekly Report", "feed.tasks.generate_weekly_report", {"minute": "0", "hour": "20", "day_of_week": "0"})
+make_task("Generate Did You Know Cards", "feed.tasks.generate_did_you_know_cards", {"minute": "30", "hour": "5"})
+make_task("Close Expired Debates", "feed.tasks.close_expired_debates", {"minute": "0", "hour": "*"})
+
+# Notifications
+make_task("Notify Daily Picks", "notifications.tasks.notify_daily_picks", {"minute": "0", "hour": "7"})
+make_task("Notify Favorite Team Matches", "notifications.tasks.notify_favorite_team_matches", {"minute": "*/30", "hour": "*"})
+make_task("Notify High Confidence Picks", "notifications.tasks.notify_high_confidence_picks", {"minute": "0", "hour": "8"})
+
+# Bashiri Mic
+make_task("Compute Fan of Match", "mic.tasks.compute_fan_of_match", {"minute": "0", "hour": "*"})
+
+print("\n✅ Schedule zote zimeundwa/thibitishwa!")

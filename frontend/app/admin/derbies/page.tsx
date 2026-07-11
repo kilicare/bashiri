@@ -16,6 +16,7 @@ export default function AdminDerbiesPage() {
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [matchSearch, setMatchSearch] = useState("");
 
   useEffect(() => {
     load();
@@ -96,18 +97,33 @@ export default function AdminDerbiesPage() {
             </select>
           </div>
 
-          <select
-            className="w-full rounded-xl px-3 py-2.5 text-sm text-white bg-[#151515] outline-none"
-            value={form.match}
-            onChange={(e) => setForm({ ...form, match: e.target.value })}
-          >
-            <option value="">Link na Mechi (Hiari - chagua mechi halisi)</option>
-            {matches.map((m: any) => (
-              <option key={m.id} value={m.id}>
-                {m.home_team_name || m.home_team?.name} vs {m.away_team_name || m.away_team?.name} - {new Date(m.kickoff_at).toLocaleDateString()}
-              </option>
-            ))}
-          </select>
+          <div>
+            <input
+              className="w-full rounded-xl px-3 py-2.5 text-sm text-white bg-[#151515] outline-none mb-2"
+              placeholder="Tafuta mechi kwa jina la timu..."
+              value={matchSearch}
+              onChange={(e) => setMatchSearch(e.target.value)}
+            />
+            <select
+              className="w-full rounded-xl px-3 py-2.5 text-sm text-white bg-[#151515] outline-none"
+              value={form.match}
+              onChange={(e) => setForm({ ...form, match: e.target.value })}
+            >
+              <option value="">Link na Mechi (Hiari - chagua mechi halisi)</option>
+              {matches
+                .filter((m: any) => {
+                  const searchLower = matchSearch.toLowerCase();
+                  const homeTeam = (m.home_team_name || m.home_team?.name || "").toLowerCase();
+                  const awayTeam = (m.away_team_name || m.away_team?.name || "").toLowerCase();
+                  return homeTeam.includes(searchLower) || awayTeam.includes(searchLower);
+                })
+                .map((m: any) => (
+                  <option key={m.id} value={m.id}>
+                    {m.home_team_name || m.home_team?.name} vs {m.away_team_name || m.away_team?.name} - {new Date(m.kickoff_at).toLocaleDateString()}
+                  </option>
+                ))}
+            </select>
+          </div>
 
           <input
             className="w-full rounded-xl px-3 py-2.5 text-sm text-white bg-[#151515] outline-none"

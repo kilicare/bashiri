@@ -193,7 +193,11 @@ export default function NotificationsPage() {
 
   // Get unique notification types for filter
   const notificationTypes: string[] = Array.from(
-    new Set(items.map((n: any) => n.notification_type))
+    new Set(
+      items
+        .map((n: any) => typeof n.notification_type === 'string' && n.notification_type.trim() ? n.notification_type : '')
+        .filter(Boolean)
+    )
   )
 
   const unread = items.filter((n: any) => !n.is_read).length
@@ -269,9 +273,9 @@ export default function NotificationsPage() {
               >
                 Zote
               </button>
-              {notificationTypes.map((type: string) => (
+              {notificationTypes.map((type: string, index: number) => (
                 <button
-                  key={type}
+                  key={`${type}-${index}`}
                   onClick={() => setFilterType(type)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
                     filterType === type

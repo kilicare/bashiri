@@ -15,6 +15,7 @@ from .models import MatchRoomMessage
 from .serializers import MatchRoomMessageSerializer
 
 ROOM_STATE = {
+    "UPCOMING": "upcoming",
     "WATCH_PARTY": "watch_party",
     "LIVE": "live",
     "CLOSED": "closed",
@@ -50,6 +51,12 @@ class MatchRoomHistoryView(APIView):
             return ROOM_STATE["LIVE"]
         if match.status == "FINISHED":
             return ROOM_STATE["CLOSED"]
-        if match.status == "SCHEDULED" and match.kickoff_at - timedelta(hours=6) <= now < match.kickoff_at:
+        if match.status == "SCHEDULED":
+            # Temporary test window: 10 hours before kickoff so WebSocket/Watch Party can be exercised now.
+            if match.kickoff_at - timedelta(hours=13) <= now < match.kickoff_at:
+                return ROOM_STATE["WATCH_PARTY"]
+            if now < match.kickoff_at - timedelta(hours=13):
+                return ROOM_STATE["UPCOMING"]
+            # kickoff imepita lakini status bado SCHEDULED (sync bado haijaupdate)
             return ROOM_STATE["WATCH_PARTY"]
-        return ROOM_STATE["WATCH_PARTY"] if match.kickoff_at > now else ROOM_STATE["CLOSED"]
+        return ROOM_STATE["CLOSED"]

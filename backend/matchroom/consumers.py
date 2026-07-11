@@ -32,24 +32,34 @@ async def retry_redis_operation(operation, max_retries=3, delay=1):
 
 class MatchRoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.match_id = self.scope["url_route"]["kwargs"]["match_id"]
-        self.room_group_name = f"match_{self.match_id}"
-        self.last_message_time = 0
+        import logging
+        logger = logging.getLogger("matchroom")
+        
+        try:
+            self.match_id = self.scope["url_route"]["kwargs"]["match_id"]
+            self.room_group_name = f"match_{self.match_id}"
+            self.last_message_time = 0
 
-        user = self.scope.get("user")
-        if user is None or not user.is_authenticated:
-            await self.close(code=4001)
-            return
+            user = self.scope.get("user")
+            if user is None or not user.is_authenticated:
+                await self.close(code=4001)
+                return
 
-        self.user = user
+            self.user = user
 
-        await retry_redis_operation(lambda: self.channel_layer.group_add(self.room_group_name, self.channel_name))
-        await self.accept()
-
-        await retry_redis_operation(lambda: self.channel_layer.group_send(
-            self.room_group_name,
-            {"type": "presence_update", "action": "join", "username": user.username},
-        ))
+            await retry_redis_operation(lambda: self.channel_layer.group_add(self.room_group_name, self.channel_name))
+            await self.accept()
+            
+            await retry_redis_operation(lambda: self.channel_layer.group_send(
+                self.room_group_name,
+                {"type": "presence_update", "action": "join", "username": user.username},
+            ))
+        except Exception as e:
+            logger.error(f"WebSocket connect failed for match {self.match_id}: {str(e)}", exc_info=True)
+            try:
+                await self.close(code=1011)
+            except:
+                pass
 
     async def disconnect(self, close_code):
         if hasattr(self, "room_group_name"):
