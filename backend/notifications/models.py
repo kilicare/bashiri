@@ -9,6 +9,11 @@ class Notification(models.Model):
         ("HIGH_CONFIDENCE", "High Confidence Alert"),
         ("RESULT", "Result"),
         ("SUPPORT_REPLY", "Support Reply"),
+        ("MIC_WINNER", "Mic Winner"),
+        ("MORNING_PICKS", "Morning Picks"),
+        ("LIVE_MATCH_ALERT", "Live Match Alert"),
+        ("EVENING_RECAP", "Evening Recap"),
+        ("WEEKLY_SUMMARY", "Weekly Summary"),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
@@ -42,6 +47,10 @@ class NotificationPreference(models.Model):
     favorite_team_alerts_enabled = models.BooleanField(default=True)
     high_confidence_alerts_enabled = models.BooleanField(default=True)
     result_alerts_enabled = models.BooleanField(default=True)
+    morning_picks_enabled = models.BooleanField(default=True)
+    live_match_alerts_enabled = models.BooleanField(default=True)
+    evening_recap_enabled = models.BooleanField(default=True)
+    weekly_summary_enabled = models.BooleanField(default=True)
 
     class Meta:
         db_table = "notifications_preference"

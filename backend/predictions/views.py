@@ -47,7 +47,7 @@ class LiveMatchesView(APIView):
     def get(self, request):
         from django.core.cache import cache
 
-        # Cache live matches for 30 seconds (live status changes frequently)
+        # Cache live matches for 60 seconds (syncs every 1 minute via Celery)
         cache_key = "live_matches"
         cached_data = cache.get(cache_key)
         
@@ -58,7 +58,7 @@ class LiveMatchesView(APIView):
             "league", "home_team", "away_team"
         ).order_by("kickoff_at")
         data = MatchListSerializer(matches, many=True).data
-        cache.set(cache_key, data, timeout=30)  # 30 seconds cache
+        cache.set(cache_key, data, timeout=60)  # 60 seconds cache (1 minute)
         
         return Response(data)
 

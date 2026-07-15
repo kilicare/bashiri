@@ -65,6 +65,7 @@ class Match(models.Model):
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="SCHEDULED")
     home_score = models.PositiveSmallIntegerField(null=True, blank=True)
     away_score = models.PositiveSmallIntegerField(null=True, blank=True)
+    last_event = models.CharField(max_length=50, null=True, blank=True, help_text="Last match event from API (e.g., 'GOAL', 'HALF_TIME')")
     is_big_match = models.BooleanField(
         default=False,
         help_text="Weka True kwa mkono (derby, top-of-table) — inaongeza bonus ya score kwenye Feed ranking, SI card type tofauti.",
@@ -138,3 +139,31 @@ class ActiveDerby(models.Model):
         from django.utils import timezone
         now = timezone.now()
         return self.is_active and self.starts_at <= now <= self.ends_at
+
+
+class AIPerformance(models.Model):
+    """Tracking ya accuracy ya AI model kwa transparency na trust building."""
+    date = models.DateField(unique=True, db_index=True)
+    total_predictions = models.PositiveIntegerField(default=0)
+    correct_predictions = models.PositiveIntegerField(default=0)
+    accuracy_percentage = models.FloatField(default=0.0)
+    high_confidence_predictions = models.PositiveIntegerField(default=0, help_text="Predictions with confidence >= 70%")
+    high_confidence_correct = models.PositiveIntegerField(default=0, help_text="Correct high confidence predictions")
+    high_confidence_accuracy = models.FloatField(default=0.0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "predictions_aiperformance"
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"AI Performance {self.date}: {self.accuracy_percentage}%"
+
+    def calculate_accuracy(self):
+        """Recalculate accuracy percentages."""
+        if self.total_predictions > 0:
+            self.accuracy_percentage = round((self.correct_predictions / self.total_predictions) * 100, 1)
+        if self.high_confidence_predictions > 0:
+            self.high_confidence_accuracy = round((self.high_confidence_correct / self.high_confidence_predictions) * 100, 1)
+        self.save(update_fields=["accuracy_percentage", "high_confidence_accuracy"])

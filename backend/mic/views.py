@@ -63,14 +63,6 @@ class MicCanPostView(APIView):
             cache.set(cache_key, data, timeout=60)
             return Response(data)
 
-        window_hours = settings.BASHIRI["MIC_POSTING_WINDOW_HOURS"]
-        deadline = match.updated_at + __import__("datetime").timedelta(hours=window_hours)
-
-        if timezone.now() > deadline:
-            data = {"can_post": False, "reason": "Muda wa kupost umeisha (saa 24 baada ya Full Time)."}
-            cache.set(cache_key, data, timeout=60)
-            return Response(data)
-
         data = {"can_post": True}
         cache.set(cache_key, data, timeout=60)
         return Response(data)
@@ -186,6 +178,7 @@ class MicReactionVoteView(APIView):
             f"mic_reactions_{match_id}_HOME_{request.user.id}",
             f"mic_reactions_{match_id}_AWAY_anon",
             f"mic_reactions_{match_id}_AWAY_{request.user.id}",
+            f"mic_fan_of_match_{match_id}",  # Also invalidate best video cache
         ]
         for cache_key in cache_keys_to_clear:
             cache.delete(cache_key)
@@ -194,11 +187,51 @@ class MicReactionVoteView(APIView):
 
 
 class FanOfMatchView(APIView):
-    """GET /api/mic/<match_id>/fan-of-match/"""
+    """GET /api/mic/<match_id>/fan-of-match/ — returns video with most votes"""
     permission_classes = [AllowAny]
 
     def get(self, request, match_id):
-        winner = MicReaction.objects.filter(match_id=match_id, is_fan_of_match=True).select_related("user").first()
+        from django.core.cache import cache
+        from django.db.models import Count, Case, When, IntegerField, Sum
+
+        # Cache best video for 1 minute (votes change frequently)
+        cache_key = f"mic_fan_of_match_{match_id}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
+        # Calculate vote weights: FIRE=3, HUNDRED=2, others=1
+        vote_weights = {
+            "FIRE": 3,
+            "HUNDRED": 2,
+        }
+        
+        # Annotate each reaction with weighted vote count
+        reactions = MicReaction.objects.filter(
+            match_id=match_id, 
+            is_active=True
+        ).select_related("user").annotate(
+            vote_count=Count("votes"),
+            weighted_score=Sum(
+                Case(
+                    *[When(votes__emoji=emoji, then=weight) for emoji, weight in vote_weights.items()],
+                    default=1,
+                    output_field=IntegerField()
+                )
+            )
+        ).order_by("-weighted_score", "-vote_count", "-created_at")
+
+        winner = reactions.first()
+        
         if not winner:
-            return Response({"detail": "Bado hakuna Fan of the Match kwa mechi hii."}, status=status.HTTP_404_NOT_FOUND)
-        return Response(MicReactionSerializer(winner).data)
+            data = {"detail": "Bado hakuna Fan of the Match kwa mechi hii."}
+            cache.set(cache_key, data, timeout=60)
+            return Response(data, status=status.HTTP_404_NOT_FOUND)
+
+        data = MicReactionSerializer(winner).data
+        # Add vote count to response for frontend display
+        data["vote_count"] = winner.vote_count
+        cache.set(cache_key, data, timeout=60)
+        
+        return Response(data)

@@ -1,45 +1,110 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useMediaRecorder } from "@/hooks/useMediaRecorder";
 import { BashiriButton } from "@/components/ui/Button";
 import { getUploadSignature, uploadVideoToCloudinary, createMicReaction } from "@/lib/api/mic";
-import { Upload, Video, X, Camera } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { MoodSelector } from "@/components/mic/MoodSelector";
+
+const MAX_DURATION_SECONDS = 30;
+const MIN_DURATION_SECONDS = 1;
+const MAX_FILE_SIZE_MB = 50;
+const ALLOWED_FORMATS = ["video/mp4", "video/quicktime", "video/webm", "video/x-m4v"];
 
 export default function MicRecordPage() {
   const router = useRouter();
   const params = useParams();
   const matchId = Number(params.matchId);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [mood, setMood] = useState("");
   const [teamSide, setTeamSide] = useState<"HOME" | "AWAY" | "NEUTRAL">("NEUTRAL");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [duration, setDuration] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
-  const {
-    mode, setMode, isRecording, selectedFile, videoBlob, duration, error: recError, previewUrl,
-    startPreview, startRecording, stopRecording, selectFile, reset, cleanup, getVideoSource,
-    maxDuration, minDuration, maxFileSizeMB,
-  } = useMediaRecorder();
-
-  useEffect(() => {
-    if (mode === "record" && videoRef.current && mood) {
-      startPreview(videoRef.current);
+  const validateFile = (file: File): string | null => {
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > MAX_FILE_SIZE_MB) {
+      return `File ni kubwa sana. Maksimum ni theluthi ${MAX_FILE_SIZE_MB}MB.`;
     }
-    return () => cleanup();
-  }, [mode, mood, startPreview, cleanup]);
+
+    if (!ALLOWED_FORMATS.includes(file.type)) {
+      return "Format hii ya video haikubaliki. Tumia MP4, MOV, WebM, au M4V.";
+    }
+
+    return null;
+  };
+
+  const extractDuration = (file: File): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(video.src);
+        const duration = Math.round(video.duration);
+        resolve(duration);
+      };
+      
+      video.onerror = () => {
+        URL.revokeObjectURL(video.src);
+        reject(new Error("Imeshindwa kupata muda wa video."));
+      };
+      
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  async function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setError("");
+    
+    const validationError = validateFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    try {
+      const videoDuration = await extractDuration(file);
+      
+      if (videoDuration < MIN_DURATION_SECONDS) {
+        setError(`Video ni fupi sana. Inahitajika angalau sekunde ${MIN_DURATION_SECONDS}.`);
+        return;
+      }
+      
+      if (videoDuration > MAX_DURATION_SECONDS) {
+        setError(`Video ni ndefu sana. Maksimum ni sekunde ${MAX_DURATION_SECONDS}.`);
+        return;
+      }
+
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+
+      setSelectedFile(file);
+      setDuration(videoDuration);
+      const newObjectUrl = URL.createObjectURL(file);
+      objectUrlRef.current = newObjectUrl;
+      setPreviewUrl(newObjectUrl);
+    } catch (e: any) {
+      setError(e.message || "Imeshindika kusoma video.");
+    }
+  }
 
   async function handlePost() {
-    const videoSource = getVideoSource();
-    if (!videoSource) return;
+    if (!selectedFile) return;
     setUploading(true);
     setError("");
     try {
       const sig = await getUploadSignature();
-      const { secure_url, duration: uploadedDuration } = await uploadVideoToCloudinary(videoSource, sig);
+      const { secure_url, duration: uploadedDuration } = await uploadVideoToCloudinary(selectedFile, sig);
       await createMicReaction({
         match: matchId,
         video_url: secure_url,
@@ -56,20 +121,27 @@ export default function MicRecordPage() {
     }
   }
 
-  function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (file) {
-      selectFile(file);
-    }
-  }
-
   function handleReplaceVideo() {
-    reset();
+    setSelectedFile(null);
+    setDuration(0);
     setError("");
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    setPreviewUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   }
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, []);
 
   if (!mood) {
     return (
@@ -81,44 +153,11 @@ export default function MicRecordPage() {
     );
   }
 
-  if (!mode) {
-    return (
-      <div className="min-h-dvh px-6 pt-safe pt-10 flex flex-col">
-        <h1 className="text-2xl font-black text-white mb-2">Jinsi ya Kuongeza Video</h1>
-        <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>Chagua njia unayopenda kushiriki reaction yako.</p>
-        
-        <div className="flex-1 flex flex-col gap-4">
-          <button
-            onClick={() => setMode("record")}
-            className="flex-1 rounded-3xl p-6 text-left"
-            style={{ background: "#111111", border: "2px solid rgba(255,255,255,0.08)" }}
-          >
-            <Camera size={32} className="mb-3" style={{ color: "#00FF87" }} />
-            <h2 className="text-lg font-black text-white mb-1">🎥 Rekodi Video</h2>
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Rekodi moja kwa moja kwenye browser yako kwa kutumia kamera.</p>
-          </button>
-
-          <button
-            onClick={() => setMode("upload")}
-            className="flex-1 rounded-3xl p-6 text-left"
-            style={{ background: "#111111", border: "2px solid rgba(255,255,255,0.08)" }}
-          >
-            <Upload size={32} className="mb-3" style={{ color: "#00FF87" }} />
-            <h2 className="text-lg font-black text-white mb-1">📁 Pakia Video</h2>
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Chagua video kutoka kwenye device yako tayari kurekodiwa.</p>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-dvh flex flex-col">
       <div className="relative flex-1 bg-black">
         {previewUrl ? (
           <video src={previewUrl} controls className="w-full h-full object-cover" />
-        ) : mode === "record" ? (
-          <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: "#111111" }}>
             <div className="text-center px-6">
@@ -128,48 +167,25 @@ export default function MicRecordPage() {
           </div>
         )}
 
-        {(isRecording || previewUrl) && (
-          <div className="absolute top-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full flex items-center gap-2" style={{ background: isRecording ? "rgba(255,71,87,0.9)" : "rgba(0,0,0,0.7)" }}>
-            {isRecording && <span className="live-dot" />}
-            <span className="text-xs font-bold text-white">{duration}s / {maxDuration}s</span>
+        {previewUrl && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full flex items-center gap-2" style={{ background: "rgba(0,0,0,0.7)" }}>
+            <span className="text-xs font-bold text-white">{duration}s / {MAX_DURATION_SECONDS}s</span>
           </div>
         )}
       </div>
 
-      {(recError || error) && <p className="px-6 py-2 text-xs text-bashiri-red">{recError || error}</p>}
+      {error && <p className="px-6 py-2 text-xs text-bashiri-red">{error}</p>}
 
       <div className="px-6 py-5 pb-safe space-y-3">
-        {mode === "upload" && (
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/mp4,video/quicktime,video/webm,video/x-m4v"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="video/mp4,video/quicktime,video/webm,video/x-m4v"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
 
-        {mode === "record" && !isRecording && !videoBlob && (
-          <button
-            onClick={startRecording}
-            className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-bold"
-            style={{ background: "#FF4757", color: "#fff" }}
-          >
-            <Camera size={18} /> Anza Kurekodi
-          </button>
-        )}
-
-        {mode === "record" && isRecording && (
-          <button
-            onClick={stopRecording}
-            className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-bold"
-            style={{ background: "#111111", border: "2px solid #FF4757", color: "#fff" }}
-          >
-            <Video size={18} /> Simamisha
-          </button>
-        )}
-
-        {mode === "upload" && !selectedFile && (
+        {!selectedFile && (
           <button
             onClick={() => fileInputRef.current?.click()}
             className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-bold"
@@ -179,7 +195,7 @@ export default function MicRecordPage() {
           </button>
         )}
 
-        {(videoBlob || selectedFile) && (
+        {selectedFile && (
           <div className="flex gap-3">
             <BashiriButton variant="outline" className="flex-1" onClick={handleReplaceVideo}>
               <X size={18} className="mr-2" /> Badilisha
@@ -189,7 +205,7 @@ export default function MicRecordPage() {
         )}
 
         <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
-          {mode === "record" ? "Rekodi moja kwa moja kwenye browser" : `Maksimum: ${maxFileSizeMB}MB • ${minDuration}-${maxDuration}s • MP4, MOV, WebM, M4V`}
+          Maksimum: {MAX_FILE_SIZE_MB}MB • {MIN_DURATION_SECONDS}-{MAX_DURATION_SECONDS}s • MP4, MOV, WebM, M4V
         </p>
       </div>
     </div>

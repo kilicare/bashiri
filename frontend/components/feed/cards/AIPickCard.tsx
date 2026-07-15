@@ -1,11 +1,15 @@
 "use client";
 import { motion } from "framer-motion";
 import { ConfidenceBadge, PremiumBadge } from "@/components/ui/Badge";
-import { Brain, TrendingUp, Clock, Sparkles } from "lucide-react";
+import { Brain, TrendingUp, Clock, Sparkles, Info } from "lucide-react";
 import { clsx } from "clsx";
+import { useState } from "react";
+import { ConfidenceEducation } from "@/components/predictions/ConfidenceEducation";
+import { createPortal } from "react-dom";
 
 export function AIPickCard({ data }: { data: any }) {
   const { match, ai_pick, reasons } = data;
+  const [showEducation, setShowEducation] = useState(false);
   const selectionLabel: Record<string, string> = {
     "Home Win": match.home_team,
     Draw: "Sare",
@@ -18,7 +22,7 @@ export function AIPickCard({ data }: { data: any }) {
   return (
     <motion.article
       className={clsx(
-        "group overflow-hidden rounded-3xl border border-white/10 bg-[#09090f] shadow-[0_40px_120px_rgba(0,0,0,0.16)] transition-transform duration-300",
+        "group rounded-3xl border border-white/10 bg-[#09090f] shadow-[0_40px_120px_rgba(0,0,0,0.16)] transition-transform duration-300",
         "hover:-translate-y-1 hover:shadow-[0_48px_140px_rgba(0,0,0,0.24)]"
       )}
       initial={{ opacity: 0, y: 24 }}
@@ -30,6 +34,13 @@ export function AIPickCard({ data }: { data: any }) {
             <Brain size={12} /> AI PICK
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowEducation(true)}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+              title="Jifunze kuhusu uhakika"
+            >
+              <Info size={12} className="text-white/60" />
+            </button>
             <PremiumBadge variant={isStrong ? "green" : hasEdge ? "gold" : "red"}>
               {isStrong ? "High" : hasEdge ? "Edge" : "Low"}
             </PremiumBadge>
@@ -72,6 +83,11 @@ export function AIPickCard({ data }: { data: any }) {
           </div>
         </div>
       </div>
+      
+      {showEducation && createPortal(
+        <ConfidenceEducation onClose={() => setShowEducation(false)} />,
+        document.body
+      )}
     </motion.article>
   );
 }

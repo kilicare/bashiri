@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def generate_result_recaps():
-    from predictions.models import Match
+    from predictions.models import Match, AIPerformance
     from predictions.services import is_prediction_correct
 
     today = timezone.localdate()
@@ -23,7 +23,17 @@ def generate_result_recaps():
     ).select_related("home_team", "away_team", "league")
 
     created_count = 0
+    total_predictions = 0
+    correct_predictions = 0
+    high_conf_predictions = 0
+    high_conf_correct = 0
+
     for match in finished_today:
+        # Deactivate LIVE_MATCH card for this match if it exists and is still active
+        Card.objects.filter(
+            type="LIVE_MATCH", match_id=match.id, is_active=True
+        ).update(is_active=False)
+
         ai_pick_card = Card.objects.filter(type="AI_PICK", match_id=match.id).first()
         if not ai_pick_card:
             continue
@@ -32,6 +42,7 @@ def generate_result_recaps():
 
         ai_pick = ai_pick_card.data.get("ai_pick", {})
         selection_key = ai_pick.get("selection", "").lower().replace(" ", "_")
+        confidence = ai_pick.get("confidence", 0)
         was_correct = is_prediction_correct("1X2", selection_key, match.home_score, match.away_score)
 
         Card.objects.create(
@@ -42,12 +53,41 @@ def generate_result_recaps():
                     "home_score": match.home_score, "away_score": match.away_score,
                 },
                 "ai_predicted": ai_pick.get("selection"),
-                "ai_confidence": ai_pick.get("confidence"),
+                "ai_confidence": confidence,
                 "was_correct": was_correct,
             },
         )
         created_count += 1
+        
+        # Track AI performance
+        total_predictions += 1
+        if was_correct:
+            correct_predictions += 1
+        if confidence >= 70:
+            high_conf_predictions += 1
+            if was_correct:
+                high_conf_correct += 1
+        
         _update_user_predictions_for_match(match)
+
+    # Update or create AIPerformance record for today
+    if total_predictions > 0:
+        performance, created = AIPerformance.objects.get_or_create(
+            date=today,
+            defaults={
+                "total_predictions": total_predictions,
+                "correct_predictions": correct_predictions,
+                "high_confidence_predictions": high_conf_predictions,
+                "high_confidence_correct": high_conf_correct,
+            }
+        )
+        if not created:
+            performance.total_predictions += total_predictions
+            performance.correct_predictions += correct_predictions
+            performance.high_confidence_predictions += high_conf_predictions
+            performance.high_confidence_correct += high_conf_correct
+            performance.save()
+        performance.calculate_accuracy()
 
     logger.info(f"generate_result_recaps: {created_count} recaps")
     return f"Result recaps: {created_count}"
@@ -148,21 +188,34 @@ def generate_poll_cards():
 
 @shared_task
 def update_live_match_cards():
+    from django.core.cache import cache
     from predictions.models import Match
 
     live_matches = Match.objects.filter(status="LIVE").select_related("home_team", "away_team", "league")
     updated_count = 0
+    data_changed = False
     for match in live_matches:
         card, _created = Card.objects.get_or_create(type="LIVE_MATCH", match_id=match.id, defaults={"data": {}})
-        card.data = {
+        new_data = {
             "match": {
                 "home_team": match.home_team.name, "away_team": match.away_team.name,
                 "league": match.league.name,
                 "score": {"home": match.home_score or 0, "away": match.away_score or 0},
             }
         }
-        card.save(update_fields=["data"])
-        updated_count += 1
+        # Check if data actually changed
+        if card.data != new_data:
+            card.data = new_data
+            card.save(update_fields=["data"])
+            updated_count += 1
+            data_changed = True
+
+    # Invalidate specific caches if live card data changed
+    if data_changed:
+        cache.delete("live_matches")
+        # Invalidate feed cache (only when live data changes)
+        cache.delete("feed_list")
+        logger.info("Cache invalidated: live_matches and feed_list")
 
     return f"Live cards updated: {updated_count}"
 
@@ -264,3 +317,125 @@ def close_expired_debates():
 
     logger.info(f"close_expired_debates: {closed_count} debates closed")
     return f"Debates zilizofungwa voting: {closed_count}"
+
+
+@shared_task
+def deactivate_finished_live_cards():
+    """
+    Safety-net: funga LIVE_MATCH cards ZOTE zenye is_active=True ambazo
+    match yake tayari ni FINISHED, bila kujali kama generate_result_recaps
+    imeshaziona leo (mfano mechi iliyomaliza jana lakini kwa sababu fulani
+    haikushughulikiwa). Celery Beat: kila dakika 5.
+    """
+    live_cards = Card.objects.filter(type="LIVE_MATCH", is_active=True).select_related("match")
+    deactivated = 0
+    for card in live_cards:
+        if card.match_id and card.match.status == "FINISHED":
+            card.is_active = False
+            card.save(update_fields=["is_active"])
+            deactivated += 1
+    logger.info(f"deactivate_finished_live_cards: {deactivated} cards zimefungwa")
+    return f"deactivate_finished_live_cards: {deactivated} cards zimefungwa"
+
+
+@shared_task
+def generate_mic_winner_cards():
+    """Generate MIC_WINNER cards for finished matches with mic reactions."""
+    from django.core.cache import cache
+    from mic.models import MicReaction
+    from mic.views import FanOfMatchView
+    from predictions.models import Match
+
+    # Get matches finished in the last 1 month that have mic reactions
+    one_month_ago = timezone.now() - timedelta(days=30)
+    finished_matches = Match.objects.filter(
+        status="FINISHED",
+        updated_at__gte=one_month_ago
+    ).filter(
+        mic_reactions__isnull=False
+    ).distinct().select_related("home_team", "away_team", "league")
+
+    created_count = 0
+    for match in finished_matches:
+        # Skip if MIC_WINNER card already exists for this match
+        if Card.objects.filter(type="MIC_WINNER", match_id=match.id).exists():
+            continue
+
+        # Check if match has any active mic reactions
+        reaction_count = MicReaction.objects.filter(
+            match_id=match.id, is_active=True
+        ).count()
+        
+        if reaction_count == 0:
+            continue
+
+        # Get the best video using FanOfMatchView logic
+        from django.db.models import Count, Case, When, IntegerField, Sum
+        
+        vote_weights = {"FIRE": 3, "HUNDRED": 2}
+        
+        reactions = MicReaction.objects.filter(
+            match_id=match.id, is_active=True
+        ).select_related("user").annotate(
+            vote_count=Count("votes"),
+            weighted_score=Sum(
+                Case(
+                    *[When(votes__emoji=emoji, then=weight) for emoji, weight in vote_weights.items()],
+                    default=1,
+                    output_field=IntegerField()
+                )
+            )
+        ).order_by("-weighted_score", "-vote_count", "-created_at")
+
+        winner = reactions.first()
+        
+        if not winner:
+            continue
+
+        # Create MIC_WINNER card
+        Card.objects.create(
+            type="MIC_WINNER",
+            match_id=match.id,
+            data={
+                "match": {
+                    "id": match.id,
+                    "home_team": match.home_team.name,
+                    "away_team": match.away_team.name,
+                    "home_score": match.home_score,
+                    "away_score": match.away_score,
+                    "league": match.league.name,
+                },
+                "winner": {
+                    "id": winner.id,
+                    "user": {
+                        "id": winner.user.id,
+                        "username": winner.user.username,
+                        "avatar_url": winner.user.avatar_url,
+                    },
+                    "video_url": winner.video_url,
+                    "thumbnail_url": winner.thumbnail_url,
+                    "duration_seconds": winner.duration_seconds,
+                    "mood": winner.mood,
+                    "team_side": winner.team_side,
+                    "vote_count": winner.vote_count,
+                },
+            },
+        )
+        created_count += 1
+
+        # Send notification to the winner
+        from notifications.models import Notification
+        Notification.objects.create(
+            user=winner.user,
+            type="MIC_WINNER",
+            title="🏆 Video Yako Imeshinda Fan of the Match!",
+            body=f"Hongera! Video yako ya {match.home_team.name} vs {match.away_team.name} imepata votes zaidi na imetangazwa kuwa Fan of the Match.",
+            data={
+                "match_id": match.id,
+                "card_id": Card.objects.filter(type="MIC_WINNER", match_id=match.id).first().id,
+                "vote_count": winner.vote_count,
+            },
+        )
+
+    logger.info(f"generate_mic_winner_cards: {created_count} cards")
+    return f"Mic Winner cards: {created_count}"

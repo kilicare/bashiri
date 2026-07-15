@@ -78,8 +78,10 @@ def sync_live_and_upcoming_matches():
     kubadilika HIVI SASA pekee (kickoff imepita lakini bado 'SCHEDULED',
     au tayari 'LIVE'). Haivuti ligi nzima — inaita football-data.org
     /matches/{id} kwa kila mechi husika pekee, ili kubaki ndani ya rate
-    limit (10 req/min). Celery Beat: kila dakika 15.
+    limit (10 req/min). Celery Beat: kila dakika 1.
     """
+    from django.core.cache import cache
+
     api_key = settings.FOOTBALL_DATA_API_KEY
     if not api_key:
         logger.error("FOOTBALL_DATA_API_KEY haijawekwa — sync_live_and_upcoming_matches imesimama.")
@@ -101,6 +103,7 @@ def sync_live_and_upcoming_matches():
 
     updated_count = 0
     checked_count = 0
+    data_changed = False
 
     for match in candidates:
         url = f"{base_url}/matches/{match.external_id}"
@@ -133,8 +136,96 @@ def sync_live_and_upcoming_matches():
             match.away_score = away_score
             match.save(update_fields=["status", "home_score", "away_score", "updated_at"])
             updated_count += 1
+            data_changed = True
             logger.info(f"Quick sync: Match #{match.id} -> {new_status} ({home_score}-{away_score})")
 
         time.sleep(6.5)  # heshimu rate limit 10 req/min
 
+    # Invalidate cache if any live match data changed
+    if data_changed:
+        cache.delete("live_matches")
+        logger.info("Cache invalidated: live_matches")
+
     return f"sync_live_and_upcoming_matches: {updated_count} zimebadilika kati ya {checked_count} zilizoangaliwa"
+
+
+@shared_task
+def sync_recently_finished_matches():
+    """
+    Sync mechi zilizoisha hivi karibuni (masaa 24-48 zilopita).
+    Hii inahakikisha mechi zilizoisha jana zinasasishwa haraka
+    badala ya kusubiri sync_daily ya asubuhi.
+    Celery Beat: kila dakika 30.
+    """
+    from django.core.cache import cache
+
+    api_key = settings.FOOTBALL_DATA_API_KEY
+    if not api_key:
+        logger.error("FOOTBALL_DATA_API_KEY haijawekwa — sync_recently_finished_matches imesimama.")
+        return "FOOTBALL_DATA_API_KEY haijawekwa."
+
+    import requests
+
+    headers = {"X-Auth-Token": api_key}
+    base_url = settings.BASHIRI["FOOTBALL_DATA_BASE_URL"]
+    now = timezone.now()
+
+    # Angalia mechi zilizoisha ndani ya masaa 48 zilopita
+    candidates = Match.objects.filter(
+        Q(status="SCHEDULED") | Q(status="LIVE"),
+        kickoff_at__gte=now - timedelta(hours=48),
+        kickoff_at__lte=now - timedelta(hours=1)  # Epuka mechi zinazoendelea
+    ).select_related("league", "home_team", "away_team")[:15]
+
+    if not candidates:
+        return "sync_recently_finished_matches: hakuna mechi za kuangalia."
+
+    updated_count = 0
+    checked_count = 0
+    data_changed = False
+
+    for match in candidates:
+        url = f"{base_url}/matches/{match.external_id}"
+        resp = requests.get(url, headers=headers, timeout=10)
+
+        if resp.status_code == 429:
+            logger.warning("Rate limited kwenye finished matches sync, tunasubiri sekunde 60...")
+            time.sleep(60)
+            resp = requests.get(url, headers=headers, timeout=10)
+
+        if resp.status_code != 200:
+            logger.warning(f"Finished sync: error {resp.status_code} kwa match #{match.id}")
+            time.sleep(6.5)
+            continue
+
+        checked_count += 1
+        data = resp.json()
+        new_status = STATUS_MAP.get(data["status"], match.status)
+        home_score = data["score"]["fullTime"]["home"]
+        away_score = data["score"]["fullTime"]["away"]
+
+        changed = (
+            new_status != match.status
+            or home_score != match.home_score
+            or away_score != match.away_score
+        )
+        if changed:
+            match.status = new_status
+            match.home_score = home_score
+            match.away_score = away_score
+            match.save(update_fields=["status", "home_score", "away_score", "updated_at"])
+            updated_count += 1
+            data_changed = True
+            logger.info(f"Finished sync: Match #{match.id} -> {new_status} ({home_score}-{away_score})")
+
+        time.sleep(6.5)  # heshimu rate limit 10 req/min
+
+    # Invalidate cache if any finished match data changed
+    if data_changed:
+        cache.delete("live_matches")
+        cache.delete("feed_list")
+        # Invalidate all finished matches cache keys
+        cache.delete_many([key for key in cache.keys("finished_matches_*")])
+        logger.info("Cache invalidated: live_matches, feed_list, and finished_matches_*")
+
+    return f"sync_recently_finished_matches: {updated_count} zimebadilika kati ya {checked_count} zilizoangaliwa"

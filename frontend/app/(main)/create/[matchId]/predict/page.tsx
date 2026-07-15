@@ -64,25 +64,26 @@ export default function PredictDashboardPage() {
 
   return (
     <DerbyThemeProvider matchId={matchId}>
-      <div className="max-w-2xl mx-auto px-4 sm:px-5 pt-safe pt-6 pb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-black text-white">
-            {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}
-          </h1>
-          <div className="flex gap-2">
-            <button onClick={handleSave} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
-              <Bookmark size={16} style={{ color: saved ? "#00FF87" : "rgba(255,255,255,0.5)" }} fill={saved ? "#00FF87" : "none"} />
-            </button>
-            <button onClick={openShare} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
-              <Share2 size={16} style={{ color: "rgba(255,255,255,0.5)" }} />
-            </button>
+      <div className="min-h-dvh bg-[#050508] pb-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-5 pt-safe pt-6 pb-4">
+          <div className="flex items-center justify-between mb-4 gap-3">
+            <h1 className="text-lg sm:text-xl font-black text-white leading-tight">
+              {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}
+            </h1>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={handleSave} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
+                <Bookmark size={16} style={{ color: saved ? "#00FF87" : "rgba(255,255,255,0.5)" }} fill={saved ? "#00FF87" : "none"} />
+              </button>
+              <button onClick={openShare} className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5">
+                <Share2 size={16} style={{ color: "rgba(255,255,255,0.5)" }} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <MatchHubTabs matchId={matchId} active="predict" />
+        <MatchHubTabs matchId={matchId} active="predict" />
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-5 pb-8 space-y-3 sm:space-y-4">
+        <div className="max-w-2xl mx-auto px-4 sm:px-5 pb-8 space-y-3 sm:space-y-4">
         {/* Tier 1: Hero Card */}
         {heroMarket && !heroMarket.is_locked && (
           <PremiumHeroCard
@@ -134,6 +135,7 @@ export default function PredictDashboardPage() {
         <p className="text-center text-xs mt-6" style={{ color: "rgba(255,255,255,0.2)" }}>
           Dixon-Coles Poisson Model v{dashboard.model_version} • Kwa burudani tu — si ushauri wa kamari
         </p>
+      </div>
       </div>
 
       <SubscriptionSheet isOpen={showSub} onClose={() => setShowSub(false)} />

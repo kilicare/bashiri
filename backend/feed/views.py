@@ -53,6 +53,12 @@ class FeedListView(APIView):
         cards = list(visible[:MAX_FEED_ITEMS])
         ranked = rank_cards(cards, user)
 
+        # Ensure tallies are included for all POLL/DEBATE cards
+        for card in ranked:
+            if card.type in ("DEBATE", "POLL"):
+                if "tallies" not in card.data:
+                    card.data["tallies"] = {}
+
         # Add user_vote for DEBATE/POLL cards if user is authenticated
         if user and user.is_authenticated:
             card_ids = [c.id for c in ranked if c.type in ("DEBATE", "POLL")]
@@ -62,6 +68,9 @@ class FeedListView(APIView):
                 for card in ranked:
                     if card.type in ("DEBATE", "POLL"):
                         card.data["user_vote"] = vote_map.get(card.id)
+                        # Ensure tallies are included in the response
+                        if "tallies" not in card.data:
+                            card.data["tallies"] = {}
 
         try:
             limit = int(request.query_params.get("limit", 20))
@@ -121,6 +130,15 @@ class MyPredictionsView(APIView):
 
 class PollVoteView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, card_id):
+        """Check if user has already voted on this poll."""
+        card = get_object_or_404(Card, pk=card_id, type="POLL")
+        try:
+            vote = PollVote.objects.get(card=card, user=request.user)
+            return Response({"voted": True, "choice": vote.choice}, status=status.HTTP_200_OK)
+        except PollVote.DoesNotExist:
+            return Response({"voted": False}, status=status.HTTP_200_OK)
 
     def post(self, request, card_id):
         card = get_object_or_404(Card, pk=card_id, type="POLL")

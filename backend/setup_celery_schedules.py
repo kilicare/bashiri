@@ -34,8 +34,11 @@ def make_interval_task(name, task, every_minutes):
 # Sync KAMILI — mara moja kwa siku (fixtures mpya + backup ya matokeo)
 make_task("Sync Football Data", "predictions.tasks.sync_daily_task", {"minute": "0", "hour": "3"})
 
-# Sync NDOGO — mpya, kila dakika 15 (status/score za mechi za sasa)
-make_interval_task("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 15)
+# Sync NDOGO — mpya, kila dakika 2 (status/score za mechi za sasa) - production safe
+make_interval_task("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 2)
+
+# Sync mechi zilizoisha hivi karibuni — kila dakika 30
+make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_recently_finished_matches", 30)
 
 # AI Picks — kila siku asubuhi
 make_task("Generate Daily Picks", "predictions.tasks.generate_daily_picks", {"minute": "0", "hour": "6"})
@@ -56,5 +59,6 @@ make_task("Notify High Confidence Picks", "notifications.tasks.notify_high_confi
 
 # Bashiri Mic
 make_task("Compute Fan of Match", "mic.tasks.compute_fan_of_match", {"minute": "0", "hour": "*"})
+make_task("Generate Mic Winner Cards", "feed.tasks.generate_mic_winner_cards", {"minute": "0", "hour": "*"})
 
 print("\n✅ Schedule zote zimeundwa/thibitishwa!")

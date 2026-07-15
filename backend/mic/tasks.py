@@ -32,9 +32,24 @@ def compute_fan_of_match():
         if not reactions.exists():
             continue
 
-        # Chagua yenye votes nyingi zaidi
-        best = max(reactions, key=lambda r: r.votes.count(), default=None)
-        if best is None or best.votes.count() == 0:
+        # Chagua yenye votes nyingi zaidi using weighted scoring (same as feed/tasks.py)
+        from django.db.models import Count, Case, When, IntegerField, Sum
+        
+        vote_weights = {"FIRE": 3, "HUNDRED": 2}
+        
+        reactions_with_scores = reactions.select_related("user").annotate(
+            vote_count=Count("votes"),
+            weighted_score=Sum(
+                Case(
+                    *[When(votes__emoji=emoji, then=weight) for emoji, weight in vote_weights.items()],
+                    default=1,
+                    output_field=IntegerField()
+                )
+            )
+        ).order_by("-weighted_score", "-vote_count", "-created_at")
+        
+        best = reactions_with_scores.first()
+        if best is None or best.vote_count == 0:
             continue
 
         best.is_fan_of_match = True

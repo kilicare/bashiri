@@ -124,6 +124,7 @@ def sync_match_from_api(
             "status": status,
             "home_score": match_data["score"]["fullTime"]["home"],
             "away_score": match_data["score"]["fullTime"]["away"],
+            "last_event": match_data.get("lastEvent", ""),
             "is_big_match": is_knockout,
         },
     )

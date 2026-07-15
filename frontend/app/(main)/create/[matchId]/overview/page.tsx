@@ -8,6 +8,7 @@ import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
+import { TrendingUp, Calendar, Trophy, Flag } from "lucide-react";
 
 export default function MatchOverviewPage() {
   const router = useRouter();
@@ -25,94 +26,135 @@ export default function MatchOverviewPage() {
 
   return (
     <DerbyThemeProvider matchId={matchId}>
-      <div className="max-w-2xl mx-auto px-5 pt-safe pt-6 pb-4">
-        <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
-          {match.league.name}
-          {match.stage_display && (
-            <span className="ml-2 px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600" }}>
-              {match.stage_display}{match.group_name ? ` • ${match.group_name}` : ""}
-            </span>
-          )}
-        </p>
-        <h1 className="text-xl font-black text-white mb-4">{match.home_team.name} vs {match.away_team.name}</h1>
-      </div>
-
-      <MatchHubTabs matchId={matchId} active="overview" />
-
-      <div className="max-w-2xl mx-auto px-5 pb-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <PremiumCard variant="purple" hover className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs mb-1 text-white">{match.home_team.name}</p>
-                <p className="text-lg font-black tracking-widest mb-2" style={{ color: "#00FF87" }}>{home_form.sequence || "—"}</p>
-                {home_form.matches && home_form.matches.length > 0 && (
-                  <div className="space-y-1">
-                    {home_form.matches.map((m: any, i: number) => (
-                      <div key={i} className="flex items-center gap-2 text-xs">
-                        <span className={`w-4 h-4 flex items-center justify-center rounded text-[10px] font-bold ${
-                          m.result === 'W' ? 'bg-green-500/20 text-green-400' : 
-                          m.result === 'D' ? 'bg-yellow-500/20 text-yellow-400' : 
-                          'bg-red-500/20 text-red-400'
-                        }`}>
-                          {m.result}
-                        </span>
-                        <span className="text-white/60 truncate flex-1">{m.opponent}</span>
-                        <span className="text-white/80 font-semibold">{m.team_goals}-{m.opponent_goals}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="text-xs mb-1 text-white">{match.away_team.name}</p>
-                <p className="text-lg font-black tracking-widest mb-2" style={{ color: "#FFD600" }}>{away_form.sequence || "—"}</p>
-                {away_form.matches && away_form.matches.length > 0 && (
-                  <div className="space-y-1">
-                    {away_form.matches.map((m: any, i: number) => (
-                      <div key={i} className="flex items-center gap-2 text-xs">
-                        <span className={`w-4 h-4 flex items-center justify-center rounded text-[10px] font-bold ${
-                          m.result === 'W' ? 'bg-green-500/20 text-green-400' : 
-                          m.result === 'D' ? 'bg-yellow-500/20 text-yellow-400' : 
-                          'bg-red-500/20 text-red-400'
-                        }`}>
-                          {m.result}
-                        </span>
-                        <span className="text-white/60 truncate flex-1">{m.opponent}</span>
-                        <span className="text-white/80 font-semibold">{m.team_goals}-{m.opponent_goals}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </PremiumCard>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <PremiumCard variant="gold" hover className="mb-6">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Head to Head</p>
-            {head_to_head.length === 0 ? (
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Hakuna historia ya mechi kati ya timu hizi.</p>
-            ) : (
-              <div className="space-y-2">
-                {head_to_head.map((h: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
-                    <span style={{ color: "rgba(255,255,255,0.5)" }}>{h.date}</span>
-                    <span className="text-white font-bold">{h.home_team} {h.home_score}-{h.away_score} {h.away_team}</span>
-                  </div>
-                ))}
-              </div>
+      <div className="min-h-dvh bg-[#050508] pb-8">
+        {/* Header */}
+        <div className="max-w-2xl mx-auto px-4 sm:px-5 pt-safe pt-6 pb-6">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <Flag size={14} className="text-[#F5A623]" />
+            <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: "rgba(255,255,255,0.5)" }}>
+              {match.league.name}
+            </p>
+            {match.stage_display && (
+              <span className="ml-2 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: "rgba(255,214,0,0.15)", color: "#FFD600", border: "1px solid rgba(255,214,0,0.3)" }}>
+                {match.stage_display}{match.group_name ? ` • ${match.group_name}` : ""}
+              </span>
             )}
-          </PremiumCard>
-        </motion.div>
+          </div>
+          
+          <h1 className="text-xl sm:text-2xl font-black text-white mb-2 leading-tight">
+            {match.home_team.name} <span className="text-white/40">vs</span> {match.away_team.name}
+          </h1>
+          
+          <div className="flex items-center gap-3 sm:gap-4 text-xs text-white/40 flex-wrap">
+            <div className="flex items-center gap-1">
+              <Calendar size={12} />
+              <span>{new Date(match.kickoff_at).toLocaleDateString("sw-TZ", { day: "numeric", month: "short", year: "numeric" })}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <TrendingUp size={12} />
+              <span>{new Date(match.kickoff_at).toLocaleTimeString("sw-TZ", { hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+          </div>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <BashiriButton className="w-full" size="lg" onClick={() => router.push(`/create/${matchId}/predict`)}>
-            Ona Predictions →
-          </BashiriButton>
-        </motion.div>
+        <MatchHubTabs matchId={matchId} active="overview" />
+
+        {/* Content */}
+        <div className="max-w-2xl mx-auto px-4 sm:px-5 pb-6">
+          {/* Form Guide */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <PremiumCard variant="purple" hover className="mb-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Trophy size={16} className="text-[#00FF87]" />
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                {/* Home Team Form */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-[#00FF87]" />
+                    <p className="text-sm font-bold text-white">{match.home_team.name}</p>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black tracking-widest mb-3" style={{ color: "#00FF87" }}>{home_form.sequence || "—"}</p>
+                  {home_form.matches && home_form.matches.length > 0 && (
+                    <div className="space-y-2">
+                      {home_form.matches.map((m: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 sm:gap-3 text-xs bg-white/5 rounded-lg p-2">
+                          <span className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded text-[10px] sm:text-[11px] font-bold ${
+                            m.result === 'W' ? 'bg-green-500/20 text-green-400' : 
+                            m.result === 'D' ? 'bg-yellow-500/20 text-yellow-400' : 
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {m.result}
+                          </span>
+                          <span className="text-white/60 truncate flex-1">{m.opponent}</span>
+                          <span className="text-white font-bold whitespace-nowrap">{m.team_goals}-{m.opponent_goals}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Away Team Form */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-[#FFD600]" />
+                    <p className="text-sm font-bold text-white">{match.away_team.name}</p>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black tracking-widest mb-3" style={{ color: "#FFD600" }}>{away_form.sequence || "—"}</p>
+                  {away_form.matches && away_form.matches.length > 0 && (
+                    <div className="space-y-2">
+                      {away_form.matches.map((m: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 sm:gap-3 text-xs bg-white/5 rounded-lg p-2">
+                          <span className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded text-[10px] sm:text-[11px] font-bold ${
+                            m.result === 'W' ? 'bg-green-500/20 text-green-400' : 
+                            m.result === 'D' ? 'bg-yellow-500/20 text-yellow-400' : 
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {m.result}
+                          </span>
+                          <span className="text-white/60 truncate flex-1">{m.opponent}</span>
+                          <span className="text-white font-bold whitespace-nowrap">{m.team_goals}-{m.opponent_goals}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PremiumCard>
+          </motion.div>
+
+          {/* Head to Head */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <PremiumCard variant="gold" hover className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp size={16} className="text-[#FFD600]" />
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Head to Head</p>
+              </div>
+              {head_to_head.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-white/40">Hakuna historia ya mechi kati ya timu hizi.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {head_to_head.map((h: any, i: number) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs bg-white/5 rounded-lg p-3 gap-2">
+                      <span className="text-white/50 font-medium">{h.date}</span>
+                      <span className="text-white font-bold text-center sm:text-right">{h.home_team} <span className="text-[#FFD600]">{h.home_score}-{h.away_score}</span> {h.away_team}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PremiumCard>
+          </motion.div>
+
+          {/* CTA Button */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <BashiriButton className="w-full" size="lg" onClick={() => router.push(`/create/${matchId}/predict`)}>
+              Ona Predictions →
+            </BashiriButton>
+          </motion.div>
+        </div>
       </div>
     </DerbyThemeProvider>
   );

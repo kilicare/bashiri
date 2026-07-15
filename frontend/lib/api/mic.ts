@@ -5,6 +5,7 @@ export interface MicReaction {
   match: number;
   user: number;
   username: string;
+  avatar_url: string;
   video_url: string;
   thumbnail_url: string;
   duration_seconds: number;
@@ -14,6 +15,7 @@ export interface MicReaction {
   vote_count: number;
   user_voted: boolean;
   user_vote_emoji: string | null;
+  vote_breakdown: Record<string, number>;
   created_at: string;
 }
 

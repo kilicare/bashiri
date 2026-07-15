@@ -12,6 +12,7 @@ import { MilestoneCard } from "./cards/MilestoneCard";
 import { AIWeeklyReportCard } from "./cards/AIWeeklyReportCard";
 import { DidYouKnowCard } from "./cards/DidYouKnowCard";
 import { DebateCard } from "./cards/DebateCard";
+import { MicWinnerCard } from "./cards/MicWinnerCard";
 
 function renderCard(card: Card) {
   switch (card.type) {
@@ -25,6 +26,7 @@ function renderCard(card: Card) {
     case "AI_WEEKLY_REPORT": return <AIWeeklyReportCard data={card.data} />;
     case "DID_YOU_KNOW": return <DidYouKnowCard data={card.data} />;
     case "DEBATE": return <DebateCard cardId={card.id} data={card.data} />;
+    case "MIC_WINNER": return <MicWinnerCard cardId={card.id} data={card.data} />;
     default: return null;
   }
 }

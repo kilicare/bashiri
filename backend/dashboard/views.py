@@ -6,6 +6,7 @@ transactions/subscriptions, cards (moderation), broadcast notifications,
 ML model status, audit log.
 """
 import json
+import logging
 import os
 from datetime import timedelta
 
@@ -18,6 +19,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+logger = logging.getLogger(__name__)
 
 from accounts.models import User
 from accounts.serializers import UserSerializer
@@ -242,7 +245,7 @@ class AdminMatchListView(APIView):
 
         league_filter = request.query_params.get("league")
         if league_filter:
-            qs = qs.filter(league__poisson_key=league_filter)
+            qs = qs.filter(league__name=league_filter)
 
         return Response(AdminMatchSerializer(qs[:200], many=True).data)
 
@@ -256,10 +259,18 @@ class AdminMatchDetailView(APIView):
         return Response(AdminMatchSerializer(match).data)
 
     def patch(self, request, match_id):
+        from django.core.cache import cache
+
         match = get_object_or_404(Match, pk=match_id)
         serializer = AdminMatchSerializer(match, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # Invalidate caches when match data changes (especially for live matches)
+        if match.status == "LIVE" or "status" in request.data or "home_score" in request.data or "away_score" in request.data:
+            cache.delete("live_matches")
+            cache.delete("feed_list")
+            logger.info(f"Cache invalidated for match #{match.id} (admin update)")
 
         if "is_big_match" in request.data:
             _log_action(request.user, "TOGGLE_BIG_MATCH", f"Match #{match.id}", {"is_big_match": request.data["is_big_match"]})

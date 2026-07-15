@@ -4,16 +4,18 @@ import { DerbyBanner } from "@/components/derby/DerbyBanner";
 import { FeedContainer } from "@/components/feed/FeedContainer";
 import { PremiumCard } from "@/components/ui/GlassCard";
 import { PremiumBadge } from "@/components/ui/Badge";
-import { Bell, Search, TrendingUp, Award, Zap } from "lucide-react";
+import { Bell, Search, TrendingUp, Award, Zap, BookOpen } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getNotifications } from "@/lib/api/notifications";
+import { PredictionTutorial } from "@/components/predictions/PredictionTutorial";
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const accuracy = user?.accuracy_percentage || 0;
   const winStreak = user?.current_streak || 0;
@@ -118,7 +120,16 @@ export default function HomePage() {
           <h2 className="text-xl font-bold text-white mb-1">Today's Picks</h2>
           <p className="text-white/50 text-sm">AI-powered predictions</p>
         </div>
-        <PremiumBadge variant="gold">Live</PremiumBadge>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all"
+            title="Jifunze kuhusu predictions"
+          >
+            <BookOpen size={16} className="text-white/60" />
+          </button>
+          <PremiumBadge variant="gold">Live</PremiumBadge>
+        </div>
       </div>
 
       {/* Derby Banner */}
@@ -130,6 +141,9 @@ export default function HomePage() {
       <div className="animate-slideUp" style={{ animationDelay: "300ms" }}>
         <FeedContainer />
       </div>
+
+      {/* Tutorial Modal */}
+      {showTutorial && <PredictionTutorial onClose={() => setShowTutorial(false)} />}
     </div>
   );
 }

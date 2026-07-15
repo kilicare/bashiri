@@ -252,9 +252,9 @@ BASHIRI = {
     # Football Data Synchronization Configuration
     # ============================================================
     # Daily sync window - used by sync_daily command (Layer 2)
-    # These values balance freshness with API rate limits
-    "DAILY_SYNC_DAYS_BACK": config("DAILY_SYNC_DAYS_BACK", default=1, cast=int),
-    "DAILY_SYNC_DAYS_FORWARD": config("DAILY_SYNC_DAYS_FORWARD", default=2, cast=int),
+    # Comprehensive sync like Sofascore: 1 week back, 3 weeks forward
+    "DAILY_SYNC_DAYS_BACK": config("DAILY_SYNC_DAYS_BACK", default=7, cast=int),
+    "DAILY_SYNC_DAYS_FORWARD": config("DAILY_SYNC_DAYS_FORWARD", default=21, cast=int),
 
     # Historical sync configuration - used by sync_historical command (Layer 1)
     # Default seasons to import when using --all-available flag

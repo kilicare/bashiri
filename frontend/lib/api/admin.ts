@@ -3,7 +3,46 @@ import { useAdminAuthStore } from "@/stores/admin-auth.store";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
 
-async function adminFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+let adminRefreshPromise: Promise<string | null> | null = null;
+
+async function refreshAdminAccessToken(): Promise<string | null> {
+  if (adminRefreshPromise) return adminRefreshPromise;
+
+  const refresh = useAdminAuthStore.getState().refresh;
+  if (!refresh) return null;
+
+  adminRefreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh }),
+      });
+      if (!res.ok) {
+        useAdminAuthStore.getState().logout();
+        return null;
+      }
+      const data = await res.json();
+      const currentAdmin = useAdminAuthStore.getState().admin;
+      if (currentAdmin) {
+        useAdminAuthStore.getState().setSession(data.access, refresh, currentAdmin);
+      }
+      return data.access as string;
+    } catch {
+      return null;
+    } finally {
+      adminRefreshPromise = null;
+    }
+  })();
+
+  return adminRefreshPromise;
+}
+
+async function adminFetch<T = any>(
+  endpoint: string,
+  options: RequestInit = {},
+  _isRetry = false
+): Promise<T> {
   const token = useAdminAuthStore.getState().access;
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
@@ -14,7 +53,16 @@ async function adminFetch<T = any>(endpoint: string, options: RequestInit = {}):
     },
   });
 
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401 && !_isRetry) {
+    const newAccess = await refreshAdminAccessToken();
+    if (newAccess) {
+      return adminFetch<T>(endpoint, options, true);
+    }
+    useAdminAuthStore.getState().logout();
+    throw new Error("Session ya admin imeisha au huna ruhusa.");
+  }
+
+  if (res.status === 403) {
     useAdminAuthStore.getState().logout();
     throw new Error("Session ya admin imeisha au huna ruhusa.");
   }
@@ -33,7 +81,18 @@ async function adminFetch<T = any>(endpoint: string, options: RequestInit = {}):
 }
 
 export function adminLogin(phone_number: string, password: string) {
-  return adminFetch("/dashboard/login/", { method: "POST", body: JSON.stringify({ phone_number, password }) });
+  // Login doesn't need auth token, so use direct fetch
+  return fetch(`${API_BASE_URL}/dashboard/login/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone_number, password }),
+  }).then(async (res) => {
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || `Error ${res.status}`);
+    }
+    return res.json();
+  });
 }
 
 export function getDashboardStats() {
@@ -67,7 +126,9 @@ export function getTeams() {
 }
 
 export function getMatches(params: { status?: string; league?: string } = {}) {
-  const query = new URLSearchParams(params as Record<string, string>);
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.league) query.set("league", params.league);
   return adminFetch(`/dashboard/matches/?${query.toString()}`);
 }
 export function updateMatch(id: number, payload: any) {

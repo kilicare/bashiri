@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api/client";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -11,6 +11,16 @@ export function PollCard({ cardId, data }: { cardId: number; data: any }) {
   const total = Object.values(tallies).reduce((a: number, b: any) => a + b, 0) as number;
   const { requireAuth } = useRequireAuth();
 
+  // Update state when data changes (e.g., after refresh)
+  useEffect(() => {
+    console.log("PollCard data:", { cardId, data });
+    console.log("PollCard tallies:", data.tallies);
+    console.log("PollCard user_vote:", data.user_vote);
+    console.log("Setting voted to:", !!data.user_vote);
+    setTallies(data.tallies || {});
+    setVoted(!!data.user_vote);
+  }, [data.tallies, data.user_vote]);
+
   async function handleVote(choice: string) {
     if (voted) return;
     if (!requireAuth("Piga kura yako sasa — jisajili kwa dakika chache!")) return;
@@ -21,12 +31,27 @@ export function PollCard({ cardId, data }: { cardId: number; data: any }) {
         requireAuth("Piga kura yako sasa — jisajili kwa dakika chache!");
         return;
       }
+      console.log("Vote response:", response);
       setTallies(response.tallies || data.tallies);
       setVoted(true);
     } catch (e: any) {
-      setError(e.message || "Imeshindwa kupiga kura. Tafadhali jaribu tena.");
+      // Show backend error message if available
+      const errorMessage = e?.detail || e?.message || "Imeshindwa kupiga kura. Tafadhali jaribu tena.";
+      setError(errorMessage);
+      console.log("Vote error:", e);
+      
+      // If error says "Tayari umepiga kura", treat as voted and show bars
+      if (errorMessage.includes("Tayari umepiga kura") || errorMessage.includes("already voted")) {
+        setVoted(true);
+        // Use data.tallies from feed if available
+        if (data.tallies && Object.keys(data.tallies).length > 0) {
+          setTallies(data.tallies);
+        }
+      }
     }
   }
+
+  console.log("Render state:", { voted, tallies, total });
 
   return (
     <div className="rounded-3xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>

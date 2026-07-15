@@ -19,6 +19,7 @@ CARD_TYPES = [
     ("MILESTONE", "Milestone"),
     ("DID_YOU_KNOW", "Did You Know"),
     ("DEBATE", "Debate"),
+    ("MIC_WINNER", "Mic Winner"),
 ]
 
 

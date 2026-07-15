@@ -10,13 +10,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { access } = useAdminAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    if (!access && pathname !== "/admin/login") {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated && !access && pathname !== "/admin/login") {
       router.push("/admin/login");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [access, pathname]);
+  }, [access, pathname, isHydrated]);
 
   // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {
@@ -32,6 +37,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (pathname === "/admin/login") {
     return <div style={{ background: "#0A0A0A" }} className="min-h-dvh">{children}</div>;
+  }
+
+  if (!isHydrated) {
+    return (
+      <div style={{ background: "#0A0A0A" }} className="min-h-dvh flex items-center justify-center">
+        <div className="text-white/60">Loading...</div>
+      </div>
+    );
   }
 
   if (!access) return null;

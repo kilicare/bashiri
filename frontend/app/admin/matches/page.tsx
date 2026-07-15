@@ -4,11 +4,19 @@ import { getMatches, updateMatch } from "@/lib/api/admin";
 
 export default function AdminMatchesPage() {
   const [matches, setMatches] = useState<any[]>([]);
+  const [allMatches, setAllMatches] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [leagueFilter, setLeagueFilter] = useState("");
 
   useEffect(() => {
-    getMatches({ status: statusFilter || undefined }).then(setMatches);
-  }, [statusFilter]);
+    getMatches({ status: statusFilter || undefined, league: leagueFilter || undefined }).then(setMatches);
+  }, [statusFilter, leagueFilter]);
+
+  useEffect(() => {
+    getMatches().then(setAllMatches);
+  }, []);
+
+  const uniqueLeagues = Array.from(new Set(allMatches.map((m) => m.league_name))).filter(Boolean);
 
   async function toggleBigMatch(id: number, current: boolean) {
     await updateMatch(id, { is_big_match: !current });
@@ -27,6 +35,25 @@ export default function AdminMatchesPage() {
             style={{ background: statusFilter === s ? "#00FF87" : "rgba(255,255,255,0.06)", color: statusFilter === s ? "#000" : "rgba(255,255,255,0.5)" }}
           >
             {s || "Zote"}
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <button
+          onClick={() => setLeagueFilter("")}
+          className="px-3 py-1.5 rounded-full text-xs font-bold"
+          style={{ background: leagueFilter === "" ? "#00FF87" : "rgba(255,255,255,0.06)", color: leagueFilter === "" ? "#000" : "rgba(255,255,255,0.5)" }}
+        >
+          Ligi Zote
+        </button>
+        {uniqueLeagues.map((league) => (
+          <button
+            key={league}
+            onClick={() => setLeagueFilter(league)}
+            className="px-3 py-1.5 rounded-full text-xs font-bold"
+            style={{ background: leagueFilter === league ? "#00FF87" : "rgba(255,255,255,0.06)", color: leagueFilter === league ? "#000" : "rgba(255,255,255,0.5)" }}
+          >
+            {league}
           </button>
         ))}
       </div>
