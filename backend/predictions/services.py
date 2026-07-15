@@ -181,3 +181,24 @@ def head_to_head(home_team_id, away_team_id, n=5):
         }
         for m in qs
     ]
+
+
+def get_ai_recommended_option(match, market_key: str):
+    """
+    Inarudisha 'option key' yenye probability kubwa zaidi ya soko fulani,
+    kutoka kwa AI model KAMILI (si dashboard ya locked-view) — kwa ajili
+    ya kupima kama 'Share' ya mtumiaji INALINGANA na AI (matched_ai_pick),
+    bila kujali ni soko gani (si 1X2 pekee).
+    """
+    try:
+        prediction = predict_fixture(match.league.poisson_key, match.home_team.name, match.away_team.name)
+    except ValueError:
+        return None
+
+    if market_key not in MARKET_DEFINITIONS:
+        return None
+
+    definition = MARKET_DEFINITIONS[market_key]
+    source_data = prediction[definition["source_key"]]
+    best_option = max(definition["options"], key=lambda opt: source_data[opt["key"]])
+    return best_option["key"]

@@ -18,6 +18,7 @@ class Command(BaseCommand):
         make_task("Generate Stat Cards", "feed.tasks.generate_stat_cards", {"minute": "0", "hour": "5"})
         make_task("Generate Poll Cards", "feed.tasks.generate_poll_cards", {"minute": "0", "hour": "5"})
         make_task("Update Live Match Cards", "feed.tasks.update_live_match_cards", {"minute": "*/2", "hour": "*"})
+        make_task("Deactivate Finished Live Cards", "feed.tasks.deactivate_finished_live_cards", {"minute": "*/5", "hour": "*"})
         make_task("Generate Weekly Report", "feed.tasks.generate_weekly_report", {"minute": "0", "hour": "20", "day_of_week": "0"})
 
         self.stdout.write(self.style.SUCCESS("Celery Beat periodic tasks created successfully."))

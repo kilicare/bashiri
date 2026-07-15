@@ -41,12 +41,17 @@ class Card(models.Model):
 
 
 class UserPrediction(models.Model):
+    """'📤 Share' action kutoka Create Prediction — post ya kimuundo, si maandishi huru."""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="predictions")
     match = models.ForeignKey("predictions.Match", on_delete=models.CASCADE, related_name="user_predictions")
     market = models.CharField(max_length=30)
     selection = models.CharField(max_length=50)
     note = models.CharField(max_length=150, blank=True, default="")
     emoji = models.CharField(max_length=8, blank=True, default="")
+    matched_ai_pick = models.BooleanField(
+        default=False,
+        help_text="True ikiwa selection ya mtumiaji inalingana na AI recommendation ya soko hilo — imehesabiwa server-side wakati wa kuunda.",
+    )
     is_correct = models.BooleanField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

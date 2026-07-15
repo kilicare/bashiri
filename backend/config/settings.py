@@ -238,6 +238,12 @@ BASHIRI = {
         "monthly_tzs": 6000,
     },
 
+    "LEADERBOARD_MIN_PREDICTIONS": {
+        "weekly": 3,
+        "monthly": 5,
+        "all": 10,
+    },
+
     "LEAGUES": {
         "PL": "EPL",
         "PD": "LaLiga",

@@ -10,18 +10,10 @@ class CardSerializer(serializers.ModelSerializer):
 
 
 class UserPredictionCreateSerializer(serializers.ModelSerializer):
-    match_details = serializers.SerializerMethodField()
-
     class Meta:
         model = UserPrediction
-        fields = ["id", "match", "match_details", "market", "selection", "note", "emoji", "is_correct", "created_at"]
-        read_only_fields = ["id", "created_at"]
-
-    def get_match_details(self, obj):
-        if obj.match:
-            from predictions.serializers import MatchListSerializer
-            return MatchListSerializer(obj.match).data
-        return None
+        fields = ["id", "match", "market", "selection", "note", "emoji", "matched_ai_pick", "created_at"]
+        read_only_fields = ["id", "matched_ai_pick", "created_at"]
 
     def validate_note(self, value):
         if len(value) > 150:
