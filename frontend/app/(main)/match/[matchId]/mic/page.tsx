@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getMicReactions, getMoodSummary, canPost, getFanOfMatch, MicReaction } from "@/lib/api/mic";
 import { MicReactionPlayer } from "@/components/mic/MicReactionPlayer";
@@ -34,6 +34,9 @@ export default function BashiriMicPage() {
   const [loading, setLoading] = useState(true);
   const [showWaitModal, setShowWaitModal] = useState(false);
   const [layoutMode, setLayoutMode] = useState<"grid" | "full">("grid");
+  const [visibleReactionId, setVisibleReactionId] = useState<number | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const visibleIdsRef = useRef<Set<number>>(new Set());
 
   function handlePostClick() {
     if (!requireAuth("Post video yako — kuwa nyota wa Bashiri Mic!")) return;
@@ -45,6 +48,49 @@ export default function BashiriMicPage() {
     
     router.push(`/match/${matchId}/mic/record`);
   }
+
+  // Intersection Observer for TikTok-like scroll behavior
+  const handleInView = useCallback((id: number) => {
+    setVisibleReactionId(id);
+  }, []);
+
+  useEffect(() => {
+    if (layoutMode !== "full" || reactions.length === 0) return;
+
+    // Set up Intersection Observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const element = entry.target as HTMLElement;
+            const reactionId = parseInt(element.dataset.reactionId || "0");
+            if (reactionId) {
+              handleInView(reactionId);
+            }
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.6 // Video must be 60% visible to be considered "in view"
+      }
+    );
+
+    observerRef.current = observer;
+
+    // Observe all video containers
+    const videoContainers = document.querySelectorAll('[data-reaction-id]');
+    videoContainers.forEach((container) => {
+      observer.observe(container);
+    });
+
+    // Cleanup
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+    };
+  }, [layoutMode, reactions, handleInView]);
 
   useEffect(() => {
     Promise.all([
@@ -149,7 +195,14 @@ export default function BashiriMicPage() {
                 </p>
               </div>
             ) : (
-              reactions.map((r) => <MicReactionFullView key={r.id} reaction={r} />)
+              reactions.map((r) => (
+                <MicReactionFullView 
+                  key={r.id} 
+                  reaction={r} 
+                  isInView={visibleReactionId === r.id}
+                  onInView={handleInView}
+                />
+              ))
             )}
           </div>
         )}

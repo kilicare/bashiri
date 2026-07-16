@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MicReaction, voteOnReaction } from "@/lib/api/mic";
 import { ReportButton } from "@/components/report/ReportButton";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Play, Pause } from "lucide-react";
 
 const MOOD_EMOJI: Record<string, string> = {
   FUNNY: "😂", FIRE: "🔥", ANGRY: "😡", RESPECT: "👏", SHOCK: "🤯", PAIN: "💔",
@@ -12,12 +12,51 @@ const REACTIONS = [
   { key: "HUNDRED", emoji: "💯" }, { key: "ROFL", emoji: "🤣" },
 ];
 
-export function MicReactionFullView({ reaction }: { reaction: MicReaction }) {
+export function MicReactionFullView({ reaction, isInView, onInView }: { 
+  reaction: MicReaction; 
+  isInView: boolean;
+  onInView: (id: number) => void;
+}) {
   const [voted, setVoted] = useState(reaction.user_voted);
   const [voteCount, setVoteCount] = useState(reaction.vote_count);
   const [voteBreakdown, setVoteBreakdown] = useState(reaction.vote_breakdown || {});
   const [showMenu, setShowMenu] = useState(false);
   const [activeMenu, setActiveMenu] = useState<'menu' | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // TikTok-like auto-play behavior
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isInView) {
+      // Play current video
+      video.play().then(() => {
+        setIsPlaying(true);
+      }).catch(err => console.log("Auto-play prevented:", err));
+      onInView(reaction.id);
+    } else {
+      // Pause when not in view
+      video.pause();
+      video.currentTime = 0;
+      setIsPlaying(false);
+    }
+  }, [isInView, reaction.id, onInView]);
+
+  // Handle play/pause toggle
+  function togglePlayPause() {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      video.play();
+      setIsPlaying(true);
+    }
+  }
 
   async function handleReact(emoji: string) {
     if (voted) return;
@@ -42,14 +81,30 @@ export function MicReactionFullView({ reaction }: { reaction: MicReaction }) {
   }
 
   return (
-    <div className="snap-start relative bg-black" style={{ height: '100svh', paddingBottom: 'env(safe-area-inset-bottom)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+    <div 
+      className="snap-start relative bg-black" 
+      style={{ height: '100svh', paddingBottom: 'env(safe-area-inset-bottom)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+      data-reaction-id={reaction.id}
+    >
       {/* Full screen video */}
       <video 
+        ref={videoRef}
         src={reaction.video_url} 
-        controls 
-        className="w-full h-full object-cover"
+        loop
+        playsInline
+        onClick={togglePlayPause}
+        className="w-full h-full object-cover cursor-pointer"
         style={{ height: '100svh' }}
       />
+
+      {/* Play/Pause button */}
+      <button
+        onClick={togglePlayPause}
+        className="absolute top-16 right-4 w-10 h-10 rounded-full flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all hover:bg-black/70 z-20"
+        title={isPlaying ? "Pause" : "Play"}
+      >
+        {isPlaying ? <Pause size={20} className="text-white" /> : <Play size={20} className="text-white" />}
+      </button>
 
       {/* Fan of match badge */}
       {reaction.is_fan_of_match && (

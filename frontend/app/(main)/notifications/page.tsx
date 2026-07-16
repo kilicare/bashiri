@@ -11,23 +11,17 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { timeAgo } from '@/lib/utils'
 
-const TYPE_CFG: Record<string, { emoji: string; color: string; path: string }> = {
-  LIKE:                  { emoji:'❤️', color:'#FF2D2D',  path:'/feed' },
-  FOLLOW:                { emoji:'👤', color:'#10B981',  path:'/profile' },
-  SOS_RESPONSE:          { emoji:'🆘', color:'#FF2D2D',  path:'/sos' },
-  BOOKING_REQUEST:       { emoji:'📅', color:'#F5A623',  path:'/creator/bookings' },
-  BOOKING_CONFIRMED:     { emoji:'✅', color:'#10B981',  path:'/bookings' },
-  BOOKING_COMPLETED:     { emoji:'🎉', color:'#10B981',  path:'/bookings' },
-  PAYMENT_RECEIVED:      { emoji:'💰', color:'#F5A623',  path:'/billing' },
-  BADGE_UNLOCK:          { emoji:'🏆', color:'#F5A623',  path:'/passport' },
-  POINTS_AWARDED:        { emoji:'⭐', color:'#F5A623',  path:'/passport' },
-  TIP_VERIFIED:          { emoji:'✓',  color:'#10B981',  path:'/tips' },
-  NEW_MESSAGE:           { emoji:'💬', color:'#3B82F6',  path:'/chat' },
-  SUBSCRIPTION_EXPIRING: { emoji:'⏰', color:'#FF7700',  path:'/billing' },
-  SHOWCASE_ORDER:        { emoji:'🛍️', color:'#8B5CF6',  path:'/creator/showcase' },
-  SHOWCASE_DELIVERED:    { emoji:'📦', color:'#10B981',  path:'/creator/showcase' },
-  LEVEL_UP:              { emoji:'🚀', color:'#F5A623',  path:'/passport' },
-  REVIEW_RECEIVED:       { emoji:'⭐', color:'#F5A623',  path:'/creator/bookings' },
+const TYPE_CFG: Record<string, { emoji: string; color: string; getPath: (data: any) => string }> = {
+  DAILY_PICKS:           { emoji:'🔥', color:'#F5A623',  getPath: () => '/feed' },
+  FAVORITE_TEAM_MATCH:   { emoji:'⚽', color:'#10B981',  getPath: (data) => `/match/${data.match_id}` },
+  HIGH_CONFIDENCE:       { emoji:'�', color:'#FF2D2D',  getPath: () => '/feed' },
+  RESULT:                { emoji:'📊', color:'#3B82F6',  getPath: (data) => `/match/${data.match_id}` },
+  SUPPORT_REPLY:         { emoji:'💬', color:'#10B981',  getPath: (data) => `/settings/support/${data.ticket_id}` },
+  MIC_WINNER:            { emoji:'🏆', color:'#FFD700',  getPath: (data) => `/match/${data.match_id}/mic` },
+  MORNING_PICKS:         { emoji:'☀️', color:'#F5A623',  getPath: () => '/feed' },
+  LIVE_MATCH_ALERT:      { emoji:'�', color:'#FF2D2D',  getPath: (data) => `/match/${data.match_id}` },
+  EVENING_RECAP:         { emoji:'�', color:'#8B5CF6',  getPath: () => '/feed' },
+  WEEKLY_SUMMARY:        { emoji:'�', color:'#10B981',  getPath: () => '/feed/leaderboard' },
 }
 
 function NotifCard({
@@ -38,15 +32,16 @@ function NotifCard({
   onRead: (id: number) => void
 }) {
   const router = useRouter()
-  const cfg    = TYPE_CFG[notif.notification_type] || {
-    emoji: '🔔', color: '#8B8BA7', path: '/',
+  const cfg    = TYPE_CFG[notif.type] || {
+    emoji: '🔔', color: '#8B8BA7', getPath: () => '/',
   }
+  const path   = cfg.getPath(notif.data || {})
 
   return (
     <motion.div
       onClick={() => {
         if (!notif.is_read) onRead(notif.id)
-        router.push(cfg.path)
+        router.push(path)
       }}
       className="flex items-start gap-4 px-5 py-4 cursor-pointer"
       style={{
@@ -180,7 +175,7 @@ export default function NotificationsPage() {
 
   // Filter notifications by type
   const filteredNotifications = filterType
-    ? items.filter((n: any) => n.notification_type === filterType)
+    ? items.filter((n: any) => n.type === filterType)
     : items
 
   // Group notifications by date
@@ -195,7 +190,7 @@ export default function NotificationsPage() {
   const notificationTypes: string[] = Array.from(
     new Set(
       items
-        .map((n: any) => typeof n.notification_type === 'string' && n.notification_type.trim() ? n.notification_type : '')
+        .map((n: any) => typeof n.type === 'string' && n.type.trim() ? n.type : '')
         .filter(Boolean)
     )
   )
