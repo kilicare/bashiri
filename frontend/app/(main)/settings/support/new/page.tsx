@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createTicket } from "@/lib/api/support";
 import { BashiriButton } from "@/components/ui/Button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 const TYPES = [
   { key: "ACCOUNT_ISSUE", label: "Tatizo la Akaunti" },
@@ -82,7 +82,24 @@ export default function NewSupportTicketPage() {
 
         {error && <p className="text-xs text-bashiri-red">{error}</p>}
 
-        <BashiriButton className="w-full" size="lg" loading={loading} onClick={handleSubmit}>Tuma Ticket →</BashiriButton>
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full rounded-xl px-4 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all"
+          style={{
+            background: loading ? "rgba(0,255,135,0.5)" : "#00FF87",
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          {loading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Inatumwa...
+            </>
+          ) : (
+            "Tuma Ticket →"
+          )}
+        </button>
       </div>
     </div>
   );

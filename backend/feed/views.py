@@ -14,7 +14,7 @@ from .models import Card, PollVote, UserPrediction
 from .ranking import rank_cards
 from .serializers import CardSerializer, PollVoteSerializer, UserPredictionCreateSerializer
 
-FEED_WINDOW_DAYS = 3
+FEED_WINDOW_DAYS = 2
 MAX_FEED_ITEMS = 200
 
 
@@ -25,15 +25,27 @@ class FeedListView(APIView):
     def get(self, request):
         user = request.user
         since = timezone.now() - timedelta(days=FEED_WINDOW_DAYS)
+        today = timezone.localdate()
+        tomorrow = today + timedelta(days=1)
 
         base_qs = Card.objects.filter(is_active=True, created_at__gte=since).select_related(
             "match", "match__home_team", "match__away_team", "match__league"
         )
 
+        # Filter AI_PICK cards to show only today and tomorrow matches
+        ai_pick_filter = (
+            Q(type="AI_PICK", match__kickoff_at__date=today) |
+            Q(type="AI_PICK", match__kickoff_at__date=tomorrow) |
+            ~Q(type="AI_PICK")
+        )
+
         if user and user.is_authenticated:
-            visible = base_qs.filter(Q(~Q(type="MILESTONE")) | Q(type="MILESTONE", data__user_id=user.id))
+            visible = base_qs.filter(
+                ai_pick_filter,
+                Q(~Q(type="MILESTONE")) | Q(type="MILESTONE", data__user_id=user.id)
+            )
         else:
-            visible = base_qs.exclude(type="MILESTONE")
+            visible = base_qs.filter(ai_pick_filter).exclude(type="MILESTONE")
 
         cards = list(visible[:MAX_FEED_ITEMS])
         ranked = rank_cards(cards, user)

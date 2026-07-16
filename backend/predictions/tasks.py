@@ -32,13 +32,14 @@ def generate_daily_picks():
     from feed.models import Card
 
     today = timezone.localdate()
-    todays_matches = Match.objects.filter(
-        kickoff_at__date=today, status="SCHEDULED"
+    end_date = today + timedelta(days=2)  # Generate picks for today + 2 days ahead (3 days total)
+    upcoming_matches = Match.objects.filter(
+        kickoff_at__date__range=[today, end_date], status="SCHEDULED"
     ).select_related("league", "home_team", "away_team")
 
     created_count = skipped_count = 0
 
-    for match in todays_matches:
+    for match in upcoming_matches:
         if Card.objects.filter(type="AI_PICK", match_id=match.id).exists():
             continue
         try:

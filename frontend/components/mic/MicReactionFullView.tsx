@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { MicReaction, voteOnReaction } from "@/lib/api/mic";
 import { ReportButton } from "@/components/report/ReportButton";
-import { Share2, MoreVertical, Flag, MessageCircle } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 
 const MOOD_EMOJI: Record<string, string> = {
   FUNNY: "😂", FIRE: "🔥", ANGRY: "😡", RESPECT: "👏", SHOCK: "🤯", PAIN: "💔",
@@ -17,7 +17,7 @@ export function MicReactionFullView({ reaction }: { reaction: MicReaction }) {
   const [voteCount, setVoteCount] = useState(reaction.vote_count);
   const [voteBreakdown, setVoteBreakdown] = useState(reaction.vote_breakdown || {});
   const [showMenu, setShowMenu] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<'share' | 'report' | null>(null);
+  const [activeMenu, setActiveMenu] = useState<'menu' | null>(null);
 
   async function handleReact(emoji: string) {
     if (voted) return;
@@ -75,26 +75,9 @@ export function MicReactionFullView({ reaction }: { reaction: MicReaction }) {
 
         {/* Three action buttons after last emoji */}
         <div className="flex flex-col gap-3 mt-2">
-          {/* Share button */}
-          <button
-            onClick={() => setActiveMenu(activeMenu === 'share' ? null : 'share')}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 transition-all hover:bg-white/30"
-            title="Share"
-          >
-            <Share2 size={18} className="text-white" />
-          </button>
-
-          {/* Comment button */}
-          <button
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 transition-all hover:bg-white/30"
-            title="Comment"
-          >
-            <MessageCircle size={18} className="text-white" />
-          </button>
-
           {/* More options button */}
           <button
-            onClick={() => setActiveMenu(activeMenu === 'report' ? null : 'report')}
+            onClick={() => setActiveMenu(activeMenu === 'menu' ? null : 'menu')}
             className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 transition-all hover:bg-white/30"
             title="More options"
           >
@@ -103,9 +86,9 @@ export function MicReactionFullView({ reaction }: { reaction: MicReaction }) {
         </div>
       </div>
 
-      {/* Share dropdown menu */}
-      {activeMenu === 'share' && (
-        <div className="absolute right-16 bottom-40 bg-black/90 backdrop-blur-sm rounded-2xl p-3 z-30 border border-white/10">
+      {/* Combined dropdown menu */}
+      {activeMenu === 'menu' && (
+        <div className="absolute right-16 bottom-20 bg-black/90 backdrop-blur-sm rounded-2xl p-3 z-30 border border-white/10">
           <button
             onClick={() => handleShare('whatsapp')}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-white text-sm"
@@ -120,12 +103,7 @@ export function MicReactionFullView({ reaction }: { reaction: MicReaction }) {
             <span className="text-lg">✈️</span>
             <span>Telegram</span>
           </button>
-        </div>
-      )}
-
-      {/* Report dropdown menu */}
-      {activeMenu === 'report' && (
-        <div className="absolute right-16 bottom-20 bg-black/90 backdrop-blur-sm rounded-2xl p-3 z-30 border border-white/10">
+          <div className="border-t border-white/10 my-2"></div>
           <div className="px-4 py-3">
             <ReportButton contentType="MIC_REACTION" objectId={reaction.id} />
           </div>

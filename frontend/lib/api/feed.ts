@@ -26,8 +26,14 @@ export function voteOnPoll(cardId: number, choice: string) {
   return apiClient(`/feed/polls/${cardId}/vote/`, { method: "POST", body: JSON.stringify({ choice }) });
 }
 
-export function getLeaderboard(period: "weekly" | "monthly" | "all" = "all") {
-  return apiClient<{ period: string; results: any[] }>(`/feed/leaderboard/?period=${period}`, { skipAuth: true });
+export function getLeaderboard(
+  mode: "independent" | "all" = "independent",
+  period: "weekly" | "monthly" | "all" = "weekly"
+) {
+  return apiClient<{ mode: string; period: string; results: any[] }>(
+    `/feed/leaderboard/?mode=${mode}&period=${period}`,
+    { skipAuth: true }
+  );
 }
 
 export function getMyPredictions() {
