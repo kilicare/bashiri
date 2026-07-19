@@ -31,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               transition={{ duration: 2.5, repeat: Infinity }}
             />
           </motion.div>
-          <h2 className="text-xl font-bold text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
+          <h2 className="text-3xl font-bold text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
             Bashiri
           </h2>
           <p className="text-xs tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.4)" }}>
