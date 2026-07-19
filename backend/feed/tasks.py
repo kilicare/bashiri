@@ -156,9 +156,9 @@ def update_live_match_cards():
 
     live_matches = Match.objects.filter(status="LIVE").select_related("home_team", "away_team", "league")
     updated_count = 0
+    created_count = 0
     data_changed = False
     for match in live_matches:
-        card, _created = Card.objects.get_or_create(type="LIVE_MATCH", match_id=match.id, defaults={"data": {}})
         new_data = {
             "match": {
                 "home_team": match.home_team.name, "away_team": match.away_team.name,
@@ -166,12 +166,27 @@ def update_live_match_cards():
                 "score": {"home": match.home_score or 0, "away": match.away_score or 0},
             }
         }
+        card, created = Card.objects.get_or_create(
+            type="LIVE_MATCH", 
+            match_id=match.id, 
+            defaults={"data": new_data, "is_active": True}
+        )
+        if created:
+            created_count += 1
+            data_changed = True
+            logger.info(f"Created LIVE_MATCH card for match #{match.id}: {match.home_team.name} vs {match.away_team.name}")
         # Check if data actually changed
-        if card.data != new_data:
+        elif card.data != new_data:
             card.data = new_data
             card.save(update_fields=["data"])
             updated_count += 1
             data_changed = True
+        # Ensure card is active
+        elif not card.is_active:
+            card.is_active = True
+            card.save(update_fields=["is_active"])
+            data_changed = True
+            logger.info(f"Activated LIVE_MATCH card for match #{match.id}")
 
     # Invalidate specific caches if live card data changed
     if data_changed:
@@ -180,7 +195,7 @@ def update_live_match_cards():
         cache.delete("feed_list")
         logger.info("Cache invalidated: live_matches and feed_list")
 
-    return f"Live cards updated: {updated_count}"
+    return f"Live cards: {created_count} created, {updated_count} updated"
 
 
 @shared_task

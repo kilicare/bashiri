@@ -48,6 +48,11 @@ export function FeedContainer() {
 
   useEffect(() => {
     loadMore(true);
+    // Poll for updates every 15 seconds
+    const interval = setInterval(() => {
+      loadMore(true);
+    }, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {

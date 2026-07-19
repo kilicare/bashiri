@@ -42,6 +42,15 @@ export default function MatchesPage() {
     }
   }, [tab]);
 
+  // Poll live matches every 15 seconds when on live tab
+  useEffect(() => {
+    if (tab !== "live") return;
+    const interval = setInterval(() => {
+      getLiveMatches().then((data) => { setMatches(data); });
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [tab]);
+
   async function loadMoreFinished() {
     const newOffset = offset + 20;
     const data = await getFinishedMatches(20, newOffset);

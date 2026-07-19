@@ -31,11 +31,22 @@ def make_interval_task(name, task, every_minutes):
     print(f"{'Imeundwa' if created else 'Imethibitishwa'}: {name}")
 
 
+def make_interval_task_seconds(name, task, every_seconds):
+    schedule, _ = IntervalSchedule.objects.get_or_create(every=every_seconds, period=IntervalSchedule.SECONDS)
+    obj, created = PeriodicTask.objects.get_or_create(name=name, defaults={"interval": schedule, "task": task})
+    if not created:
+        obj.interval = schedule
+        obj.crontab = None
+        obj.enabled = True
+        obj.save()
+    print(f"{'Imeundwa' if created else 'Imethibitishwa'}: {name}")
+
+
 # Sync KAMILI — mara moja kwa siku (fixtures mpya + backup ya matokeo)
 make_task("Sync Football Data", "predictions.tasks.sync_daily_task", {"minute": "0", "hour": "3"})
 
-# Sync NDOGO — mpya, kila dakika 2 (status/score za mechi za sasa) - production safe
-make_interval_task("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 2)
+# Sync NDOGO — mpya, kila sekunde 15 (status/score za mechi za sasa) - production safe
+make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 15)
 
 # Sync mechi zilizoisha hivi karibuni — kila dakika 30
 make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_recently_finished_matches", 30)
@@ -47,7 +58,7 @@ make_task("Generate Daily Picks", "predictions.tasks.generate_daily_picks", {"mi
 make_task("Generate Result Recaps", "feed.tasks.generate_result_recaps", {"minute": "*/30", "hour": "*"})
 make_task("Generate Stat Cards", "feed.tasks.generate_stat_cards", {"minute": "0", "hour": "5"})
 make_task("Generate Poll Cards", "feed.tasks.generate_poll_cards", {"minute": "0", "hour": "5"})
-make_task("Update Live Match Cards", "feed.tasks.update_live_match_cards", {"minute": "*/2", "hour": "*"})
+make_interval_task_seconds("Update Live Match Cards", "feed.tasks.update_live_match_cards", 15)
 make_task("Generate Weekly Report", "feed.tasks.generate_weekly_report", {"minute": "0", "hour": "20", "day_of_week": "0"})
 make_task("Generate Did You Know Cards", "feed.tasks.generate_did_you_know_cards", {"minute": "30", "hour": "5"})
 make_task("Close Expired Debates", "feed.tasks.close_expired_debates", {"minute": "0", "hour": "*"})
