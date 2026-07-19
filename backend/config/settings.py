@@ -211,6 +211,7 @@ MPESA_CALLBACK_BASE_URL = config("MPESA_CALLBACK_BASE_URL", default="https://you
 SMS_API_KEY = config("SMS_API_KEY", default="")
 SMS_USERNAME = config("SMS_USERNAME", default="sandbox")
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+FIREBASE_SERVICE_ACCOUNT_JSON = config("FIREBASE_SERVICE_ACCOUNT_JSON", default="")
 
 # ============================================================
 # BASHIRI — Business Logic Config (chanzo kimoja cha ukweli)

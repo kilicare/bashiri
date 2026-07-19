@@ -1,6 +1,5 @@
 'use client'
 
-import { cloudinaryUrl } from "@/lib/cloudinary";
 import { motion } from "framer-motion";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -8,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div
       className="min-h-dvh flex flex-col justify-center relative overflow-hidden"
       style={{
-        backgroundImage: `url(${cloudinaryUrl("backend_ce2j2d")})`,
+        backgroundImage: `url(/login_background.png)`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -21,7 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <motion.img
               src="/icon.png"
               alt="Bashiri"
-              className="w-32 h-32 object-contain rounded-full"
+              className="w-28 h-28 object-contain rounded-full"
               animate={{
                 boxShadow: [
                   '0 0 20px rgba(245,166,35,0.5)',
@@ -32,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               transition={{ duration: 2.5, repeat: Infinity }}
             />
           </motion.div>
-          <h2 className="text-2xl font-bold text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
+          <h2 className="text-xl font-bold text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
             Bashiri
           </h2>
           <p className="text-xs tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.4)" }}>

@@ -12,6 +12,7 @@ from celery import shared_task
 from django.utils import timezone
 
 from .models import Notification
+from .fcm import send_push_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,11 @@ def notify_daily_picks():
             title="AI Picks za Leo Ziko Tayari! 🔥",
             body=f"Angalia predictions {today_picks.count()} za AI kwa mechi za leo.",
             data={"card_ids": [c.id for c in today_picks]},
+        )
+        send_push_to_user(
+            user, "AI Picks za Leo Ziko Tayari! 🔥",
+            f"Angalia predictions {today_picks.count()} za AI kwa mechi za leo.",
+            click_action="/home",
         )
         count += 1
     return f"Notifications zilizotumwa: {count}"
@@ -73,6 +79,11 @@ def notify_favorite_team_matches():
                 body=f"{match.home_team.name} vs {match.away_team.name}",
                 data={"match_id": match.id},
             )
+            send_push_to_user(
+                user, "Mechi ya Timu Yako Inaanza Saa 3! ⚽",
+                f"{match.home_team.name} vs {match.away_team.name}",
+                click_action=f"/create/{match.id}/overview",
+            )
             count += 1
     return f"Notifications za favorite team: {count}"
 
@@ -104,6 +115,11 @@ def notify_high_confidence_picks():
                 title="AI Ina Uhakika Mkubwa! 🎯",
                 body=f"Confidence {card.data['ai_pick']['confidence']}% kwa mechi ya leo.",
                 data={"card_id": card.id},
+            )
+            send_push_to_user(
+                user, "AI Ina Uhakika Mkubwa! 🎯",
+                f"Confidence {card.data['ai_pick']['confidence']}% kwa mechi ya leo.",
+                click_action="/home",
             )
             count += 1
     return f"High-confidence notifications: {count}"

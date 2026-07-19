@@ -27,6 +27,7 @@ from accounts.serializers import UserSerializer
 from feed.models import Card
 from payments.models import Subscription, Transaction
 from predictions.models import League, Match, Team
+from notifications.fcm import send_push_to_user
 
 from .models import AdminActionLog
 from .permissions import IsBashiriAdmin
@@ -439,6 +440,9 @@ class AdminBroadcastNotificationView(APIView):
             for u in users
         ]
         Notification.objects.bulk_create(notifications)
+
+        for u in users:
+            send_push_to_user(u, title, body, click_action="/home")
 
         _log_action(
             request.user, "BROADCAST_NOTIFICATION", f"Segment: {segment}",

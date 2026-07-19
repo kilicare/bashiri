@@ -15,6 +15,7 @@ export default function LoginPage() {
   const setSession = useAuthStore((s) => s.setSession);
 
   const [tab, setTab] = useState<Tab>("login");
+  const [registerStep, setRegisterStep] = useState(1);
   const [phone, setPhone] = useState("+255");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,6 +36,22 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleNextStep() {
+    setError("");
+    if (registerStep === 1) {
+      if (!phone || !username || !dob) {
+        setError("Tafadhali jaza sehemu zote");
+        return;
+      }
+      setRegisterStep(2);
+    }
+  }
+
+  function handleBackStep() {
+    setError("");
+    setRegisterStep(1);
   }
 
   async function handleRegister() {
@@ -73,7 +90,7 @@ export default function LoginPage() {
           Ingia
         </button>
         <button
-          onClick={() => { setTab("register"); setError(""); }}
+          onClick={() => { setTab("register"); setError(""); setRegisterStep(1); }}
           className="flex-1 py-2.5 rounded-xl text-sm font-bold"
           style={{ background: tab === "register" ? "var(--color-gold)" : "rgba(255,255,255,0.06)", color: tab === "register" ? "#000" : "rgba(255,255,255,0.5)" }}
         >
@@ -115,33 +132,92 @@ export default function LoginPage() {
       {tab === "register" && (
         <div className="space-y-4">
           <h1 className="text-xl font-black text-white">Tengeneza Akaunti</h1>
-          <BashiriInput
-            label="Namba ya Simu"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+255712345678"
-          />
-          <BashiriInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="mfano: lastmateru" />
-          <BashiriInput label="Tarehe ya Kuzaliwa" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-          <BashiriInput
-            label="Password (angalau herufi 4)"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            showPasswordToggle
-          />
-          <BashiriInput
-            label="Rudia Password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            showPasswordToggle
-          />
-          {error && <p className="text-xs text-bashiri-red">{error}</p>}
-          <BashiriButton className="w-full" size="lg" loading={loading} onClick={handleRegister}>
-            Jisajili →
-          </BashiriButton>
+          
+          {/* Progress Indicator */}
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+                style={{ 
+                  background: registerStep >= 1 ? "var(--color-gold)" : "rgba(255,255,255,0.1)",
+                  color: registerStep >= 1 ? "#000" : "rgba(255,255,255,0.5)"
+                }}
+              >
+                1
+              </div>
+              <div 
+                className="w-12 h-1 rounded-full transition-all"
+                style={{ background: registerStep >= 2 ? "var(--color-gold)" : "rgba(255,255,255,0.1)" }}
+              />
+            </div>
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+              style={{ 
+                background: registerStep >= 2 ? "var(--color-gold)" : "rgba(255,255,255,0.1)",
+                color: registerStep >= 2 ? "#000" : "rgba(255,255,255,0.5)"
+              }}
+            >
+              2
+            </div>
+          </div>
+
+          {/* Step 1: Basic Info */}
+          {registerStep === 1 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-4"
+            >
+              <BashiriInput
+                label="Namba ya Simu"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+255712345678"
+              />
+              <BashiriInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="mfano: lastmateru" />
+              <BashiriInput label="Tarehe ya Kuzaliwa" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              {error && <p className="text-xs text-bashiri-red">{error}</p>}
+              <BashiriButton className="w-full" size="lg" onClick={handleNextStep}>
+                Endelea →
+              </BashiriButton>
+            </motion.div>
+          )}
+
+          {/* Step 2: Password */}
+          {registerStep === 2 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-4"
+            >
+              <BashiriInput
+                label="Password (angalau herufi 4)"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                showPasswordToggle
+              />
+              <BashiriInput
+                label="Rudia Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                showPasswordToggle
+              />
+              {error && <p className="text-xs text-bashiri-red">{error}</p>}
+              <BashiriButton className="w-full" size="lg" loading={loading} onClick={handleRegister}>
+                Jisajili →
+              </BashiriButton>
+              <button
+                className="text-xs w-full text-center"
+                style={{ color: "rgba(255,255,255,0.5)" }}
+                onClick={handleBackStep}
+              >
+                ← Rudi
+              </button>
+            </motion.div>
+          )}
         </div>
       )}
     </motion.div>

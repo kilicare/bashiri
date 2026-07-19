@@ -1,16 +1,16 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Calendar, Sparkles, User, Plus } from "lucide-react";
+import { Home, CalendarDays, Cpu, User2, Plus } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const LEFT_ITEMS = [
   { href: "/home", icon: Home, label: "Home" },
-  { href: "/matches", icon: Calendar, label: "Matches" },
+  { href: "/matches", icon: CalendarDays, label: "Matches" },
 ];
 const RIGHT_ITEMS = [
-  { href: "/ai", icon: Sparkles, label: "AI" },
-  { href: "/profile", icon: User, label: "Profile", requiresAuth: true },
+  { href: "/ai", icon: Cpu, label: "AI" },
+  { href: "/profile", icon: User2, label: "Profile", requiresAuth: true },
 ];
 
 export function BottomNav() {
@@ -27,12 +27,24 @@ export function BottomNav() {
     const isActive = pathname.startsWith(item.href);
     const Icon = item.icon;
     return (
-      <button onClick={() => navigate(item)} className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl flex-1">
-        <Icon size={20} style={{
-          color: isActive ? "var(--brand-primary)" : "rgba(255,255,255,0.4)",
-          filter: isActive ? "drop-shadow(0 0 6px rgba(212,175,55,0.6))" : "none",
-        }} />
-        <span className="text-[10px] font-bold" style={{ color: isActive ? "var(--brand-primary)" : "rgba(255,255,255,0.35)" }}>
+      <button
+        onClick={() => navigate(item)}
+        className="group flex flex-col items-center gap-1 px-2 py-1.5 rounded-3xl flex-1 transition-all duration-200"
+        style={{
+          background: isActive ? "rgba(212,175,55,0.12)" : "transparent",
+        }}
+      >
+        <Icon
+          size={20}
+          strokeWidth={1.8}
+          className="transition-all duration-200 group-hover:text-[var(--brand-primary)]"
+          style={{
+            color: isActive ? "var(--brand-primary)" : "rgba(255,255,255,0.55)",
+            transition: "color 0.2s ease, transform 0.2s ease",
+            transform: isActive ? "translateY(-1px) scale(1.03)" : "none",
+          }}
+        />
+        <span className={`text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors duration-200 ${isActive ? "text-[var(--brand-primary)]" : "text-[rgba(255,255,255,0.42)] group-hover:text-[var(--brand-primary)]"}`}>
           {item.label}
         </span>
       </button>
@@ -42,19 +54,19 @@ export function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-30 pb-safe"
-      style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(22px)", borderTop: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 -10px 40px rgba(0,0,0,0.18)" }}
     >
-      <div className="flex items-center justify-around px-2 py-2 relative max-w-lg mx-auto">
+      <div className="flex items-center justify-between px-3 py-2.5 relative max-w-4xl mx-auto">
         {LEFT_ITEMS.map((item) => <NavButton key={item.href} item={item} />)}
 
         <motion.button
           onClick={() => router.push("/create")}
-          className="w-14 h-14 rounded-2xl flex items-center justify-center -mt-6 mx-2 shrink-0"
-          style={{ background: "var(--brand-primary)", boxShadow: "0 8px 25px rgba(212,175,55,0.5)" }}
-          whileTap={{ scale: 0.9 }}
+          className="w-16 h-16 rounded-[26px] flex items-center justify-center -mt-7 mx-2 shrink-0"
+          style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))", boxShadow: "0 14px 32px rgba(212,175,55,0.22)" }}
+          whileTap={{ scale: 0.94 }}
           aria-label="Unda ubashiri mpya"
         >
-          <Plus size={26} strokeWidth={2.8} style={{ color: "#051006" }} />
+          <Plus size={28} strokeWidth={2.4} style={{ color: "#051006" }} />
         </motion.button>
 
         {RIGHT_ITEMS.map((item) => <NavButton key={item.href} item={item} />)}

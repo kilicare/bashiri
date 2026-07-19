@@ -10,6 +10,7 @@ import { Bookmark } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
+import { usePWAInstallStore } from "@/stores/pwaInstall.store";
 
 export default function PredictDashboardPage() {
   const params = useParams();
@@ -30,6 +31,7 @@ export default function PredictDashboardPage() {
     try {
       await saveMatch(matchId);
       setSaved(true);
+      usePWAInstallStore.getState().attemptShow();
     } finally {
       setSaving(false);
     }

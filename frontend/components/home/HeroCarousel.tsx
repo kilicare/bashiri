@@ -81,14 +81,14 @@ export function HeroCarousel() {
               <p className="text-xs font-medium uppercase tracking-widest mb-1" style={{ color: slide.accent_color }}>
                 {slide.subtitle}
               </p>
-              <p className="text-xl font-semibold text-white mb-3 leading-tight">{slide.title}</p>
+              <p className="text-xl font-semibold text-white mb-3 leading-tight sm:text-2xl">{slide.title}</p>
               {slide.route && slide.cta_label && (
-                <span
-                  className="inline-block text-xs font-medium px-3 py-1.5 rounded-full"
+                <button
+                  className="text-sm font-bold px-4 py-2.5 rounded-full sm:text-base sm:px-5 sm:py-3"
                   style={{ background: slide.accent_color, color: "#051006" }}
                 >
                   {slide.cta_label} →
-                </span>
+                </button>
               )}
             </div>
           </motion.div>

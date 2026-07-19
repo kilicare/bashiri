@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getNotificationPreferences, updateNotificationPreferences, NotificationPreferences } from "@/lib/api/notifications";
 import { ArrowLeft } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const TOGGLES: { key: keyof NotificationPreferences; label: string }[] = [
   { key: "daily_picks_enabled", label: "AI Picks za Kila Siku" },
@@ -30,10 +31,19 @@ function Toggle({ active, onClick }: { active: boolean; onClick: () => void }) {
 export default function NotificationSettingsPage() {
   const router = useRouter();
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
+  const { enablePush } = usePushNotifications();
+  const [pushEnabled, setPushEnabled] = useState(
+    typeof window !== "undefined" && Notification?.permission === "granted"
+  );
 
   useEffect(() => {
     getNotificationPreferences().then(setPrefs);
   }, []);
+
+  async function handleEnablePush() {
+    const ok = await enablePush();
+    setPushEnabled(ok);
+  }
 
   async function toggle(key: keyof NotificationPreferences) {
     if (!prefs) return;
@@ -54,6 +64,19 @@ export default function NotificationSettingsPage() {
       </div>
 
       <div className="px-4 space-y-2">
+        {!pushEnabled && (
+          <button
+            onClick={handleEnablePush}
+            className="w-full rounded-2xl p-4 mb-3 text-left"
+            style={{ background: "rgba(0,255,135,0.08)", border: "1px solid rgba(0,255,135,0.2)" }}
+          >
+            <p className="text-sm font-bold" style={{ color: "#00FF87" }}>🔔 Washa Push Notifications</p>
+            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+              Pokea taarifa hata app ikiwa imefungwa
+            </p>
+          </button>
+        )}
+
         {!prefs ? (
           [1, 2].map((i) => <CardSkeleton key={i} />)
         ) : (

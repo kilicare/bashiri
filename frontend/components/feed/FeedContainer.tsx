@@ -53,17 +53,14 @@ export function FeedContainer() {
   if (loading) {
     return (
       <div className="px-4 py-5 md:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 mb-4">
+        <div className="mb-6">
           <button
             type="button"
             onClick={() => setShowTutorial(true)}
-            className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10"
+            className="w-full rounded-2xl bg-gradient-to-r from-[rgba(212,175,55,0.15)] to-[rgba(212,175,55,0.05)] border border-[rgba(212,175,55,0.3)] px-5 py-3.5 text-sm font-bold text-white hover:from-[rgba(212,175,55,0.25)] hover:to-[rgba(212,175,55,0.1)] transition-all duration-300 shadow-lg"
           >
-            Jifunze kuhusu market predictions
+            📚 Jifunze kuhusu market predictions
           </button>
-          <p className="text-xs text-white/60 max-w-2xl">
-            Soma jinsi ya kusoma predictions kabla ya kwenda kwenye mechi na kutabiri.
-          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => <CardSkeleton key={i} />)}
@@ -74,17 +71,14 @@ export function FeedContainer() {
 
   return (
     <div className="px-4 py-5 md:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 mb-6">
+      <div className="mb-6">
         <button
           type="button"
           onClick={() => setShowTutorial(true)}
-          className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10"
+          className="w-full rounded-2xl bg-gradient-to-r from-[rgba(212,175,55,0.15)] to-[rgba(212,175,55,0.05)] border border-[rgba(212,175,55,0.3)] px-5 py-3.5 text-sm font-bold text-white hover:from-[rgba(212,175,55,0.25)] hover:to-[rgba(212,175,55,0.1)] transition-all duration-300 shadow-lg"
         >
-          Jifunze kuhusu market predictions
+          📚 Jifunze kuhusu market predictions
         </button>
-        <p className="text-xs text-white/60 max-w-2xl">
-          Soma jinsi ya kusoma predictions kabla ya kwenda kwenye mechi na kutabiri.
-        </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((card) => (
