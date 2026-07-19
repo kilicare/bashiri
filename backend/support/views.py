@@ -130,16 +130,6 @@ def _check_auto_hide(content_type: str, object_id: int):
             hidden = True
             target_desc = f"MicReaction #{obj.id}"
 
-    elif content_type == "USER_PREDICTION_CARD":
-        from feed.models import Card
-
-        obj = Card.objects.filter(pk=object_id, is_active=True).first()
-        if obj:
-            obj.is_active = False
-            obj.save(update_fields=["is_active"])
-            hidden = True
-            target_desc = f"Card #{obj.id}"
-
     elif content_type == "ROOM_MESSAGE":
         from matchroom.models import MatchRoomMessage
 

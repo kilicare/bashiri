@@ -31,7 +31,6 @@ class SupportTicket(models.Model):
     ]
     CONTENT_TYPE_CHOICES = [
         ("MIC_REACTION", "Bashiri Mic Video"),
-        ("USER_PREDICTION_CARD", "User Prediction"),
         ("ROOM_MESSAGE", "Match Room Message"),
     ]
 

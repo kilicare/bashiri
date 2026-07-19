@@ -6,7 +6,7 @@ from celery import shared_task
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import Card, UserPrediction
+from .models import Card
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +67,6 @@ def generate_result_recaps():
             high_conf_predictions += 1
             if was_correct:
                 high_conf_correct += 1
-        
-        _update_user_predictions_for_match(match)
 
     # Update or create AIPerformance record for today
     if total_predictions > 0:
@@ -91,41 +89,6 @@ def generate_result_recaps():
 
     logger.info(f"generate_result_recaps: {created_count} recaps")
     return f"Result recaps: {created_count}"
-
-
-def _update_user_predictions_for_match(match):
-    from predictions.services import is_prediction_correct
-
-    user_predictions = UserPrediction.objects.filter(
-        match_id=match.id, is_correct__isnull=True
-    ).select_related("user")
-
-    for up in user_predictions:
-        correct = is_prediction_correct(up.market, up.selection, match.home_score, match.away_score)
-        up.is_correct = correct
-        up.save(update_fields=["is_correct"])
-
-        user = up.user
-        user.total_predictions += 1
-        if correct:
-            user.correct_predictions += 1
-            user.current_streak += 1
-            user.best_streak = max(user.best_streak, user.current_streak)
-        else:
-            user.current_streak = 0
-        user.save(update_fields=["total_predictions", "correct_predictions", "current_streak", "best_streak"])
-
-        if user.current_streak > 0 and user.current_streak % 5 == 0:
-            Card.objects.create(
-                type="MILESTONE",
-                data={
-                    "user_id": user.id,
-                    "username": user.username,
-                    "avatar_url": user.avatar_url,
-                    "message": f"Umefikisha streak ya {user.current_streak}! 🔥",
-                    "streak": user.current_streak,
-                },
-            )
 
 
 @shared_task

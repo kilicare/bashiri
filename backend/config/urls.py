@@ -30,4 +30,5 @@ urlpatterns = [
     path("api/matchroom/", include("matchroom.urls")),
     path("api/mic/", include("mic.urls")),
     path("api/support/", include("support.urls")),
+    path("api/hero/", include("herocarousel.urls")),
 ]

@@ -31,7 +31,7 @@ frontend/next-env.d.ts
 backend/.env
 frontend/.env.local
 
-# ==== IDE / OS ====
+# ==== IDE / OS ==== 
 .vscode/
 .idea/
 .DS_Store

@@ -18,6 +18,10 @@ COPY . .
 
 RUN mkdir -p /app/staticfiles
 
+COPY entrypoint.sh /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8000
 
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]
+ENTRYPOINT ["/app/entrypoint.sh"]

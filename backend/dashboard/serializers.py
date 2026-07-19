@@ -6,6 +6,7 @@ from feed.models import Card
 from payments.models import Subscription, Transaction
 from predictions.models import ActiveDerby, League, Match, Team
 from support.models import ContentReport, SupportMessage, SupportTicket
+from herocarousel.models import CustomSlide
 
 from .models import AdminActionLog
 
@@ -170,3 +171,27 @@ class AdminContentReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentReport
         fields = ["id", "reporter", "reporter_username", "content_type", "object_id", "reason", "note", "created_at"]
+
+
+class AdminResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(min_length=4)
+
+    def validate_new_password(self, value):
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
+        try:
+            validate_password(value)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(list(exc.messages))
+        return value
+
+
+class AdminCustomSlideSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomSlide
+        fields = [
+            "id", "title", "subtitle", "image_url", "cta_label", "route",
+            "accent_color", "starts_at", "ends_at", "order", "is_active", "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]

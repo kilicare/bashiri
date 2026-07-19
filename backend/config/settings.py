@@ -5,6 +5,7 @@ Settings zote zinasomwa kutoka .env (python-decouple) — hakuna hardcoded secre
 from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     "matchroom",
     "mic",
     "support",
+    "herocarousel",
 ]
 
 MIDDLEWARE = [
@@ -78,25 +80,33 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("POSTGRES_DB", default="bashiri"),
-        "USER": config("POSTGRES_USER", default="bashiri_user"),
-        "PASSWORD": config("POSTGRES_PASSWORD", default="changeme"),
-        "HOST": config("POSTGRES_HOST", default="db"),
-        "PORT": config("POSTGRES_PORT", default="5432"),
-        "CONN_MAX_AGE": 60,
+DATABASE_URL = config("DATABASE_URL", default=None)
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=60,
+            ssl_require=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("POSTGRES_DB", default="bashiri"),
+            "USER": config("POSTGRES_USER", default="bashiri_user"),
+            "PASSWORD": config("POSTGRES_PASSWORD", default="changeme"),
+            "HOST": config("POSTGRES_HOST", default="db"),
+            "PORT": config("POSTGRES_PORT", default="5432"),
+            "CONN_MAX_AGE": 60,
+        }
+    }
 
 AUTH_USER_MODEL = "accounts.User"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 4}},
 ]
 
 LANGUAGE_CODE = "en-us"
@@ -148,8 +158,12 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
-        "otp": "5/minute",
+        "otp": "5/minute",  # imehifadhiwa — haitumiki kwa sasa (OTP flow imesimamishwa)
         "content_report": "10/hour",
+        "auth_login": "10/minute",
+        "auth_register": "5/hour",
+        "password_reset": "5/hour",
+        "feed": "10000/hour",  # Feed endpoint needs high rate limit for smooth scrolling
     },
 }
 
@@ -226,7 +240,6 @@ BASHIRI = {
         "RESULT_RECAP": 85,
         "AI_WEEKLY_REPORT": 70,
         "DEBATE": 65,
-        "USER_PREDICTION": 60,
         "STAT": 50,
         "DID_YOU_KNOW": 45,
         "POLL": 40,
@@ -236,12 +249,6 @@ BASHIRI = {
     "SUBSCRIPTION_PRICES": {
         "weekly_tzs": 1500,
         "monthly_tzs": 6000,
-    },
-
-    "LEADERBOARD_MIN_PREDICTIONS": {
-        "weekly": 3,
-        "monthly": 5,
-        "all": 10,
     },
 
     "LEAGUES": {
@@ -272,9 +279,12 @@ BASHIRI = {
     ),
 
     "MIC_POSTING_WINDOW_HOURS": 24,
-    "MIC_MAX_VIDEO_SECONDS": 30,
+    "MIC_FAN_OF_MATCH_WINDOW_DAYS": 7,
+    "MIC_MAX_VIDEO_SECONDS": 60,
 
     "CONTENT_REPORT_AUTO_HIDE_THRESHOLD": 3,
+
+    "HERO_CAROUSEL_MAX_SLIDES": 5,
 }
 
 # ============================================================

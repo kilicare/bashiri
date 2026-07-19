@@ -167,3 +167,22 @@ class AIPerformance(models.Model):
         if self.high_confidence_predictions > 0:
             self.high_confidence_accuracy = round((self.high_confidence_correct / self.high_confidence_predictions) * 100, 1)
         self.save(update_fields=["accuracy_percentage", "high_confidence_accuracy"])
+
+
+class AITrackRecordSnapshot(models.Model):
+    """
+    Snapshot ya kila siku ya utendaji wa AI (per-market accuracy kwa
+    ligi zote/kwa ligi moja moja, weekly trend, boldest correct calls).
+    AITrackRecordView inasoma snapshot ya MWISHO pekee (O(1)), badala
+    ya kuhesabu live kila request (ambayo ingekuwa ghali sana kwa
+    mechi mamia/maelfu).
+    """
+    generated_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    data = models.JSONField(default=dict)
+
+    class Meta:
+        db_table = "predictions_aitrackrecordsnapshot"
+        ordering = ["-generated_at"]
+
+    def __str__(self):
+        return f"AI Track Record Snapshot ({self.generated_at:%Y-%m-%d %H:%M})"

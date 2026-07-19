@@ -1,8 +1,20 @@
 """
 accounts/utils.py
 
-OTP generation na SMS (Africa's Talking). Kwenye DEBUG=True, OTP
-inaonyeshwa console badala ya kutuma SMS halisi (bila gharama ya dev).
+═══════════════════════════════════════════════════════════
+OTP FLOW — IMESIMAMISHWA KWA MUDA (commented out, si kufutwa)
+═══════════════════════════════════════════════════════════
+Sababu: Gharama ya SMS gateway (Africa's Talking) haikuwa na chanzo
+cha bure cha kutosha kwa sasa. Mfumo umebadilishwa kutumia phone_number
++ password (accounts/views.py: RegisterView, LoginView).
+
+Code ya OTP imehifadhiwa hapa chini KAMA COMMENT — itakaporudishwa
+kazini (baada ya kupata bajeti ya SMS gateway), ondoa alama za """ na
+uunganishe tena na accounts/urls.py (request-otp/, verify-otp/) na
+accounts/views.py (RequestOTPView, VerifyOTPView) ambazo nazo zimewekwa
+kama comment kwa muundo ule ule.
+"""
+
 """
 import random
 import logging
@@ -46,3 +58,4 @@ def send_otp_sms(phone_number: str, code: str) -> bool:
     except Exception as exc:
         logger.error(f"Imeshindwa kutuma OTP kwa {phone_number}: {exc}")
         return False
+"""

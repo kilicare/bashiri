@@ -51,11 +51,16 @@ make_task("Update Live Match Cards", "feed.tasks.update_live_match_cards", {"min
 make_task("Generate Weekly Report", "feed.tasks.generate_weekly_report", {"minute": "0", "hour": "20", "day_of_week": "0"})
 make_task("Generate Did You Know Cards", "feed.tasks.generate_did_you_know_cards", {"minute": "30", "hour": "5"})
 make_task("Close Expired Debates", "feed.tasks.close_expired_debates", {"minute": "0", "hour": "*"})
+make_interval_task("Deactivate Finished Live Cards", "feed.tasks.deactivate_finished_live_cards", 5)
 
 # Notifications
 make_task("Notify Daily Picks", "notifications.tasks.notify_daily_picks", {"minute": "0", "hour": "7"})
+make_task("Notify Morning Picks", "notifications.tasks.notify_morning_picks", {"minute": "0", "hour": "9"})
 make_task("Notify Favorite Team Matches", "notifications.tasks.notify_favorite_team_matches", {"minute": "*/30", "hour": "*"})
 make_task("Notify High Confidence Picks", "notifications.tasks.notify_high_confidence_picks", {"minute": "0", "hour": "8"})
+make_task("Notify Live Match Alerts", "notifications.tasks.notify_live_match_alerts", {"minute": "*/5", "hour": "*"})
+make_task("Notify Evening Recap", "notifications.tasks.notify_evening_recap", {"minute": "0", "hour": "21"})
+make_task("Notify Weekly Summary", "notifications.tasks.notify_weekly_summary", {"minute": "0", "hour": "10", "day_of_week": "1"})
 
 # Bashiri Mic
 make_task("Compute Fan of Match", "mic.tasks.compute_fan_of_match", {"minute": "0", "hour": "*"})

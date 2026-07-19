@@ -1,9 +1,11 @@
 """
 accounts/views.py
 
-Flow: request-otp -> verify-otp (JWT) -> complete-profile -> me/logout
-Hii NDIO endpoint moja inayotumika Login NA Register.
+Flow mpya: register (phone+password+username+dob, hatua moja) ->
+login (phone+password) -> me/logout. OTP views zimewekwa chini kama
+COMMENT.
 """
+from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -11,79 +13,71 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
-from .models import OTPCode, User
+from .models import User
 from .serializers import (
     CompleteProfileSerializer,
+    LoginSerializer,
     OnboardingSerializer,
-    RequestOTPSerializer,
+    RegisterSerializer,
+    RequestPasswordResetSerializer,
     UpdateAvatarSerializer,
     UserSerializer,
-    VerifyOTPSerializer,
 )
-from .utils import generate_otp_code, get_otp_expiry, send_otp_sms
 
 
-class RequestOTPView(APIView):
+# ============================================================
+# REGISTER / LOGIN — ACTIVE
+# ============================================================
+class RegisterView(APIView):
+    """POST /api/auth/register/ — hatua MOJA: phone+password+username+dob."""
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "otp"
+    throttle_scope = "auth_register"
 
     def post(self, request):
-        serializer = RequestOTPSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        phone_number = serializer.validated_data["phone_number"]
+        data = serializer.validated_data
 
-        OTPCode.objects.filter(phone_number=phone_number, is_used=False).update(is_used=True)
-
-        code = generate_otp_code()
-        OTPCode.objects.create(phone_number=phone_number, code=code, expires_at=get_otp_expiry())
-
-        if not send_otp_sms(phone_number, code):
-            return Response(
-                {"detail": "Imeshindwa kutuma OTP. Jaribu tena baadaye."},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-
-        return Response({"detail": "OTP imetumwa.", "phone_number": phone_number})
-
-
-class VerifyOTPView(APIView):
-    permission_classes = [AllowAny]
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "otp"
-
-    def post(self, request):
-        serializer = VerifyOTPSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        phone_number = serializer.validated_data["phone_number"]
-        code = serializer.validated_data["code"]
-
-        otp = (
-            OTPCode.objects.filter(phone_number=phone_number, is_used=False)
-            .order_by("-created_at").first()
+        user = User.objects.create_user(
+            phone_number=data["phone_number"],
+            password=data["password"],
+            username=data["username"],
+            date_of_birth=data["date_of_birth"],
         )
 
-        if otp is None or not otp.is_valid:
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "profile_complete": user.profile_complete,
+            "user": UserSerializer(user).data,
+        }, status=status.HTTP_201_CREATED)
+
+
+class LoginView(APIView):
+    """POST /api/auth/login/ — phone_number + password."""
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth_login"
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_number = serializer.validated_data["phone_number"]
+        password = serializer.validated_data["password"]
+
+        user = authenticate(request, phone_number=phone_number, password=password)
+
+        if user is None:
             return Response(
-                {"detail": "OTP haipo au imekwisha muda wake. Omba mpya."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "Namba ya simu au password si sahihi."},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        if otp.code != code:
-            otp.attempts += 1
-            otp.save(update_fields=["attempts"])
-            return Response({"detail": "OTP si sahihi."}, status=status.HTTP_400_BAD_REQUEST)
-
-        otp.is_used = True
-        otp.save(update_fields=["is_used"])
-
-        # get_or_create: kama phone_number ni mpya -> Register; ikiwa ipo -> Login
-        user, _created = User.objects.get_or_create(phone_number=phone_number)
-
-        # Check if user is banned
         if not user.is_active:
             return Response(
-                {"detail": "Akaunti yako imesimamishwa. Wasiliana na usaidizi kwa maelezo zaidi."},
+                {"detail": "Akaunti hii imezuiwa. Wasiliana na Msaada."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -93,6 +87,54 @@ class VerifyOTPView(APIView):
             "refresh": str(refresh),
             "profile_complete": user.profile_complete,
             "user": UserSerializer(user).data,
+        })
+
+
+class RequestPasswordResetView(APIView):
+    """
+    POST /api/auth/request-password-reset/ — body: {"phone_number": "..."}
+
+    Kwa vile hatuna SMS/Email ya bure kwa sasa, hii HAILETI OTP wala
+    link ya moja kwa moja — inaunda SupportTicket (type=ACCOUNT_ISSUE)
+    ambayo admin ataishughulikia KWA MKONO (kupitia WhatsApp/simu,
+    baada ya kuthibitisha utambulisho wa mtumiaji), kisha kutumia
+    AdminResetUserPasswordView (dashboard app) kuweka password mpya.
+
+    Kwa faragha (kuzuia account enumeration), response ni ILE ILE
+    bila kujali kama namba ipo kwenye database au la.
+    """
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "password_reset"
+
+    def post(self, request):
+        serializer = RequestPasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_number = serializer.validated_data["phone_number"]
+        message = serializer.validated_data.get("message", "")
+
+        user = User.objects.filter(phone_number=phone_number).first()
+
+        if user:
+            from support.models import SupportMessage, SupportTicket
+
+            ticket = SupportTicket.objects.create(
+                user=user,
+                guest_phone=phone_number,
+                type="ACCOUNT_ISSUE",
+                subject="Ombi la Kubadilisha Password",
+                status="OPEN",
+            )
+            SupportMessage.objects.create(
+                ticket=ticket, sender_type="USER", sender=user,
+                content=message or "Nimesahau password yangu, naomba msaada wa kubadilisha.",
+            )
+
+        return Response({
+            "detail": (
+                "Ombi limepokewa. Timu yetu itawasiliana nawe kupitia namba yako ya "
+                "simu ndani ya muda mfupi kukusaidia kubadilisha password."
+            )
         })
 
 
@@ -136,7 +178,7 @@ class LogoutView(APIView):
 
 
 class OnboardingView(APIView):
-    """Save user's favorite leagues during onboarding"""
+    """Save user's favorite leagues and optionally favorite teams during onboarding."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -145,11 +187,14 @@ class OnboardingView(APIView):
 
         user = request.user
         league_ids = serializer.validated_data["favorite_leagues"]
+        favorite_teams = serializer.validated_data.get("favorite_teams", [])
 
-        from predictions.models import League
+        from predictions.models import League, Team
         leagues = League.objects.filter(id__in=league_ids)
-
         user.favorite_leagues.set(leagues)
+
+        teams = Team.objects.filter(id__in=favorite_teams)
+        user.favorite_teams.set(teams)
 
         return Response(UserSerializer(user).data)
 
@@ -262,3 +307,73 @@ class UpdateSettingsView(APIView):
         request.user.preferred_language = lang
         request.user.save(update_fields=["preferred_language"])
         return Response(UserSerializer(request.user).data)
+
+
+# ============================================================
+# OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)
+# ============================================================
+"""
+class RequestOTPView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "otp"
+
+    def post(self, request):
+        serializer = RequestOTPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_number = serializer.validated_data["phone_number"]
+
+        OTPCode.objects.filter(phone_number=phone_number, is_used=False).update(is_used=True)
+
+        code = generate_otp_code()
+        OTPCode.objects.create(phone_number=phone_number, code=code, expires_at=get_otp_expiry())
+
+        if not send_otp_sms(phone_number, code):
+            return Response(
+                {"detail": "Imeshindwa kutuma OTP. Jaribu tena baadaye."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response({"detail": "OTP imetumwa.", "phone_number": phone_number})
+
+
+class VerifyOTPView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "otp"
+
+    def post(self, request):
+        serializer = VerifyOTPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_number = serializer.validated_data["phone_number"]
+        code = serializer.validated_data["code"]
+
+        otp = (
+            OTPCode.objects.filter(phone_number=phone_number, is_used=False)
+            .order_by("-created_at").first()
+        )
+
+        if otp is None or not otp.is_valid:
+            return Response(
+                {"detail": "OTP haipo au imekwisha muda wake. Omba mpya."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if otp.code != code:
+            otp.attempts += 1
+            otp.save(update_fields=["attempts"])
+            return Response({"detail": "OTP si sahihi."}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp.is_used = True
+        otp.save(update_fields=["is_used"])
+
+        user, _created = User.objects.get_or_create(phone_number=phone_number)
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "profile_complete": user.profile_complete,
+            "user": UserSerializer(user).data,
+        })
+"""

@@ -9,7 +9,10 @@ from .views import (
     AdminCardToggleActiveView,
     AdminContentReportListView,
     AdminCreateDebateView,
+    AdminCustomSlideDetailView,
+    AdminCustomSlideListView,
     AdminDeleteDebateView,
+    AdminHeroImageUploadSignatureView,
     AdminLeagueListView,
     AdminLoginView,
     AdminManualSubscriptionView,
@@ -19,6 +22,7 @@ from .views import (
     AdminMicReactionListView,
     AdminMicReactionToggleActiveView,
     AdminMLModelStatusView,
+    AdminResetUserPasswordView,
     AdminResolveDebateView,
     AdminSubscriptionListView,
     AdminSupportTicketDetailView,
@@ -28,7 +32,6 @@ from .views import (
     AdminTransactionListView,
     AdminUserDetailView,
     AdminUserListView,
-    AdminUserPredictionsView,
     DashboardStatsView,
 )
 
@@ -38,7 +41,7 @@ urlpatterns = [
 
     path("users/", AdminUserListView.as_view(), name="admin-user-list"),
     path("users/<int:user_id>/", AdminUserDetailView.as_view(), name="admin-user-detail"),
-    path("users/<int:user_id>/predictions/", AdminUserPredictionsView.as_view(), name="admin-user-predictions"),
+    path("users/<int:user_id>/reset-password/", AdminResetUserPasswordView.as_view(), name="admin-reset-password"),
 
     path("matches/", AdminMatchListView.as_view(), name="admin-match-list"),
     path("matches/<int:match_id>/", AdminMatchDetailView.as_view(), name="admin-match-detail"),
@@ -74,4 +77,8 @@ urlpatterns = [
     path("support/tickets/<int:ticket_id>/", AdminSupportTicketDetailView.as_view(), name="admin-support-detail"),
     path("support/tickets/<int:ticket_id>/reply/", AdminSupportTicketReplyView.as_view(), name="admin-support-reply"),
     path("support/content-reports/", AdminContentReportListView.as_view(), name="admin-content-reports"),
+
+    path("hero-slides/", AdminCustomSlideListView.as_view(), name="admin-hero-slide-list"),
+    path("hero-slides/<int:slide_id>/", AdminCustomSlideDetailView.as_view(), name="admin-hero-slide-detail"),
+    path("hero-slides/upload-signature/", AdminHeroImageUploadSignatureView.as_view(), name="admin-hero-upload-signature"),
 ]

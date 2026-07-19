@@ -186,9 +186,7 @@ def head_to_head(home_team_id, away_team_id, n=5):
 def get_ai_recommended_option(match, market_key: str):
     """
     Inarudisha 'option key' yenye probability kubwa zaidi ya soko fulani,
-    kutoka kwa AI model KAMILI (si dashboard ya locked-view) — kwa ajili
-    ya kupima kama 'Share' ya mtumiaji INALINGANA na AI (matched_ai_pick),
-    bila kujali ni soko gani (si 1X2 pekee).
+    kutoka kwa AI model KAMILI (si dashboard ya locked-view).
     """
     try:
         prediction = predict_fixture(match.league.poisson_key, match.home_team.name, match.away_team.name)
@@ -202,3 +200,66 @@ def get_ai_recommended_option(match, market_key: str):
     source_data = prediction[definition["source_key"]]
     best_option = max(definition["options"], key=lambda opt: source_data[opt["key"]])
     return best_option["key"]
+
+
+def build_match_analysis(match, viewer_is_subscriber: bool):
+    """
+    Uchambuzi KAMILI wa baada ya mechi — masoko 9, kila moja likionyesha
+    AI ilisema nini, chaguo lipi lilitokea kweli, na AI ilikuwa sahihi
+    au la. AI Scorecard (X/9) inaonyeshwa kwa WOTE (hata non-subscriber)
+    kama 'teaser' — LAKINI namba za masoko 6 ya locked hazionyeshwi
+    (server-side hiding, sawa na Dashboard ya kabla ya mechi).
+    """
+    try:
+        prediction = predict_fixture(match.league.poisson_key, match.home_team.name, match.away_team.name)
+    except ValueError as exc:
+        raise UnknownTeamError(str(exc)) from exc
+
+    home_score = match.home_score
+    away_score = match.away_score
+
+    free_markets = set(settings.BASHIRI["FREE_MARKETS"])
+    locked_markets = set(settings.BASHIRI["LOCKED_MARKETS"])
+    all_market_keys = list(free_markets) + list(locked_markets)
+
+    markets = []
+    correct_count = 0
+
+    for market_key in all_market_keys:
+        definition = MARKET_DEFINITIONS[market_key]
+        source_data = prediction[definition["source_key"]]
+        is_locked = market_key in locked_markets and not viewer_is_subscriber
+
+        best_ai_key = max(definition["options"], key=lambda o: source_data[o["key"]])["key"]
+        ai_correct = is_prediction_correct(market_key, best_ai_key, home_score, away_score)
+        if ai_correct:
+            correct_count += 1
+
+        options = []
+        for opt in definition["options"]:
+            prob_pct = source_data[opt["key"]]
+            was_actual = is_prediction_correct(market_key, opt["key"], home_score, away_score)
+            options.append({
+                "key": opt["key"],
+                "label": opt["label"],
+                "prob": None if is_locked else round(prob_pct / 100, 4),
+                "was_actual_outcome": None if is_locked else was_actual,
+            })
+
+        markets.append({
+            "key": market_key,
+            "label": definition["label"],
+            "is_locked": is_locked,
+            "is_free": market_key in free_markets,
+            "ai_pick": None if is_locked else best_ai_key,
+            "ai_was_correct": None if is_locked else ai_correct,
+            "options": options,
+        })
+
+    return {
+        "model_version": MODEL_VERSION,
+        "ai_scorecard": {"correct": correct_count, "total": len(all_market_keys)},
+        "expected_goals": prediction["expected_goals"],
+        "actual_score": {"home": home_score, "away": away_score},
+        "markets": markets,
+    }

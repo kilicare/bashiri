@@ -13,7 +13,6 @@ CARD_TYPES = [
     ("LIVE_MATCH", "Live Match"),
     ("RESULT_RECAP", "Result Recap"),
     ("AI_WEEKLY_REPORT", "AI Weekly Report"),
-    ("USER_PREDICTION", "User Prediction"),
     ("STAT", "Stat/Insight"),
     ("POLL", "Poll/Vote"),
     ("MILESTONE", "Milestone"),
@@ -38,29 +37,6 @@ class Card(models.Model):
 
     def __str__(self):
         return f"{self.type} card ({self.pk})"
-
-
-class UserPrediction(models.Model):
-    """'📤 Share' action kutoka Create Prediction — post ya kimuundo, si maandishi huru."""
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="predictions")
-    match = models.ForeignKey("predictions.Match", on_delete=models.CASCADE, related_name="user_predictions")
-    market = models.CharField(max_length=30)
-    selection = models.CharField(max_length=50)
-    note = models.CharField(max_length=150, blank=True, default="")
-    emoji = models.CharField(max_length=8, blank=True, default="")
-    matched_ai_pick = models.BooleanField(
-        default=False,
-        help_text="True ikiwa selection ya mtumiaji inalingana na AI recommendation ya soko hilo — imehesabiwa server-side wakati wa kuunda.",
-    )
-    is_correct = models.BooleanField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "feed_userprediction"
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"{self.user}: {self.selection} ({self.match})"
 
 
 class PollVote(models.Model):

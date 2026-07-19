@@ -19,8 +19,8 @@ def compute_fan_of_match():
 
     from .models import MicReaction
 
-    window_hours = settings.BASHIRI["MIC_POSTING_WINDOW_HOURS"]
-    cutoff = timezone.now() - timedelta(hours=window_hours)
+    window_days = settings.BASHIRI.get("MIC_FAN_OF_MATCH_WINDOW_DAYS", 7)
+    cutoff = timezone.now() - timedelta(days=window_days)
 
     matches_to_process = Match.objects.filter(
         status="FINISHED", updated_at__lte=cutoff

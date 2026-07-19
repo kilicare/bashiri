@@ -13,7 +13,7 @@ from core.cache_utils import cache_response
 
 from .models import ActiveDerby, Match, SavedMatch
 from .serializers import ActiveDerbySerializer, MatchListSerializer, SavedMatchSerializer
-from .services import UnknownTeamError, build_prediction_dashboard, head_to_head, team_form
+from .services import UnknownTeamError, build_prediction_dashboard, build_match_analysis, head_to_head, team_form
 
 
 class FixturesView(APIView):
@@ -274,3 +274,69 @@ class ActiveDerbyView(APIView):
         cache.set(cache_key, data, timeout=60)  # 1 minute cache
         
         return Response(data)
+
+
+class MatchAnalysisView(APIView):
+    """GET /matches/{id}/analysis/ — 'Bashiri Track Record' ya mechi moja, baada ya FT."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, match_id):
+        match = get_object_or_404(
+            Match.objects.select_related("league", "home_team", "away_team"), pk=match_id
+        )
+
+        if match.status != "FINISHED" or match.home_score is None or match.away_score is None:
+            return Response(
+                {"detail": "Bashiri Track Record inapatikana tu baada ya mechi kuisha."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = request.user
+        is_subscriber = bool(user and user.is_authenticated and getattr(user, "is_subscription_active", False))
+
+        try:
+            analysis = build_match_analysis(match, is_subscriber)
+        except UnknownTeamError:
+            return Response(
+                {"detail": "Uchambuzi haupatikani — timu haina data ya kutosha."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        analysis["match"] = MatchListSerializer(match).data
+        return Response(analysis)
+
+
+class AITrackRecordView(APIView):
+    """GET /ai-track-record/?league=EPL — utendaji wa AI kwa ujumla (snapshot ya siku)."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from .models import AITrackRecordSnapshot
+
+        snapshot = AITrackRecordSnapshot.objects.order_by("-generated_at").first()
+        if not snapshot:
+            return Response(
+                {"detail": "Takwimu za AI Track Record bado hazijatengenezwa. Rudi baadaye."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        league_filter = request.query_params.get("league")
+        data = snapshot.data
+
+        scope_data = None
+        scope = "overall"
+        if league_filter:
+            scope_data = data.get("leagues", {}).get(league_filter)
+            if scope_data:
+                scope = league_filter
+
+        if not scope_data:
+            scope_data = data.get("overall", {"markets": {}})
+
+        return Response({
+            "generated_at": snapshot.generated_at,
+            "scope": scope,
+            "markets": scope_data.get("markets", {}),
+            "weekly_trend": data.get("weekly_trend", []),
+            "boldest_calls": data.get("boldest_calls", []),
+        })

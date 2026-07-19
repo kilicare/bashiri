@@ -22,6 +22,9 @@ class AdminActionLog(models.Model):
         ("UPDATE_MATCH", "Update Match"),
         ("MAKE_ADMIN", "Make Admin"),
         ("REVOKE_ADMIN", "Revoke Admin"),
+        ("CREATE_HERO_SLIDE", "Create Hero Slide"),
+        ("UPDATE_HERO_SLIDE", "Update Hero Slide"),
+        ("DELETE_HERO_SLIDE", "Delete Hero Slide"),
     ]
 
     admin_user = models.ForeignKey(

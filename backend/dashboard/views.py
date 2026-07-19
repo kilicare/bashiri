@@ -35,6 +35,7 @@ from .serializers import (
     AdminActiveDerbySerializer,
     AdminCardSerializer,
     AdminContentReportSerializer,
+    AdminCustomSlideSerializer,
     AdminLeagueSerializer,
     AdminLoginSerializer,
     AdminMatchSerializer,
@@ -215,18 +216,6 @@ class AdminUserDetailView(APIView):
         )
 
         return Response({"detail": "Mtumiaji amefutwa kikamilifu."}, status=status.HTTP_204_NO_CONTENT)
-
-
-class AdminUserPredictionsView(APIView):
-    """GET /api/dashboard/users/{id}/predictions/ — historia ya predictions za mtumiaji fulani."""
-    permission_classes = [IsBashiriAdmin]
-
-    def get(self, request, user_id):
-        from feed.models import UserPrediction
-        from feed.serializers import UserPredictionCreateSerializer
-
-        predictions = UserPrediction.objects.filter(user_id=user_id).select_related("match").order_by("-created_at")[:100]
-        return Response(UserPredictionCreateSerializer(predictions, many=True).data)
 
 
 # ============================================================
@@ -752,3 +741,126 @@ class AdminContentReportListView(APIView):
 
         reports = ContentReport.objects.select_related("reporter").order_by("-created_at")[:100]
         return Response(AdminContentReportSerializer(reports, many=True).data)
+
+
+# ============================================================
+# PASSWORD RESET (Support-Assisted, kwa sababu hatuna SMS/Email ya bure)
+# ============================================================
+class AdminResetUserPasswordView(APIView):
+    """
+    POST /api/dashboard/users/{id}/reset-password/ — body: {"new_password": "..."}
+
+    Admin ANAWASILIANA na mtumiaji NJE ya app (simu/WhatsApp) kuthibitisha
+    utambulisho wake KABLA ya kutumia hii, kisha anamwambia password mpya
+    kwa njia ile ile. Ikiwa kuna SupportTicket ya ACCOUNT_ISSUE iliyo wazi
+    kwa mtumiaji huyu, tunaifunga kiotomatiki (RESOLVED) na kuongeza ujumbe.
+    """
+    permission_classes = [IsBashiriAdmin]
+
+    def post(self, request, user_id):
+        from .serializers import AdminResetPasswordSerializer
+
+        target_user = get_object_or_404(User, pk=user_id)
+        serializer = AdminResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        target_user.set_password(serializer.validated_data["new_password"])
+        target_user.save(update_fields=["password"])
+
+        from support.models import SupportMessage, SupportTicket
+
+        open_ticket = SupportTicket.objects.filter(
+            user=target_user, type="ACCOUNT_ISSUE", status__in=["OPEN", "IN_PROGRESS"]
+        ).order_by("-updated_at").first()
+
+        if open_ticket:
+            SupportMessage.objects.create(
+                ticket=open_ticket, sender_type="ADMIN", sender=request.user,
+                content="Password yako imebadilishwa na Admin. Tutakupigia/kukutumia ujumbe kukupa password mpya.",
+            )
+            open_ticket.status = "RESOLVED"
+            open_ticket.save(update_fields=["status", "updated_at"])
+
+        _log_action(
+            request.user, "MANUAL_SUBSCRIPTION",
+            f"Password reset kwa User #{target_user.id} ({target_user.phone_number})",
+        )
+
+        return Response({"detail": "Password imebadilishwa. Mjulishe mtumiaji nje ya app."})
+
+
+# ============================================================
+# HERO CAROUSEL MANAGEMENT
+# ============================================================
+class AdminHeroImageUploadSignatureView(APIView):
+    """GET — signature ya kupakia picha ya slide moja kwa moja Cloudinary."""
+    permission_classes = [IsBashiriAdmin]
+
+    def get(self, request):
+        import time
+
+        import cloudinary.utils
+        from django.conf import settings as django_settings
+
+        timestamp = int(time.time())
+        params_to_sign = {"timestamp": timestamp, "folder": "bashiri/hero-custom"}
+        signature = cloudinary.utils.api_sign_request(
+            params_to_sign, django_settings.CLOUDINARY_STORAGE["API_SECRET"]
+        )
+
+        return Response({
+            "signature": signature,
+            "timestamp": timestamp,
+            "api_key": django_settings.CLOUDINARY_STORAGE["API_KEY"],
+            "cloud_name": django_settings.CLOUDINARY_STORAGE["CLOUD_NAME"],
+            "folder": "bashiri/hero-custom",
+        })
+
+
+class AdminCustomSlideListView(APIView):
+    permission_classes = [IsBashiriAdmin]
+
+    def get(self, request):
+        from herocarousel.models import CustomSlide
+
+        from .serializers import AdminCustomSlideSerializer
+
+        slides = CustomSlide.objects.all().order_by("order", "-created_at")
+        return Response(AdminCustomSlideSerializer(slides, many=True).data)
+
+    def post(self, request):
+        from .serializers import AdminCustomSlideSerializer
+
+        serializer = AdminCustomSlideSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        slide = serializer.save()
+
+        _log_action(request.user, "CREATE_HERO_SLIDE", f"CustomSlide #{slide.id}", {"title": slide.title})
+        return Response(AdminCustomSlideSerializer(slide).data, status=status.HTTP_201_CREATED)
+
+
+class AdminCustomSlideDetailView(APIView):
+    permission_classes = [IsBashiriAdmin]
+
+    def patch(self, request, slide_id):
+        from herocarousel.models import CustomSlide
+
+        from .serializers import AdminCustomSlideSerializer
+
+        slide = get_object_or_404(CustomSlide, pk=slide_id)
+        serializer = AdminCustomSlideSerializer(slide, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        _log_action(request.user, "UPDATE_HERO_SLIDE", f"CustomSlide #{slide.id}", request.data)
+        return Response(AdminCustomSlideSerializer(slide).data)
+
+    def delete(self, request, slide_id):
+        from herocarousel.models import CustomSlide
+
+        slide = get_object_or_404(CustomSlide, pk=slide_id)
+        title = slide.title
+        slide.delete()
+
+        _log_action(request.user, "DELETE_HERO_SLIDE", f"CustomSlide: {title}")
+        return Response(status=status.HTTP_204_NO_CONTENT)
