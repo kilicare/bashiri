@@ -58,17 +58,18 @@ export function PremiumProgressBar({
 }
 
 function getConfidenceIconColor(confidence: number): { start: string; end: string } {
+  // AI Confidence uses brand-accent for high confidence, not success colors
   if (confidence >= 90) {
-    return { start: "#10B981", end: "#34D399" };
+    return { start: "var(--brand-accent)", end: "#E8C49A" };
   }
   if (confidence >= 80) {
-    return { start: "#3B82F6", end: "#60A5FA" };
+    return { start: "var(--info)", end: "#60A5FA" };
   }
   if (confidence >= 60) {
-    return { start: "#F59E0B", end: "#FBBF24" };
+    return { start: "var(--warning)", end: "#FBBF24" };
   }
   if (confidence >= 40) {
     return { start: "#F97316", end: "#FB923C" };
   }
-  return { start: "#EF4444", end: "#F87171" };
+  return { start: "var(--danger)", end: "#F87171" };
 }

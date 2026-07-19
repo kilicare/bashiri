@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getActiveDerby, ActiveDerby } from "@/lib/api/derby";
 import { CardSkeleton } from "@/components/ui/Skeleton";
@@ -13,7 +13,7 @@ const HUB_ITEMS = [
   { key: "did-you-know", label: "Did You Know" },
 ];
 
-export default function DerbyHubPage() {
+function DerbyHubContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [derby, setDerby] = useState<ActiveDerby | null>(null);
@@ -89,5 +89,13 @@ export default function DerbyHubPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DerbyHubPage() {
+  return (
+    <Suspense fallback={<div className="px-4 pt-safe pt-6"><CardSkeleton /></div>}>
+      <DerbyHubContent />
+    </Suspense>
   );
 }

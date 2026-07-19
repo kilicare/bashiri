@@ -77,7 +77,7 @@ export default function MatchesPage() {
               onClick={() => setTab(t)}
               className="px-4 py-2 rounded-full text-sm font-bold"
               style={{
-                background: tab === t ? "#00FF87" : "rgba(255,255,255,0.06)",
+                background: tab === t ? "var(--brand-accent)" : "rgba(255,255,255,0.06)",
                 color: tab === t ? "#000" : "rgba(255,255,255,0.5)",
               }}
             >
@@ -87,8 +87,8 @@ export default function MatchesPage() {
         </div>
       </div>
 
-      <div className="px-4 md:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="px-5 pb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {loading ? (
             [1, 2, 3].map((i) => <CardSkeleton key={i} />)
           ) : matches.length === 0 ? (
@@ -104,48 +104,51 @@ export default function MatchesPage() {
                 <GlassCard hover className="p-4">
                   <button
                     onClick={() => router.push(`/create/${m.id}/overview`)}
-                    className="w-full"
+                    className="w-full text-left"
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="text-left flex-1">
-                        <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
-                          {m.league.name}
-                        </p>
-                        <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] uppercase tracking-[0.22em] mb-2" style={{ color: "rgba(255,255,255,0.45)" }}>
+                            {m.league.name}
+                          </p>
+                          <p className="text-base font-black text-white truncate">
+                            {m.home_team.name} vs {m.away_team.name}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          {m.status === "LIVE" ? (
+                            <span className="text-sm font-black" style={{ color: "var(--success)" }}>{m.home_score}-{m.away_score}</span>
+                          ) : m.status === "FINISHED" ? (
+                            <span className="text-sm font-black text-white">{m.home_score}-{m.away_score}</span>
+                          ) : (
+                            <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: "rgba(207,175,123,0.14)", color: "var(--brand-accent)" }}>
+                              Upcoming
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      {m.status === "LIVE" ? (
-                        <span className="text-sm font-black ml-2" style={{ color: "#00FF87" }}>{m.home_score}-{m.away_score}</span>
-                      ) : m.status === "FINISHED" ? (
-                        <span className="text-sm font-black ml-2 text-white">{m.home_score}-{m.away_score}</span>
-                      ) : null}
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
-                      <div className="flex items-center gap-2">
-                        <span>📅 {formatMatchDate(m.kickoff_at)}</span>
-                        {m.matchday && <span>• Matchday {m.matchday}</span>}
+
+                      <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+                        <span className="bg-white/5 rounded-full px-2 py-1">{formatMatchDate(m.kickoff_at)}</span>
+                        {m.matchday && <span className="bg-white/5 rounded-full px-2 py-1">Matchday {m.matchday}</span>}
                       </div>
-                      {m.status === "SCHEDULED" && (
-                        <span className="px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,135,0.1)", color: "#00FF87" }}>
-                          Upcoming
-                        </span>
+
+                      {(m.stage_display || m.group_name) && (
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          {m.stage_display && (
+                            <span className="px-2 py-1 rounded-full" style={{ background: "rgba(245,158,11,0.1)", color: "var(--warning)" }}>
+                              {m.stage_display}
+                            </span>
+                          )}
+                          {m.group_name && (
+                            <span className="px-2 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)" }}>
+                              {m.group_name}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
-
-                    {(m.stage_display || m.group_name) && (
-                      <div className="mt-2 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                        {m.stage_display && (
-                          <span className="px-1.5 py-0.5 rounded-full mr-1" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600" }}>
-                            {m.stage_display}
-                          </span>
-                        )}
-                        {m.group_name && (
-                          <span className="px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
-                            {m.group_name}
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </button>
                 </GlassCard>
               </motion.div>
@@ -156,7 +159,7 @@ export default function MatchesPage() {
           <button
             onClick={loadMoreFinished}
             className="w-full py-3 text-sm font-bold rounded-2xl mt-4"
-            style={{ color: "#00FF87", background: "rgba(0,255,135,0.06)" }}
+            style={{ color: "var(--brand-accent)", background: "rgba(207,175,123,0.06)" }}
           >
             Pakia Zaidi
           </button>

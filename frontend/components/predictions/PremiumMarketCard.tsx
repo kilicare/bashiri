@@ -49,12 +49,12 @@ export function PremiumMarketCard({ market, variant = "primary", onLockedClick }
             {market.is_locked ? (
               <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/10">
                 <Lock size={12} className="text-white/40" />
-                <span className="text-[10px] font-bold text-amber-400">PRO</span>
+                <span className="text-[10px] font-bold text-[var(--warning)]">PRO</span>
               </div>
             ) : market.ai_pick ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <Check size={12} className="text-emerald-400" />
-                <span className="text-[10px] font-bold text-emerald-400">AI PICK</span>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/20">
+                <Check size={12} className="text-[var(--brand-accent)]" />
+                <span className="text-[10px] font-bold text-[var(--brand-accent)]">AI PICK</span>
               </div>
             ) : null}
           </div>
@@ -71,7 +71,7 @@ export function PremiumMarketCard({ market, variant = "primary", onLockedClick }
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     {isAIPick && !market.is_locked && (
-                      <Check size={12} className="text-amber-400 flex-shrink-0" />
+                      <Check size={12} className="text-[var(--brand-accent)] flex-shrink-0" />
                     )}
                     <span 
                       className={`${optionTextSize} font-medium truncate`}
@@ -87,7 +87,7 @@ export function PremiumMarketCard({ market, variant = "primary", onLockedClick }
                       <>
                         <span 
                           className={`${optionTextSize} font-bold`}
-                          style={{ color: isAIPick ? "#F59E0B" : "rgba(255,255,255,0.5)" }}
+                          style={{ color: isAIPick ? "var(--brand-accent)" : "rgba(255,255,255,0.5)" }}
                         >
                           {Math.round(optConfidence)}%
                         </span>

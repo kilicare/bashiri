@@ -27,7 +27,7 @@ export default function MatchIdPage() {
       <h1 className="text-xl font-black text-white mb-5">{match.home_team.name} vs {match.away_team.name}</h1>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <PremiumCard variant="purple" hover className="mb-4">
+        <PremiumCard variant="sand" hover className="mb-4">
           <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
           <div className="grid grid-cols-2 gap-4">
             <div>

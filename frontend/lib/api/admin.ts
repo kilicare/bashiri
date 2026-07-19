@@ -117,9 +117,6 @@ export function updateUser(id: number, payload: { is_active?: boolean; is_staff?
 export function deleteUser(id: number) {
   return adminFetch(`/dashboard/users/${id}/`, { method: "DELETE" });
 }
-export function getUserPredictions(id: number) {
-  return adminFetch(`/dashboard/users/${id}/predictions/`);
-}
 
 export function getTeams() {
   return adminFetch("/dashboard/teams/");
@@ -239,4 +236,74 @@ export function updateTicketStatus(id: number, statusValue: string) {
 }
 export function getAdminContentReports() {
   return adminFetch("/dashboard/support/content-reports/");
+}
+
+export function resetUserPassword(userId: number, newPassword: string) {
+  return adminFetch(`/dashboard/users/${userId}/reset-password/`, {
+    method: "POST",
+    body: JSON.stringify({ new_password: newPassword }),
+  });
+}
+
+// ============================================================
+// HERO CAROUSEL MANAGEMENT
+// ============================================================
+export interface AdminHeroSlide {
+  id: number;
+  title: string;
+  subtitle: string;
+  image_url: string;
+  cta_label: string;
+  route: string;
+  accent_color: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export function getAdminHeroSlides() {
+  return adminFetch<AdminHeroSlide[]>("/dashboard/hero-slides/");
+}
+
+export function createHeroSlide(payload: Partial<AdminHeroSlide>) {
+  return adminFetch<AdminHeroSlide>("/dashboard/hero-slides/", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function updateHeroSlide(id: number, payload: Partial<AdminHeroSlide>) {
+  return adminFetch<AdminHeroSlide>(`/dashboard/hero-slides/${id}/`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export function deleteHeroSlide(id: number) {
+  return adminFetch(`/dashboard/hero-slides/${id}/`, { method: "DELETE" });
+}
+
+interface HeroUploadSignature {
+  signature: string;
+  timestamp: number;
+  api_key: string;
+  cloud_name: string;
+  folder: string;
+}
+
+export function getHeroImageUploadSignature() {
+  return adminFetch<HeroUploadSignature>("/dashboard/hero-slides/upload-signature/");
+}
+
+export async function uploadHeroImageToCloudinary(file: File, sig: HeroUploadSignature): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("api_key", sig.api_key);
+  formData.append("timestamp", String(sig.timestamp));
+  formData.append("signature", sig.signature);
+  formData.append("folder", sig.folder);
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloud_name}/image/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Imeshindwa kupakia picha.");
+  const data = await res.json();
+  return data.secure_url as string;
 }

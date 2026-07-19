@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getUserDetail, updateUser, getUserPredictions, manualActivateSubscription, deleteUser } from "@/lib/api/admin";
+import { getUserDetail, updateUser, manualActivateSubscription, deleteUser, resetUserPassword } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
@@ -10,13 +10,14 @@ export default function AdminUserDetailPage() {
   const params = useParams();
   const userId = Number(params.id);
   const [user, setUser] = useState<any>(null);
-  const [predictions, setPredictions] = useState<any[]>([]);
   const [reason, setReason] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
 
   useEffect(() => {
     getUserDetail(userId).then(setUser);
-    getUserPredictions(userId).then(setPredictions);
   }, [userId]);
 
   async function toggleBan() {
@@ -45,6 +46,25 @@ export default function AdminUserDetailPage() {
     }
   }
 
+  function generateRandomPassword() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let pwd = "";
+    for (let i = 0; i < 10; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+    setNewPassword(pwd);
+    setResetDone(false);
+  }
+
+  async function handleResetPassword() {
+    if (newPassword.length < 4) return;
+    setResetting(true);
+    try {
+      await resetUserPassword(userId, newPassword);
+      setResetDone(true);
+    } finally {
+      setResetting(false);
+    }
+  }
+
   if (!user) return <p style={{ color: "rgba(255,255,255,0.5)" }}>Inapakia...</p>;
 
   return (
@@ -67,10 +87,10 @@ export default function AdminUserDetailPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-          <div><p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Accuracy</p><p className="text-lg font-black" style={{ color: "#00FF87" }}>{user.accuracy_percentage}%</p></div>
+          <div><p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Accuracy</p><p className="text-lg font-black" style={{ color: "var(--success)" }}>{user.accuracy_percentage}%</p></div>
           <div><p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Streak</p><p className="text-lg font-black text-white">{user.current_streak}🔥</p></div>
           <div><p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Jumla</p><p className="text-lg font-black text-white">{user.total_predictions}</p></div>
-          <div><p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>PRO</p><p className="text-lg font-black" style={{ color: user.is_subscription_active ? "#00FF87" : "#FF4757" }}>{user.is_subscription_active ? "Ndiyo" : "Hapana"}</p></div>
+          <div><p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>PRO</p><p className="text-lg font-black" style={{ color: user.is_subscription_active ? "var(--success)" : "var(--danger)" }}>{user.is_subscription_active ? "Ndiyo" : "Hapana"}</p></div>
         </div>
 
         <div className="flex gap-3 flex-wrap">
@@ -83,7 +103,7 @@ export default function AdminUserDetailPage() {
           <BashiriButton
             variant="outline"
             onClick={() => setShowDeleteConfirm(true)}
-            style={{ borderColor: "#FF4757", color: "#FF4757" }}
+            style={{ borderColor: "var(--danger)", color: "var(--danger)" }}
           >
             <Trash2 size={16} className="mr-2" />
             Futa Mtumiaji
@@ -103,7 +123,7 @@ export default function AdminUserDetailPage() {
                 </BashiriButton>
                 <BashiriButton
                   onClick={handleDeleteUser}
-                  style={{ background: "#FF4757", borderColor: "#FF4757" }}
+                  style={{ background: "var(--danger)", borderColor: "var(--danger)" }}
                 >
                   Futa
                 </BashiriButton>
@@ -127,21 +147,28 @@ export default function AdminUserDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl p-6" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <h2 className="text-sm font-black text-white mb-3">Historia ya Predictions</h2>
-        {predictions.length === 0 ? (
-          <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Hakuna predictions bado.</p>
+      <div className="rounded-2xl p-6 mb-6" style={{ background: "#111111", border: "1px solid rgba(255,214,0,0.15)" }}>
+        <h2 className="text-sm font-black text-white mb-3">Badilisha Password (Support-Assisted)</h2>
+        <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Thibitisha utambulisho wa mtumiaji NJE ya app (simu/WhatsApp) kabla ya kubonyeza hii.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <input
+            className="flex-1 rounded-xl px-3 py-2 text-sm text-white bg-[#151515] outline-none"
+            placeholder="Password mpya (angalau herufi 4)"
+            value={newPassword}
+            onChange={(e) => { setNewPassword(e.target.value); setResetDone(false); }}
+          />
+          <BashiriButton size="md" variant="outline" onClick={generateRandomPassword}>Tengeneza</BashiriButton>
+        </div>
+        {resetDone ? (
+          <p className="text-xs font-bold" style={{ color: "var(--success)" }}>
+            ✅ Imebadilishwa. Mpe mtumiaji: <span className="select-all">{newPassword}</span>
+          </p>
         ) : (
-          <div className="space-y-2">
-            {predictions.map((p) => (
-              <div key={p.id} className="flex items-center justify-between text-xs">
-                <span style={{ color: "rgba(255,255,255,0.6)" }}>{p.market}: {p.selection}</span>
-                <span style={{ color: p.is_correct === true ? "#00FF87" : p.is_correct === false ? "#FF4757" : "rgba(255,255,255,0.4)" }}>
-                  {p.is_correct === true ? "Sahihi" : p.is_correct === false ? "Makosa" : "Inasubiri"}
-                </span>
-              </div>
-            ))}
-          </div>
+          <BashiriButton size="md" loading={resetting} disabled={newPassword.length < 4} onClick={handleResetPassword}>
+            Weka Password Mpya
+          </BashiriButton>
         )}
       </div>
     </div>

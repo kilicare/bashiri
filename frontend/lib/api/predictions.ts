@@ -82,3 +82,56 @@ export function saveMatch(matchId: number) {
 export function getSavedMatches() {
   return apiClient<any[]>("/predictions/saved/");
 }
+
+export interface MarketOptionAnalysis {
+  key: string;
+  label: string;
+  prob: number | null;
+  was_actual_outcome: boolean | null;
+}
+export interface MarketAnalysis {
+  key: string;
+  label: string;
+  is_locked: boolean;
+  is_free: boolean;
+  ai_pick: string | null;
+  ai_was_correct: boolean | null;
+  options: MarketOptionAnalysis[];
+}
+export interface MatchAnalysis {
+  model_version: string;
+  ai_scorecard: { correct: number; total: number };
+  expected_goals: { home_xg: number; away_xg: number };
+  actual_score: { home: number; away: number };
+  markets: MarketAnalysis[];
+  match: Match;
+}
+
+export function getMatchAnalysis(matchId: number) {
+  return apiClient<MatchAnalysis>(`/predictions/matches/${matchId}/analysis/`, { skipAuth: true });
+}
+
+export interface AITrackRecordMarketStat {
+  correct: number;
+  total: number;
+  accuracy_percentage: number;
+}
+export interface AITrackRecord {
+  generated_at: string;
+  scope: string;
+  markets: Record<string, AITrackRecordMarketStat>;
+  weekly_trend: { week_start: string; accuracy_percentage: number }[];
+  boldest_calls: {
+    match_id: number;
+    home_team: string;
+    away_team: string;
+    ai_confidence: number;
+    ai_predicted: string;
+    date: string;
+  }[];
+}
+
+export function getAITrackRecord(league?: string) {
+  const q = league ? `?league=${league}` : "";
+  return apiClient<AITrackRecord>(`/predictions/ai-track-record/${q}`, { skipAuth: true });
+}

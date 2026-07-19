@@ -60,7 +60,7 @@ export function ResultAnalysis({ data }: ResultAnalysisProps) {
       {/* Key Factors */}
       <div className="space-y-2 mb-3">
         <div className="flex items-center gap-2 text-xs text-white/60">
-          <Info size={12} className="text-[#F5A623]" />
+          <Info size={12} className="text-[var(--brand-primary)]" />
           <span className="font-semibold">Vilivyoathiri Prediction:</span>
         </div>
         {displayAnalysis.key_factors.map((factor, index) => (
@@ -100,9 +100,9 @@ export function ResultAnalysis({ data }: ResultAnalysisProps) {
       )}
 
       {/* Lesson */}
-      <div className="bg-[#F5A623]/5 rounded-xl p-3 border border-[#F5A623]/20">
+      <div className="bg-[var(--brand-primary)]/5 rounded-xl p-3 border border-[var(--brand-primary)]/20">
         <div className="flex items-center gap-2 text-xs text-white/60 mb-1">
-          <Info size={12} className="text-[#F5A623]" />
+          <Info size={12} className="text-[var(--brand-primary)]" />
           <span className="font-semibold">Somo:</span>
         </div>
         <p className="text-xs text-white/80 leading-relaxed">
@@ -114,7 +114,7 @@ export function ResultAnalysis({ data }: ResultAnalysisProps) {
       <div className="mt-3 pt-3 border-t border-white/10">
         <div className="flex items-center justify-between text-xs">
           <span className="text-white/50">Uhakika wa AI:</span>
-          <span className={`font-bold ${ai_confidence >= 70 ? 'text-green-400' : ai_confidence >= 55 ? 'text-[#F5A623]' : 'text-red-400'}`}>
+          <span className={`font-bold ${ai_confidence >= 70 ? 'text-[var(--brand-accent)]' : ai_confidence >= 55 ? 'text-[var(--warning)]' : 'text-[var(--danger)]'}`}>
             {ai_confidence}%
           </span>
         </div>

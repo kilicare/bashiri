@@ -43,15 +43,15 @@ export function PremiumHeroCard({
         <div 
           className="absolute inset-0 opacity-20"
           style={{
-            background: "radial-gradient(circle at top right, rgba(245,166,35,0.3), transparent 50%)"
+            background: "radial-gradient(circle at top right, rgba(212,175,55,0.3), transparent 50%)"
           }}
         />
         
         {/* AI Badge */}
         <div className="absolute top-3 right-3">
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
-            <Sparkles size={12} className="text-amber-400" />
-            <span className="text-[10px] font-bold text-amber-400">AI BEST PICK</span>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-[var(--brand-primary)]/20 to-[var(--brand-accent)]/20 border border-[var(--brand-primary)]/30">
+            <Sparkles size={12} className="text-[var(--brand-primary)]" />
+            <span className="text-[10px] font-bold text-[var(--brand-primary)]">AI BEST PICK</span>
           </div>
         </div>
 
@@ -70,8 +70,8 @@ export function PremiumHeroCard({
           {/* Main Prediction */}
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={14} className="text-emerald-400" />
-              <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wide">
+              <TrendingUp size={14} className="text-[var(--brand-accent)]" />
+              <span className="text-[10px] font-semibold text-[var(--brand-accent)] uppercase tracking-wide">
                 Prediction
               </span>
             </div>

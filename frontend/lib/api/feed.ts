@@ -12,34 +12,6 @@ export function getFeed(limit = 20, offset = 0) {
   return apiClient<{ count: number; results: Card[] }>(`/feed/?limit=${limit}&offset=${offset}`, { skipAuth: true });
 }
 
-export function createUserPrediction(payload: {
-  match: number;
-  market: string;
-  selection: string;
-  note: string;
-  emoji: string;
-}) {
-  return apiClient("/feed/predictions/", { method: "POST", body: JSON.stringify(payload) });
-}
-
 export function voteOnPoll(cardId: number, choice: string) {
   return apiClient(`/feed/polls/${cardId}/vote/`, { method: "POST", body: JSON.stringify({ choice }) });
-}
-
-export function getLeaderboard(
-  mode: "independent" | "all" = "independent",
-  period: "weekly" | "monthly" | "all" = "weekly"
-) {
-  return apiClient<{ mode: string; period: string; results: any[] }>(
-    `/feed/leaderboard/?mode=${mode}&period=${period}`,
-    { skipAuth: true }
-  );
-}
-
-export function getMyPredictions() {
-  return apiClient<any[]>("/feed/my-predictions/");
-}
-
-export function deleteMyPrediction(predictionId: number) {
-  return apiClient("/feed/my-predictions/", { method: "DELETE", body: JSON.stringify({ prediction_id: predictionId }) });
 }

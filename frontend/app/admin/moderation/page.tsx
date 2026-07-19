@@ -3,22 +3,17 @@ import { useEffect, useState } from "react";
 import { getMicReactionsAdmin, toggleMicReactionActive, getCards, getAdminContentReports } from "@/lib/api/admin";
 
 export default function AdminModerationPage() {
-  const [tab, setTab] = useState<"mic" | "user-predictions" | "reports">("mic");
+  const [tab, setTab] = useState<"mic" | "reports">("mic");
   const [micReactions, setMicReactions] = useState<any[]>([]);
-  const [userPredictionCards, setUserPredictionCards] = useState<any[]>([]);
   const [contentReports, setContentReports] = useState<any[]>([]);
 
   useEffect(() => {
     loadMic();
-    loadUserPredictions();
     loadReports();
   }, []);
 
   function loadMic() {
     getMicReactionsAdmin().then(setMicReactions);
-  }
-  function loadUserPredictions() {
-    getCards("USER_PREDICTION").then(setUserPredictionCards);
   }
   function loadReports() {
     getAdminContentReports().then(setContentReports);
@@ -33,14 +28,14 @@ export default function AdminModerationPage() {
     <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-black text-white mb-4">Content Moderation</h1>
       <div className="flex gap-2 mb-6">
-        {(["mic", "user-predictions", "reports"] as const).map((t) => (
+        {(["mic", "reports"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className="px-3 py-1.5 rounded-full text-xs font-bold"
             style={{ background: tab === t ? "#00FF87" : "rgba(255,255,255,0.06)", color: tab === t ? "#000" : "rgba(255,255,255,0.5)" }}
           >
-            {t === "mic" ? "Bashiri Mic Videos" : t === "user-predictions" ? "User Predictions" : "Content Reports"}
+            {t === "mic" ? "Bashiri Mic Videos" : "Content Reports"}
           </button>
         ))}
       </div>
@@ -61,17 +56,6 @@ export default function AdminModerationPage() {
                   {r.is_active ? "Ficha Video" : "Rejesha Video"}
                 </button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === "user-predictions" && (
-        <div className="space-y-2">
-          {userPredictionCards.map((c: any) => (
-            <div key={c.id} className="rounded-2xl p-4" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <p className="text-sm font-bold text-white">@{c.data.username}: {c.data.selection}</p>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{c.data.note}</p>
             </div>
           ))}
         </div>

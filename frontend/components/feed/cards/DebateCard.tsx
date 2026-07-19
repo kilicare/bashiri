@@ -46,16 +46,7 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
       // If user already voted, show results instead of error
       if (e.message && e.message.includes("Tayari umeshiriki")) {
         setVoted(true);
-        // Fetch current tallies to show results
-        try {
-          const voteResponse = await apiClient(`/feed/debates/${cardId}/vote/`, { method: "GET" });
-          if (voteResponse.tallies) {
-            setTallies(voteResponse.tallies);
-          }
-        } catch (fetchError) {
-          // If fetch fails, use existing tallies
-          console.error("Failed to fetch tallies:", fetchError);
-        }
+        // Use existing tallies from initial data
       } else {
         setError(e.message || "Imeshindwa kupiga kura. Tafadhali jaribu tena.");
       }
@@ -63,17 +54,17 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
   }
 
   return (
-    <div className="rounded-3xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,71,87,0.2)" }}>
+    <div className="rounded-3xl p-5" style={{ background: "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(207,175,123,0.08)), #111116", border: "1px solid rgba(212,175,55,0.22)" }}>
       <div className="flex items-center gap-2 mb-3">
-        <Flame size={14} style={{ color: "#FF4757" }} />
-        <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#FF4757" }}>Debate</span>
+        <Flame size={14} style={{ color: "var(--brand-accent)" }} />
+        <span className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--brand-accent)" }}>Debate</span>
         {!isClosed && <span className="ml-auto text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>Closes in {countdown}</span>}
       </div>
 
-      <p className="text-base font-bold text-white mb-4">{data.question}</p>
+      <p className="text-base font-semibold text-white mb-4">{data.question}</p>
 
       {error && (
-        <p className="text-xs mb-3" style={{ color: "#FF4757" }}>{error}</p>
+        <p className="text-xs mb-3" style={{ color: "var(--danger)" }}>{error}</p>
       )}
 
       <div className="space-y-2">
@@ -85,9 +76,9 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
           
           // Different hover colors for each option
           const hoverColors = [
-            "rgba(255, 71, 87, 0.15)",  // Red for first option
-            "rgba(0, 255, 135, 0.15)",  // Green for second option
-            "rgba(255, 214, 0, 0.15)",  // Yellow for third option
+            "rgba(239, 68, 68, 0.15)",  // Danger for first option
+            "rgba(207, 175, 123, 0.15)",  // Brand accent for second option
+            "rgba(245, 158, 11, 0.15)",  // Warning for third option
           ];
           const hoverColor = hoverColors[idx % hoverColors.length];
           
@@ -115,22 +106,22 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
               }}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-bold" style={{ color: isResult ? "#00FF87" : "#fff" }}>
+                <span className="text-sm font-medium" style={{ color: isResult ? "var(--success)" : "#fff" }}>
                   {opt} {isResult && "✅"}
                 </span>
-                {showResults && total > 0 && <span className="text-xs font-bold" style={{ color: "#FF4757" }}>{Math.round(pct * 100)}%</span>}
+                {showResults && total > 0 && <span className="text-xs font-medium" style={{ color: "var(--brand-accent)" }}>{Math.round(pct * 100)}%</span>}
               </div>
-              {showResults && total > 0 && <ProgressBar value={pct} color="#FF4757" />}
+              {showResults && total > 0 && <ProgressBar value={pct} color="var(--brand-accent)" />}
             </button>
           );
         })}
       </div>
 
       {voted && !isClosed && (
-        <p className="text-xs mt-4 text-center font-bold" style={{ color: "#00FF87" }}>✓ Umeshiriki kwenye debate hii</p>
+        <p className="text-xs mt-4 text-center font-medium" style={{ color: "var(--success)" }}>✓ Umeshiriki kwenye debate hii</p>
       )}
       {data.is_closed && (
-        <p className="text-xs mt-4 text-center font-bold" style={{ color: "#00FF87" }}>🏁 Debate Closed — Result: {data.result}</p>
+        <p className="text-xs mt-4 text-center font-medium" style={{ color: "var(--success)" }}>🏁 Debate Closed — Result: {data.result}</p>
       )}
     </div>
   );

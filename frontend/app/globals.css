@@ -1,7 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  /* Premium Color System - Gold Theme */
+  /* ========================================
+     BASHIRI DESIGN TOKEN SYSTEM - PHASE 1
+     ======================================== */
+
+  /* BRAND COLORS - Identity & Premium */
+  --brand-primary: #D4AF37; /* Gold identity - Logo, CTA, VIP */
+  --brand-accent: #CFAF7B; /* AI features - Confidence, Highlights, Active intelligence */
+
+  /* FOUNDATION COLORS - Backgrounds & Surfaces */
+  --background: #09090B; /* Main background */
+  --surface: #111218; /* Cards, panels, elevated surfaces */
+  --border: #2A2A2F; /* Borders and dividers */
+
+  /* TEXT COLORS - Typography hierarchy */
+  --text-primary: #F8FAFC; /* Primary text - headings, important content */
+  --text-secondary: #A1A1AA; /* Secondary text - descriptions, labels */
+
+  /* SEMANTIC COLORS - State & Feedback (separate from brand) */
+  --success: #22C55E; /* Success states - completed, verified, positive */
+  --danger: #EF4444; /* Danger states - errors, destructive actions */
+  --warning: #F59E0B; /* Warning states - caution, attention needed */
+  --info: #3B82F6; /* Info states - neutral information */
+
+  /* ========================================
+     LEGACY TOKENS - FOR MIGRATION ONLY
+     These will be deprecated in Phase 2
+     ======================================== */
   --color-background: #0A0A0F;
   --color-background-alt: #050508;
   --color-surface: #111118;
@@ -152,4 +178,28 @@ html, body {
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
+}
+
+.text-bashiri-red {
+  color: var(--color-red);
+}
+
+.text-bashiri-purple {
+  color: var(--color-purple);
+}
+
+.text-bashiri-gold {
+  color: var(--color-gold);
+}
+
+.border-bashiri-red {
+  border-color: var(--color-red);
+}
+
+.border-bashiri-purple {
+  border-color: var(--color-purple);
+}
+
+.border-bashiri-gold {
+  border-color: var(--color-gold);
 }

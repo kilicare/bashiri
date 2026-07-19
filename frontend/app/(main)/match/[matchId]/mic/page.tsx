@@ -6,18 +6,18 @@ import { MicReactionPlayer } from "@/components/mic/MicReactionPlayer";
 import { MicReactionFullView } from "@/components/mic/MicReactionFullView";
 import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Mic, Clock, Grid, Maximize2 } from "lucide-react";
+import { Mic, Clock, Grid, Maximize2, X } from "lucide-react";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { motion, AnimatePresence } from "framer-motion";
 
 const MOOD_LABELS: Record<string, { emoji: string; color: string }> = {
-  FUNNY: { emoji: "😂", color: "#FFD600" },
-  FIRE: { emoji: "🔥", color: "#FF4757" },
-  ANGRY: { emoji: "😡", color: "#FF4757" },
-  RESPECT: { emoji: "👏", color: "#00FF87" },
-  SHOCK: { emoji: "🤯", color: "#3B82F6" },
+  FUNNY: { emoji: "😂", color: "var(--warning)" },
+  FIRE: { emoji: "🔥", color: "var(--danger)" },
+  ANGRY: { emoji: "😡", color: "var(--danger)" },
+  RESPECT: { emoji: "👏", color: "var(--success)" },
+  SHOCK: { emoji: "🤯", color: "var(--info)" },
   PAIN: { emoji: "💔", color: "rgba(255,255,255,0.5)" },
 };
 
@@ -113,7 +113,7 @@ export default function BashiriMicPage() {
         {layoutMode === "grid" && (
           <div className="px-5 pt-safe pt-6 pb-4 flex items-center justify-between">
             <h1 className="text-xl font-black text-white flex items-center gap-2">
-              <Mic size={20} style={{ color: "#00FF87" }} /> Bashiri Mic
+              <Mic size={20} style={{ color: "var(--brand-accent)" }} /> Bashiri Mic
             </h1>
             <div className="flex items-center gap-2">
               <button
@@ -168,7 +168,7 @@ export default function BashiriMicPage() {
                 key={t}
                 onClick={() => setTeamFilter(t)}
                 className="px-3 py-1.5 rounded-full text-xs font-bold"
-                style={{ background: teamFilter === t ? "#00FF87" : "rgba(255,255,255,0.06)", color: teamFilter === t ? "#000" : "rgba(255,255,255,0.5)" }}
+                style={{ background: teamFilter === t ? "var(--brand-accent)" : "rgba(255,255,255,0.06)", color: teamFilter === t ? "#000" : "rgba(255,255,255,0.5)" }}
               >
                 {t === "ALL" ? "Wote" : t === "HOME" ? "🔵 Home Fans" : "🟢 Away Fans"}
               </button>
@@ -207,24 +207,53 @@ export default function BashiriMicPage() {
           </div>
         )}
 
-        <BottomSheet isOpen={showWaitModal} onClose={() => setShowWaitModal(false)} title="Subiri Kidogo">
-          <div className="flex flex-col items-center text-center py-6">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "rgba(0,255,135,0.1)" }}>
-              <Clock size={32} style={{ color: "#00FF87" }} />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Mechi Bado Haijaisha</h3>
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Subiri mechi iishe kabla ya kupost video yako. Tutakuarifu mara mechi itakapomalizika!
-            </p>
-            <BashiriButton 
-              size="md" 
+        <AnimatePresence>
+          {showWaitModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-5"
               onClick={() => setShowWaitModal(false)}
-              className="mt-6 w-full"
             >
-              Sawa, Nimesikia
-            </BashiriButton>
-          </div>
-        </BottomSheet>
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-md bg-[#111] rounded-3xl p-6 border border-white/10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Subiri Kidogo</h2>
+                  <button
+                    onClick={() => setShowWaitModal(false)}
+                    className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="flex flex-col items-center text-center mb-6">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "rgba(34,197,94,0.1)" }}>
+                    <Clock size={32} style={{ color: "var(--success)" }} />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">Mechi Bado Haijaisha</h3>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+                    Subiri mechi iishe kabla ya kupost video yako. Tutakuarifu mara mechi itakapomalizika!
+                  </p>
+                </div>
+
+                <BashiriButton
+                  size="lg"
+                  fullWidth
+                  onClick={() => setShowWaitModal(false)}
+                >
+                  Sawa, Nimesikia
+                </BashiriButton>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </DerbyThemeProvider>
   );

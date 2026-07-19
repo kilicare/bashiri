@@ -12,6 +12,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  console.log('[TRACE] RootLayout called');
   return (
     <html lang="sw">
       <body>{children}</body>

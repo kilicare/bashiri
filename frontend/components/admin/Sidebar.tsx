@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, Calendar, CreditCard, Bell, Brain, LogOut, Flame, MessageSquare, ShieldAlert, Ticket, X } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, CreditCard, Bell, Brain, LogOut, Flame, MessageSquare, ShieldAlert, Ticket, X, Image as ImageIcon } from "lucide-react";
 import { useAdminAuthStore } from "@/stores/admin-auth.store";
 import { useEffect } from "react";
 
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/admin/matches", icon: Calendar, label: "Mechi" },
   { href: "/admin/derbies", icon: Flame, label: "Derby Mode" },
   { href: "/admin/debates", icon: MessageSquare, label: "Debates" },
+  { href: "/admin/hero-slides", icon: ImageIcon, label: "Hero Carousel" },
   { href: "/admin/moderation", icon: ShieldAlert, label: "Moderation" },
   { href: "/admin/support", icon: Ticket, label: "Support" },
   { href: "/admin/transactions", icon: CreditCard, label: "Malipo" },
@@ -59,7 +60,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       >
         {/* Mobile Close Button */}
         <div className="md:hidden flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <h1 className="text-lg font-black" style={{ color: "#F5A623" }}>BASHIRI ADMIN</h1>
+          <h1 className="text-lg font-black" style={{ color: "var(--brand-primary)" }}>BASHIRI ADMIN</h1>
           <button 
             onClick={() => {
               console.log('Close button clicked');
@@ -74,7 +75,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
 
         {/* Desktop Header */}
         <div className="hidden md:block px-5 py-6">
-          <h1 className="text-lg font-black" style={{ color: "#F5A623" }}>BASHIRI ADMIN</h1>
+          <h1 className="text-lg font-black" style={{ color: "var(--brand-primary)" }}>BASHIRI ADMIN</h1>
           <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>@{admin?.username}</p>
         </div>
 
@@ -88,8 +89,8 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                 onClick={() => handleNavClick(item.href)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold"
                 style={{
-                  background: active ? "rgba(245,166,35,0.1)" : "transparent",
-                  color: active ? "#F5A623" : "rgba(255,255,255,0.6)",
+                  background: active ? "rgba(212,175,55,0.1)" : "transparent",
+                  color: active ? "var(--brand-primary)" : "rgba(255,255,255,0.6)",
                 }}
               >
                 <Icon size={18} />
@@ -103,7 +104,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
           <button
             onClick={() => { logout(); router.push("/admin/login"); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold"
-            style={{ color: "#FF4757" }}
+            style={{ color: "var(--danger)" }}
           >
             <LogOut size={18} /> Toka
           </button>

@@ -128,7 +128,7 @@ export default function MatchRoomPage() {
     setInput("");
   }
 
-  if (loading) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  if (loading) return <div className="px-5 pt-safe pt-6"><CardSkeleton /></div>;
 
   if (roomState === "upcoming") {
     return (

@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
               </div>
               <div className="flex-1">
                 <p className="text-white font-bold">@{u.username || "—"}</p>
-                <span className="text-xs" style={{ color: u.is_active ? "#00FF87" : "#FF4757" }}>{u.is_active ? "Active" : "Banned"}</span>
+                <span className="text-xs" style={{ color: u.is_active ? "var(--success)" : "var(--danger)" }}>{u.is_active ? "Active" : "Banned"}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <p style={{ color: "rgba(255,255,255,0.4)" }}>Accuracy</p>
-                <p style={{ color: "#00FF87" }}>{u.accuracy_percentage}%</p>
+                <p style={{ color: "var(--success)" }}>{u.accuracy_percentage}%</p>
               </div>
             </div>
           </div>
@@ -109,9 +109,9 @@ export default function AdminUsersPage() {
                 </td>
                 <td className="px-4 py-3" style={{ color: "rgba(255,255,255,0.6)" }}>{u.phone_number}</td>
                 <td className="px-4 py-3">{u.is_subscription_active ? "✅" : "—"}</td>
-                <td className="px-4 py-3" style={{ color: "#00FF87" }}>{u.accuracy_percentage}%</td>
+                <td className="px-4 py-3" style={{ color: "var(--success)" }}>{u.accuracy_percentage}%</td>
                 <td className="px-4 py-3">
-                  <span style={{ color: u.is_active ? "#00FF87" : "#FF4757" }}>{u.is_active ? "Active" : "Banned"}</span>
+                  <span style={{ color: u.is_active ? "var(--success)" : "var(--danger)" }}>{u.is_active ? "Active" : "Banned"}</span>
                 </td>
               </tr>
             ))}

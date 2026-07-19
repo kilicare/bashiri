@@ -54,12 +54,12 @@ export function PollCard({ cardId, data }: { cardId: number; data: any }) {
   console.log("Render state:", { voted, tallies, total });
 
   return (
-    <div className="rounded-3xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <span className="text-[10px] font-black uppercase tracking-widest mb-3 block" style={{ color: "#FFD600" }}>Poll</span>
-      <p className="text-sm font-bold text-white mb-4">{data.question}</p>
+    <div className="rounded-3xl p-5" style={{ background: "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(207,175,123,0.1))", border: "1px solid rgba(212,175,55,0.26)" }}>
+      <span className="text-[10px] font-medium uppercase tracking-widest mb-3 block" style={{ color: "var(--warning)" }}>Poll</span>
+      <p className="text-sm font-semibold text-white mb-4">{data.question}</p>
 
       {error && (
-        <p className="text-xs mb-3" style={{ color: "#FF4757" }}>{error}</p>
+        <p className="text-xs mb-3" style={{ color: "var(--danger)" }}>{error}</p>
       )}
 
       <div className="space-y-2">
@@ -70,7 +70,7 @@ export function PollCard({ cardId, data }: { cardId: number; data: any }) {
             <button key={opt} onClick={() => handleVote(opt)} className="w-full text-left" disabled={voted}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-white">{opt}</span>
-                {voted && <span className="text-xs font-bold" style={{ color: "#00FF87" }}>{Math.round(pct * 100)}%</span>}
+                {voted && <span className="text-xs font-medium" style={{ color: "var(--success)" }}>{Math.round(pct * 100)}%</span>}
               </div>
               {voted && <ProgressBar value={pct} />}
             </button>

@@ -11,16 +11,19 @@ import { saveReturnTo } from "@/lib/return-to";
  */
 export function useRequireAuth() {
   const access = useAuthStore((s) => s.access);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const openGate = useAuthGateStore((s) => s.open);
 
   const requireAuth = useCallback((message?: string): boolean => {
+    // Wait for hydration before checking auth
+    if (!hasHydrated) return false;
     if (access) return true;
     if (typeof window !== "undefined") {
       saveReturnTo(window.location.pathname);
     }
     openGate(message);
     return false;
-  }, [access, openGate]);
+  }, [access, hasHydrated, openGate]);
 
-  return { requireAuth, isAuthed: !!access };
+  return { requireAuth, isAuthed: !!access, hasHydrated };
 }

@@ -56,7 +56,7 @@ export default function FavoriteLeaguesPage() {
         <h1 className="text-xl font-black text-white">Ligi Ninazopenda</h1>
       </div>
 
-      <div className="px-4 space-y-2 pb-20">
+      <div className="px-5 space-y-2 pb-20">
         {loading ? [1, 2].map((i) => <CardSkeleton key={i} />) : leagues.map((league) => {
           const isSelected = selected.has(league.id);
           return (

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MicReaction, voteOnReaction } from "@/lib/api/mic";
 import { ReportButton } from "@/components/report/ReportButton";
-import { MoreVertical, Play, Pause } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 
 const MOOD_EMOJI: Record<string, string> = {
   FUNNY: "😂", FIRE: "🔥", ANGRY: "😡", RESPECT: "👏", SHOCK: "🤯", PAIN: "💔",
@@ -20,8 +20,6 @@ export function MicReactionFullView({ reaction, isInView, onInView }: {
   const [voted, setVoted] = useState(reaction.user_voted);
   const [voteCount, setVoteCount] = useState(reaction.vote_count);
   const [voteBreakdown, setVoteBreakdown] = useState(reaction.vote_breakdown || {});
-  const [showMenu, setShowMenu] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<'menu' | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -108,7 +106,7 @@ export function MicReactionFullView({ reaction, isInView, onInView }: {
 
       {/* Fan of match badge */}
       {reaction.is_fan_of_match && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-black z-20" style={{ background: "#FFD600", color: "#000" }}>
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-black z-20" style={{ background: "var(--brand-primary)", color: "#000" }}>
           🏆 FAN OF THE MATCH
         </div>
       )}
@@ -128,42 +126,11 @@ export function MicReactionFullView({ reaction, isInView, onInView }: {
           </div>
         ))}
 
-        {/* Three action buttons after last emoji */}
-        <div className="flex flex-col gap-3 mt-2">
-          {/* More options button */}
-          <button
-            onClick={() => setActiveMenu(activeMenu === 'menu' ? null : 'menu')}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 transition-all hover:bg-white/30"
-            title="More options"
-          >
-            <MoreVertical size={18} className="text-white" />
-          </button>
+        {/* Report flag button */}
+        <div className="flex justify-center">
+          <ReportButton contentType="MIC_REACTION" objectId={reaction.id} />
         </div>
       </div>
-
-      {/* Combined dropdown menu */}
-      {activeMenu === 'menu' && (
-        <div className="absolute right-16 bottom-20 bg-black/90 backdrop-blur-sm rounded-2xl p-3 z-30 border border-white/10">
-          <button
-            onClick={() => handleShare('whatsapp')}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-white text-sm"
-          >
-            <span className="text-lg">📱</span>
-            <span>WhatsApp</span>
-          </button>
-          <button
-            onClick={() => handleShare('telegram')}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-white text-sm"
-          >
-            <span className="text-lg">✈️</span>
-            <span>Telegram</span>
-          </button>
-          <div className="border-t border-white/10 my-2"></div>
-          <div className="px-4 py-3">
-            <ReportButton contentType="MIC_REACTION" objectId={reaction.id} />
-          </div>
-        </div>
-      )}
 
       {/* User info and mood on LEFT side at bottom */}
       <div className="absolute left-4 bottom-20 right-20 z-60">

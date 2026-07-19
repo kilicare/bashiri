@@ -96,8 +96,8 @@ export default function SettingsPage() {
           className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#1A1A24] to-[#22222E] border border-white/10 p-5"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
-              <Shield size={18} className="text-purple-400" />
+            <div className="p-2 rounded-lg bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/30">
+              <Shield size={18} className="text-[var(--brand-accent)]" />
             </div>
             <p className="text-sm font-bold text-white">Account Information</p>
           </div>

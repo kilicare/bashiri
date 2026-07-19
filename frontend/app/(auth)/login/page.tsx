@@ -2,65 +2,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { PremiumButton } from "@/components/ui/Button";
+import { BashiriButton } from "@/components/ui/Button";
 import { BashiriInput } from "@/components/ui/Input";
-import { PhoneInput } from "@/components/ui/PhoneInput";
-import { requestOTP, verifyOTP, completeProfile } from "@/lib/api/auth";
+import { register, login } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth.store";
-import { ArrowLeft, Shield, User, Calendar } from "lucide-react";
-import { clsx } from "clsx";
 import { consumeReturnTo } from "@/lib/return-to";
 
-type Step = "phone" | "otp" | "profile";
+type Tab = "login" | "register";
 
 export default function LoginPage() {
   const router = useRouter();
   const setSession = useAuthStore((s) => s.setSession);
-  const setUser = useAuthStore((s) => s.setUser);
 
-  const [step, setStep] = useState<Step>("phone");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
+  const [tab, setTab] = useState<Tab>("login");
+  const [phone, setPhone] = useState("+255");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
   const [dob, setDob] = useState("");
   const [error, setError] = useState("");
-  const [usernameError, setUsernameError] = useState("");
-  const [dobError, setDobError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleRequestOtp() {
+  async function handleLogin() {
     setError("");
     setLoading(true);
     try {
-      if (!phone || phone === "+255") {
-        setError("Tafadhali weka namba ya simu");
-        setLoading(false);
-        return;
-      }
-      await requestOTP(phone);
-      setStep("otp");
-    } catch (e: any) {
-      if (e.message && e.message.includes("phone_number")) {
-        setError("Namba ya simu inahitajika. Tafadhali weka namba sahihi");
-      } else {
-        setError(e.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleVerifyOtp() {
-    setError("");
-    setLoading(true);
-    try {
-      const data = await verifyOTP(phone, code);
+      const data = await login(phone, password);
       setSession(data.access, data.refresh, data.user);
-      if (data.profile_complete) {
-        router.push(consumeReturnTo() || "/home");
-      } else {
-        setStep("profile");
-      }
+      router.push(consumeReturnTo() || "/home");
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -68,58 +37,21 @@ export default function LoginPage() {
     }
   }
 
-  async function handleCompleteProfile() {
+  async function handleRegister() {
     setError("");
-    setUsernameError("");
-    setDobError("");
     setLoading(true);
     try {
-      if (!username || username.trim().length === 0) {
-        setUsernameError("Username inahitajika");
-        setLoading(false);
-        return;
-      }
-
-      if (username.length < 3) {
-        setUsernameError("Username lazima uwe na herufi 3 au zaidi");
-        setLoading(false);
-        return;
-      }
-
-      if (!dob) {
-        setDobError("Tarehe ya kuzaliwa inahitajika");
-        setLoading(false);
-        return;
-      }
-
-      const birthDate = new Date(dob);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      
-      const finalAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) 
-        ? age - 1 
-        : age;
-
-      if (finalAge < 18) {
-        setDobError("Lazima uwe na miaka 18 au zaidi kujiunga na Bashiri");
-        setLoading(false);
-        return;
-      }
-
-      const user = await completeProfile(username, dob);
-      setUser(user);
-      router.push("/onboarding");
+      const data = await register({
+        phone_number: phone,
+        password,
+        confirm_password: confirmPassword,
+        username,
+        date_of_birth: dob,
+      });
+      setSession(data.access, data.refresh, data.user);
+      router.push(consumeReturnTo() || "/onboarding");
     } catch (e: any) {
-      if (e.message && (e.message.includes("username") || e.message.includes("already exists") || e.message.includes("taken") || e.message.includes("inatumika"))) {
-        setUsernameError(e.message);
-      } else if (e.message && e.message.includes("date_of_birth")) {
-        setDobError(e.message);
-      } else if (e.message && e.message.includes("required")) {
-        setError("Tafadhali jaza sehemu zote zinazohitajika");
-      } else {
-        setError(e.message || "Imeshindwa kukamilisha profile. Tafadhali jaribu tena");
-      }
+      setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -127,230 +59,101 @@ export default function LoginPage() {
 
   return (
     <motion.div
-      className="w-full max-w-md mx-auto"
+      className="rounded-3xl p-6"
+      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(20px)" }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
     >
-      {/* Premium Card Container */}
-      <div className="rounded-3xl p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent pointer-events-none" />
-        <div className="relative z-10">
-        {step === "phone" && (
-          <div className="space-y-8">
-            {/* Header */}
-            <div className="text-center">
-              <h1 className="text-3xl font-black text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
-                Karibu
-              </h1>
-              <p className="text-base text-white/60 leading-relaxed">
-                Weka namba yako ya simu kuingia au kujisajili.
-              </p>
-            </div>
-
-            {/* Phone Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-white/80">Namba ya Simu</label>
-              <PhoneInput
-                value={phone}
-                onChange={setPhone}
-                error={error}
-                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20"
-              />
-              {error && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-red-400 flex items-center gap-2"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                  {error}
-                </motion.p>
-              )}
-            </div>
-
-            {/* Submit Button */}
-            <PremiumButton 
-              variant="primary" 
-              size="xl" 
-              fullWidth 
-              loading={loading} 
-              onClick={handleRequestOtp}
-              className="shadow-lg shadow-[#F5A623]/25"
-            >
-              Tuma OTP
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </PremiumButton>
-          </div>
-        )}
-
-        {step === "otp" && (
-          <div className="space-y-8">
-            {/* Back Button */}
-            <button 
-              onClick={() => setStep("phone")}
-              className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
-            >
-              <ArrowLeft size={20} />
-              <span className="text-sm">Rudi</span>
-            </button>
-
-            {/* Header */}
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#F5A623]/20 to-[#E8892A]/10 flex items-center justify-center border border-[#F5A623]/20">
-                <Shield size={32} className="text-[#F5A623]" />
-              </div>
-              <h1 className="text-3xl font-black text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
-                Weka OTP
-              </h1>
-              <p className="text-base text-white/60 leading-relaxed">
-                Tumetuma namba ya uthibitisho kwa <span className="text-[#F5A623] font-semibold">{phone}</span>
-              </p>
-            </div>
-
-            {/* OTP Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-white/80">Namba ya uthibitisho</label>
-              <BashiriInput
-                type="text"
-                inputMode="numeric"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="123456"
-                error={error}
-                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20 text-center text-2xl tracking-widest"
-              />
-              {error && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-red-400 flex items-center gap-2"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                  {error}
-                </motion.p>
-              )}
-            </div>
-
-            {/* Submit Button */}
-            <PremiumButton 
-              variant="gold" 
-              size="xl" 
-              fullWidth 
-              loading={loading} 
-              onClick={handleVerifyOtp}
-              className="shadow-lg shadow-yellow-500/25"
-            >
-              Thibitisha
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </PremiumButton>
-          </div>
-        )}
-
-        {step === "profile" && (
-          <div className="space-y-8">
-            {/* Header */}
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#F5A623]/20 to-[#E8892A]/10 flex items-center justify-center border border-[#F5A623]/20">
-                <User size={32} className="text-[#F5A623]" />
-              </div>
-              <h1 className="text-3xl font-black text-white mb-2 tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
-                Kamilisha Profile
-              </h1>
-              <p className="text-base text-white/60 leading-relaxed">
-                Jaza maelezo yako kuendelea.
-              </p>
-            </div>
-
-            {/* Username Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                <User size={16} className="text-white/60" />
-                Username
-              </label>
-              <BashiriInput 
-                value={username} 
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setUsernameError("");
-                }}
-                placeholder="lastmateru" 
-                error={usernameError}
-                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20"
-              />
-              {usernameError && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-red-400 flex items-center gap-2"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                  {usernameError}
-                </motion.p>
-              )}
-            </div>
-
-            {/* Date of Birth Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                <Calendar size={16} className="text-white/60" />
-                Tarehe ya Kuzaliwa
-              </label>
-              <BashiriInput 
-                type="date" 
-                value={dob} 
-                onChange={(e) => {
-                  setDob(e.target.value);
-                  setDobError("");
-                }}
-                error={dobError}
-                className="bg-white/5 border-white/10 focus:border-[#F5A623]/50 focus:ring-[#F5A623]/20"
-              />
-              {dobError && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-red-400 flex items-center gap-2"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                  {dobError}
-                </motion.p>
-              )}
-            </div>
-
-            {error && (
-              <motion.p 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-sm text-red-400 flex items-center gap-2"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                {error}
-              </motion.p>
-            )}
-
-            {/* Submit Button */}
-            <PremiumButton 
-              variant="primary" 
-              size="xl" 
-              fullWidth 
-              loading={loading} 
-              onClick={handleCompleteProfile}
-              className="shadow-lg shadow-[#F5A623]/25"
-            >
-              Endelea
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </PremiumButton>
-          </div>
-        )}
-        </div>
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => { setTab("login"); setError(""); }}
+          className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+          style={{ background: tab === "login" ? "var(--color-gold)" : "rgba(255,255,255,0.06)", color: tab === "login" ? "#000" : "rgba(255,255,255,0.5)" }}
+        >
+          Ingia
+        </button>
+        <button
+          onClick={() => { setTab("register"); setError(""); }}
+          className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+          style={{ background: tab === "register" ? "var(--color-gold)" : "rgba(255,255,255,0.06)", color: tab === "register" ? "#000" : "rgba(255,255,255,0.5)" }}
+        >
+          Jisajili
+        </button>
       </div>
+
+      {tab === "login" && (
+        <div className="space-y-4">
+          <h1 className="text-xl font-black text-white">Karibu Tena</h1>
+          <BashiriInput
+            label="Namba ya Simu"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+255712345678"
+          />
+          <BashiriInput
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            showPasswordToggle
+          />
+          {error && <p className="text-xs text-bashiri-red">{error}</p>}
+          <BashiriButton className="w-full" size="lg" loading={loading} onClick={handleLogin}>
+            Ingia →
+          </BashiriButton>
+          <button
+            className="text-xs w-full text-center"
+            style={{ color: "var(--color-gold)" }}
+            onClick={() => router.push("/forgot-password")}
+          >
+            Umesahau Password?
+          </button>
+        </div>
+      )}
+
+      {tab === "register" && (
+        <div className="space-y-4">
+          <h1 className="text-xl font-black text-white">Tengeneza Akaunti</h1>
+          <BashiriInput
+            label="Namba ya Simu"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+255712345678"
+          />
+          <BashiriInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="mfano: lastmateru" />
+          <BashiriInput label="Tarehe ya Kuzaliwa" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+          <BashiriInput
+            label="Password (angalau herufi 4)"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            showPasswordToggle
+          />
+          <BashiriInput
+            label="Rudia Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            showPasswordToggle
+          />
+          {error && <p className="text-xs text-bashiri-red">{error}</p>}
+          <BashiriButton className="w-full" size="lg" loading={loading} onClick={handleRegister}>
+            Jisajili →
+          </BashiriButton>
+        </div>
+      )}
     </motion.div>
   );
 }
+
+/*
+// ============================================================
+// OTP FLOW (Hatua za Awali: phone -> OTP -> profile) — COMMENTED
+// ============================================================
+// Muundo wa awali ulikuwa na "step" state ("phone" | "otp" | "profile"),
+// requestOTP()/verifyOTP() kutoka lib/api/auth.ts, na JSX ya hatua tatu.
+// Ukirudisha OTP kazini, angalia historia ya Git (commit ya kabla ya
+// mabadiliko haya) kupata muundo kamili wa awali.
+*/

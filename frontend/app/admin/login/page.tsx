@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
       style={{ backgroundImage: "url('/admin-bg.jpg')" }}
     >
       <div className="w-full max-w-sm rounded-3xl p-6 backdrop-blur-xl bg-black/40 border border-white/10 shadow-2xl">
-        <h1 className="text-xl font-black mb-1" style={{ color: "#F5A623" }}>BASHIRI ADMIN</h1>
+        <h1 className="text-xl font-black mb-1" style={{ color: "var(--brand-primary)" }}>BASHIRI ADMIN</h1>
         <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.7)" }}>Ingia kama msimamizi wa mfumo.</p>
 
         <div className="space-y-4">

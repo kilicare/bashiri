@@ -63,7 +63,7 @@ export default function FavoriteTeamsPage() {
         <h1 className="text-xl font-black text-white">Timu Ninazopenda</h1>
       </div>
 
-      <div className="px-4 space-y-5 pb-24">
+      <div className="px-5 space-y-5 pb-24">
         {loading ? (
           [1, 2, 3].map((i) => <CardSkeleton key={i} />)
         ) : (

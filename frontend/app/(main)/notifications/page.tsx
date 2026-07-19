@@ -10,18 +10,19 @@ import { CardSkeleton } from '@/components/ui/Skeleton'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { timeAgo } from '@/lib/utils'
+import { clsx } from 'clsx'
 
 const TYPE_CFG: Record<string, { emoji: string; color: string; getPath: (data: any) => string }> = {
-  DAILY_PICKS:           { emoji:'🔥', color:'#F5A623',  getPath: () => '/feed' },
-  FAVORITE_TEAM_MATCH:   { emoji:'⚽', color:'#10B981',  getPath: (data) => `/match/${data.match_id}` },
-  HIGH_CONFIDENCE:       { emoji:'�', color:'#FF2D2D',  getPath: () => '/feed' },
-  RESULT:                { emoji:'📊', color:'#3B82F6',  getPath: (data) => `/match/${data.match_id}` },
-  SUPPORT_REPLY:         { emoji:'💬', color:'#10B981',  getPath: (data) => `/settings/support/${data.ticket_id}` },
-  MIC_WINNER:            { emoji:'🏆', color:'#FFD700',  getPath: (data) => `/match/${data.match_id}/mic` },
-  MORNING_PICKS:         { emoji:'☀️', color:'#F5A623',  getPath: () => '/feed' },
-  LIVE_MATCH_ALERT:      { emoji:'�', color:'#FF2D2D',  getPath: (data) => `/match/${data.match_id}` },
-  EVENING_RECAP:         { emoji:'�', color:'#8B5CF6',  getPath: () => '/feed' },
-  WEEKLY_SUMMARY:        { emoji:'�', color:'#10B981',  getPath: () => '/feed/leaderboard' },
+  DAILY_PICKS:           { emoji:'🔥', color:'var(--brand-primary)',  getPath: () => '/feed' },
+  FAVORITE_TEAM_MATCH:   { emoji:'⚽', color:'var(--success)',  getPath: (data) => `/match/${data.match_id}` },
+  HIGH_CONFIDENCE:       { emoji:'�', color:'var(--danger)',  getPath: () => '/feed' },
+  RESULT:                { emoji:'📊', color:'var(--info)',  getPath: (data) => `/match/${data.match_id}` },
+  SUPPORT_REPLY:         { emoji:'💬', color:'var(--success)',  getPath: (data) => `/settings/support/${data.ticket_id}` },
+  MIC_WINNER:            { emoji:'🏆', color:'var(--warning)',  getPath: (data) => `/match/${data.match_id}/mic` },
+  MORNING_PICKS:         { emoji:'☀️', color:'var(--brand-primary)',  getPath: () => '/feed' },
+  LIVE_MATCH_ALERT:      { emoji:'�', color:'var(--danger)',  getPath: (data) => `/match/${data.match_id}` },
+  EVENING_RECAP:         { emoji:'�', color:'var(--brand-accent)',  getPath: () => '/feed' },
+  WEEKLY_SUMMARY:        { emoji:'�', color:'var(--success)',  getPath: () => '/track-record' },
 }
 
 function NotifCard({
@@ -61,7 +62,7 @@ function NotifCard({
             {notif.sender.avatar ? (
               <img src={notif.sender.avatar} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-sm font-bold text-white/70">
+              <span className="text-sm font-semibold text-white/70">
                 {notif.sender.username?.charAt(0).toUpperCase() || '?'}
               </span>
             )}
@@ -86,20 +87,17 @@ function NotifCard({
 
       <div className="flex-1 min-w-0">
         <p
-          className="text-sm leading-snug"
-          style={{
-            color: notif.is_read
-              ? 'rgba(255,255,255,0.5)'
-              : 'rgba(255,255,255,0.9)',
-            fontWeight: notif.is_read ? 400 : 600,
-          }}
+          className={clsx(
+            "text-sm leading-snug",
+            notif.is_read ? "font-normal text-white/50" : "font-semibold text-white/90"
+          )}
         >
           {notif.title}
         </p>
-        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="text-sm mt-1 line-clamp-2 text-white/40">
           {notif.body}
         </p>
-        <p className="text-[10px] mt-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        <p className="text-xs mt-1.5 text-white/30">
           {timeAgo(notif.created_at)}
         </p>
       </div>
@@ -115,7 +113,7 @@ function NotifCard({
 }
 
 export default function NotificationsPage() {
-  const { requireAuth } = useRequireAuth()
+  const { requireAuth, hasHydrated } = useRequireAuth()
   const user = useAuthStore((s) => s.user)
   const router = useRouter()
   const [items, setItems] = useState<any[]>([])
@@ -126,6 +124,9 @@ export default function NotificationsPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Wait for hydration before checking auth
+    if (!hasHydrated) return;
+
     if (!requireAuth("Fungua notifications zako — jisajili kwa dakika chache!")) {
       router.push("/home");
       return;
@@ -133,7 +134,7 @@ export default function NotificationsPage() {
     if (user) {
       fetchNotifications()
     }
-  }, [user, requireAuth, router])
+  }, [user, requireAuth, router, hasHydrated])
 
   const fetchNotifications = async () => {
     setLoading(true)
@@ -213,10 +214,10 @@ export default function NotificationsPage() {
         }}
       >
         <div className="flex items-center gap-3">
-          <Bell size={20} style={{ color: '#F5A623' }} />
-          <h1 className="text-xl font-black text-white">Arifa</h1>
+          <Bell size={20} style={{ color: 'var(--brand-primary)' }} />
+          <h1 className="text-xl font-semibold text-white">Arifa</h1>
           {unread > 0 && (
-            <span className="bg-[#FF2D2D] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="bg-[var(--danger)] text-white text-xs font-medium px-2 py-0.5 rounded-full">
               {unread}
             </span>
           )}
@@ -238,7 +239,7 @@ export default function NotificationsPage() {
           {unread > 0 && (
             <button
               onClick={handleReadAll}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white/70 hover:bg-white/5 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-white/70 hover:bg-white/5 transition-colors"
             >
               <CheckCheck size={14} />
               Soma Zote
@@ -262,7 +263,7 @@ export default function NotificationsPage() {
                 onClick={() => setFilterType(null)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
                   filterType === null
-                    ? 'bg-[#F5A623] text-black'
+                    ? 'bg-[var(--brand-primary)] text-black'
                     : 'bg-[#1A1A24] text-white/70 hover:bg-white/5'
                 }`}
               >
@@ -274,7 +275,7 @@ export default function NotificationsPage() {
                   onClick={() => setFilterType(type)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
                     filterType === type
-                      ? 'bg-[#F5A623] text-black'
+                      ? 'bg-[var(--brand-primary)] text-black'
                       : 'bg-[#1A1A24] text-white/70 hover:bg-white/5'
                   }`}
                 >
@@ -295,7 +296,7 @@ export default function NotificationsPage() {
       ) : filteredNotifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center px-4 py-20">
           <div className="text-6xl mb-4">🔔</div>
-          <h2 className="text-xl font-black text-white mb-2">
+          <h2 className="text-xl font-semibold text-white mb-2">
             {filterType ? `Hakuna arifa za ${filterType}` : 'Hakuna arifa bado'}
           </h2>
           <p className="text-sm text-white/50">
@@ -307,7 +308,7 @@ export default function NotificationsPage() {
           {Object.entries(groupedNotifications).map(([date, notifs]) => (
             <div key={date}>
               <div className="px-5 py-2 sticky top-[73px] z-0 bg-[#050508]/95 backdrop-blur-sm">
-                <p className="text-xs font-bold text-white/50 uppercase">
+                <p className="text-xs font-medium text-white/50 uppercase">
                   {date === new Date().toDateString() ? 'Leo' : date}
                 </p>
               </div>

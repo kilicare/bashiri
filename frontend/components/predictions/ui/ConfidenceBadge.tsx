@@ -8,24 +8,26 @@ interface ConfidenceBadgeProps {
 }
 
 export function getConfidenceColor(confidence: number): { bg: string; text: string; border: string } {
+  // AI Confidence uses brand-accent, not success colors
+  // Confidence represents AI certainty, not a successful outcome
   if (confidence >= 90) {
     return {
-      bg: "rgba(16, 185, 129, 0.15)",
-      text: "#10B981",
-      border: "rgba(16, 185, 129, 0.3)"
+      bg: "rgba(207, 175, 123, 0.15)",
+      text: "var(--brand-accent)",
+      border: "rgba(207, 175, 123, 0.3)"
     };
   }
   if (confidence >= 80) {
     return {
       bg: "rgba(59, 130, 246, 0.15)",
-      text: "#3B82F6",
+      text: "var(--info)",
       border: "rgba(59, 130, 246, 0.3)"
     };
   }
   if (confidence >= 60) {
     return {
       bg: "rgba(245, 158, 11, 0.15)",
-      text: "#F59E0B",
+      text: "var(--warning)",
       border: "rgba(245, 158, 11, 0.3)"
     };
   }
@@ -38,7 +40,7 @@ export function getConfidenceColor(confidence: number): { bg: string; text: stri
   }
   return {
     bg: "rgba(239, 68, 68, 0.15)",
-    text: "#EF4444",
+    text: "var(--danger)",
     border: "rgba(239, 68, 68, 0.3)"
   };
 }

@@ -27,9 +27,11 @@ interface AuthState {
   access: string | null;
   refresh: string | null;
   user: BashiriUser | null;
+  hasHydrated: boolean;
   setSession: (access: string, refresh: string, user: BashiriUser) => void;
   setUser: (user: BashiriUser) => void;
   logout: () => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -38,10 +40,17 @@ export const useAuthStore = create<AuthState>()(
       access: null,
       refresh: null,
       user: null,
+      hasHydrated: false,
       setSession: (access, refresh, user) => set({ access, refresh, user }),
       setUser: (user) => set({ user }),
       logout: () => set({ access: null, refresh: null, user: null }),
+      setHasHydrated: (state) => set({ hasHydrated: state }),
     }),
-    { name: "bashiri-auth" }
+    {
+      name: "bashiri-auth",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    }
   )
 );

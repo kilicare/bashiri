@@ -13,14 +13,14 @@ export default function AdminDashboardPage() {
   if (!stats) return <p style={{ color: "rgba(255,255,255,0.5)" }}>Inapakia...</p>;
 
   const CARDS = [
-    { label: "Watumiaji Wote", value: stats.total_users, icon: Users, color: "#00FF87" },
-    { label: "Subscribers Active", value: stats.total_subscribers, icon: TrendingUp, color: "#FFD600" },
-    { label: "Mapato Mwezi Huu", value: `TZS ${stats.revenue_this_month_tzs.toLocaleString()}`, icon: DollarSign, color: "#00FF87" },
-    { label: "Mapato Yote", value: `TZS ${stats.revenue_all_time_tzs.toLocaleString()}`, icon: DollarSign, color: "#3B82F6" },
-    { label: "AI Accuracy", value: `${stats.ai_prediction_accuracy}%`, icon: TrendingUp, color: "#00FF87" },
-    { label: "Mechi Leo", value: stats.matches_today, icon: Calendar, color: "#FFD600" },
-    { label: "Live Sasa", value: stats.live_matches_now, icon: Radio, color: "#FF4757" },
-    { label: "Malipo Yanayosubiri", value: stats.pending_transactions, icon: Clock, color: "#FFD600" },
+    { label: "Watumiaji Wote", value: stats.total_users, icon: Users, color: "var(--success)" },
+    { label: "Subscribers Active", value: stats.total_subscribers, icon: TrendingUp, color: "var(--warning)" },
+    { label: "Mapato Mwezi Huu", value: `TZS ${stats.revenue_this_month_tzs.toLocaleString()}`, icon: DollarSign, color: "var(--success)" },
+    { label: "Mapato Yote", value: `TZS ${stats.revenue_all_time_tzs.toLocaleString()}`, icon: DollarSign, color: "var(--info)" },
+    { label: "AI Accuracy", value: `${stats.ai_prediction_accuracy}%`, icon: TrendingUp, color: "var(--brand-accent)" },
+    { label: "Mechi Leo", value: stats.matches_today, icon: Calendar, color: "var(--warning)" },
+    { label: "Live Sasa", value: stats.live_matches_now, icon: Radio, color: "var(--danger)" },
+    { label: "Malipo Yanayosubiri", value: stats.pending_transactions, icon: Clock, color: "var(--warning)" },
   ];
 
   return (

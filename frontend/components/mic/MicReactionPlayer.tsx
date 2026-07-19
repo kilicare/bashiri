@@ -42,7 +42,7 @@ export function MicReactionPlayer({ reaction }: { reaction: MicReaction }) {
   return (
     <div className="rounded-3xl overflow-hidden relative" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>
       {reaction.is_fan_of_match && (
-        <div className="px-4 py-2 text-center text-xs font-black" style={{ background: "#FFD600", color: "#000" }}>
+        <div className="px-4 py-2 text-center text-xs font-black" style={{ background: "var(--brand-primary)", color: "#000" }}>
           🏆 FAN OF THE MATCH
         </div>
       )}

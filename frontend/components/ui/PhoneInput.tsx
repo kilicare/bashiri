@@ -95,8 +95,8 @@ export const PhoneInput = forwardRef<HTMLInputElement, Props>(
             onChange={handleChange}
             placeholder="650745642"
             className={clsx(
-              "w-full rounded-2xl pl-28 pr-12 py-3.5 text-white text-base bg-[#2D1B3E] border outline-none",
-              error ? "border-bashiri-red" : "border-bashiri-purple/30 focus:border-bashiri-gold",
+              "w-full rounded-2xl pl-28 pr-12 py-3.5 text-white text-base bg-[var(--surface)] border outline-none",
+              error ? "border-[var(--danger)]" : "border-[var(--border)] focus:border-[var(--brand-primary)]",
               className
             )}
             {...rest}

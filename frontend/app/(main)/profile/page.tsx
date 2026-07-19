@@ -1,21 +1,33 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft } from "lucide-react";
+import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { PremiumButton } from "@/components/ui/Button";
 import { PremiumCard, GlassCard } from "@/components/ui/GlassCard";
 import { PremiumBadge } from "@/components/ui/Badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef } from "react";
-import { updateAvatar } from "@/lib/api/auth";
+import { updateAvatar, completeProfile } from "@/lib/api/auth";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout, setUser } = useAuthStore();
   const [uploading, setUploading] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [editDob, setEditDob] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!user) return null;
+
+  // Initialize edit values when user is available
+  if (editUsername === "" && user.username) {
+    setEditUsername(user.username);
+  }
+  if (editDob === "" && user.date_of_birth) {
+    setEditDob(user.date_of_birth);
+  }
 
   async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -49,22 +61,47 @@ export default function ProfilePage() {
     fileInputRef.current?.click();
   }
 
+  async function handleProfileSave() {
+    if (!editUsername || !editDob) {
+      alert("Tafadhali jaza username na tarehe ya kuzaliwa.");
+      return;
+    }
+
+    setSavingProfile(true);
+    try {
+      const updatedUser = await completeProfile(editUsername, editDob);
+      setUser(updatedUser);
+      setEditingProfile(false);
+    } catch (error) {
+      alert("Imeshindika kuhifadhi mabadiliko. Jaribu tena.");
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
+  function handleEditProfileClick() {
+    if (!user) return;
+    setEditUsername(user.username || "");
+    setEditDob(user.date_of_birth || "");
+    setEditingProfile(true);
+  }
+
   const STATS = [
-    { label: "Usahihi", value: `${user.accuracy_percentage}%`, icon: <Target size={20} />, color: "from-green-500/20 to-green-600/10 border-green-500/30 text-green-400" },
-    { label: "Sahihi", value: user.correct_predictions, icon: <TrendingUp size={20} />, color: "from-[#F5A623]/20 to-[#E8892A]/10 border-[#F5A623]/30 text-[#F5A623]" },
-    { label: "Jumla", value: user.total_predictions, icon: <Zap size={20} />, color: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400" },
-    { label: "Streak", value: user.current_streak, icon: <Award size={20} />, color: "from-red-500/20 to-red-600/10 border-red-500/30 text-red-400" },
+    { label: "Usahihi", value: `${user?.accuracy_percentage}%`, icon: <Target size={20} />, color: "from-[var(--success)]/20 to-[var(--success)]/10 border-[var(--success)]/30 text-[var(--success)]" },
+    { label: "Sahihi", value: user?.correct_predictions || 0, icon: <TrendingUp size={20} />, color: "from-[var(--brand-primary)]/20 to-[var(--brand-accent)]/10 border-[var(--brand-primary)]/30 text-[var(--brand-primary)]" },
+    { label: "Jumla", value: user?.total_predictions || 0, icon: <Zap size={20} />, color: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400" },
+    { label: "Streak", value: user?.current_streak || 0, icon: <Award size={20} />, color: "from-red-500/20 to-red-600/10 border-red-500/30 text-red-400" },
   ];
 
   return (
     <div className="min-h-dvh bg-[#050508] overflow-y-auto no-scrollbar">
       {/* Cover */}
       <div className="relative h-48">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#F5A623]/20 via-[#050508] to-[#050508]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary)]/20 via-[#050508] to-[#050508]" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#050508]" />
         <div className="absolute top-0 right-0 flex gap-2 p-4" style={{ paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))' }}>
           <motion.button
-            onClick={() => router.push("/settings")}
+            onClick={handleEditProfileClick}
             whileTap={{ scale: 0.9 }}
             className="w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
           >
@@ -87,7 +124,7 @@ export default function ProfilePage() {
       <div className="px-5 -mt-16 relative z-10 pb-4">
         <div className="flex items-end justify-between mb-4">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/30 to-purple-600/20 flex items-center justify-center text-3xl font-black text-white border-4 border-[#050508] shadow-lg shadow-purple-500/20 overflow-hidden">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--brand-accent)]/30 to-[var(--brand-accent)]/20 flex items-center justify-center text-3xl font-black text-white border-4 border-[#050508] shadow-lg shadow-[var(--brand-accent)]/20 overflow-hidden">
               {user.avatar_url ? (
                 <img 
                   src={user.avatar_url} 
@@ -98,13 +135,13 @@ export default function ProfilePage() {
                 user.username?.[0]?.toUpperCase() || "?"
               )}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-[#F5A623] to-[#E8892A] flex items-center justify-center shadow-lg shadow-[#F5A623]/30">
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/30">
               <div className="w-4 h-4 rounded-full bg-white" />
             </div>
             <button
               onClick={handleCameraClick}
               disabled={uploading}
-              className="absolute bottom-0 right-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#F5A623] to-[#E8892A] flex items-center justify-center shadow-lg shadow-[#F5A623]/30 hover:scale-110 transition-transform disabled:opacity-50 z-20"
+              className="absolute bottom-0 right-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/30 hover:scale-110 transition-transform disabled:opacity-50 z-20"
             >
               {uploading ? (
                 <Loader2 size={18} className="text-black animate-spin" />
@@ -122,8 +159,8 @@ export default function ProfilePage() {
           </div>
           <div className="flex items-center gap-2">
             {user.is_subscription_active && (
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F5A623]/20 to-[#E8892A]/10 border border-[#F5A623]/30 flex items-center justify-center">
-                <Crown size={24} className="text-[#F5A623]" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--brand-primary)]/20 to-[var(--brand-accent)]/10 border border-[var(--brand-primary)]/30 flex items-center justify-center">
+                <Crown size={24} className="text-[var(--brand-primary)]" />
               </div>
             )}
           </div>
@@ -137,7 +174,7 @@ export default function ProfilePage() {
           {user.is_subscription_active && (
             <PremiumBadge variant="gold">PRO</PremiumBadge>
           )}
-          <PremiumBadge variant="purple">Member</PremiumBadge>
+          <PremiumBadge variant="sand">Member</PremiumBadge>
         </div>
 
         {/* Phone */}
@@ -148,11 +185,11 @@ export default function ProfilePage() {
         {/* Location + joined */}
         <div className="flex flex-wrap gap-4 text-xs text-white/40">
           <div className="flex items-center gap-1.5">
-            <MapPin size={12} className="text-[#F5A623]" />
+            <MapPin size={12} className="text-[var(--brand-primary)]" />
             <span className="text-white/60">Tanzania</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Calendar size={12} className="text-[#F5A623]" />
+            <Calendar size={12} className="text-[var(--brand-primary)]" />
             <span className="text-white/60">Member</span>
           </div>
         </div>
@@ -186,15 +223,26 @@ export default function ProfilePage() {
         >
           <button 
             onClick={() => router.push("/history")}
-            className="w-full rounded-2xl p-4 text-left flex items-center gap-4 bg-[#1A1A24] border border-white/10 hover:bg-[#22222E] hover:border-white/20 transition-all duration-300 group"
+            className="w-full rounded-2xl p-4 flex items-center gap-3 text-left"
+            style={{ background: "#111111" }}
           >
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-              <Calendar size={20} className="text-white/60" />
-            </div>
-            <span className="text-sm font-semibold text-white flex-1">Prediction History</span>
-            <svg className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <Calendar size={18} style={{ color: "var(--brand-accent)" }} />
+            <span className="text-sm font-bold text-white">Prediction History</span>
+          </button>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.32 }}
+        >
+          <button 
+            onClick={() => router.push("/track-record")}
+            className="w-full rounded-2xl p-4 flex items-center gap-3 text-left"
+            style={{ background: "#111111" }}
+          >
+            <BarChart3 size={18} style={{ color: "var(--brand-accent)" }} />
+            <span className="text-sm font-bold text-white">📊 Bashiri Track Record</span>
           </button>
         </motion.div>
 
@@ -205,15 +253,11 @@ export default function ProfilePage() {
         >
           <button 
             onClick={() => router.push("/settings")}
-            className="w-full rounded-2xl p-4 text-left flex items-center gap-4 bg-[#1A1A24] border border-white/10 hover:bg-[#22222E] hover:border-white/20 transition-all duration-300 group"
+            className="w-full rounded-2xl p-4 flex items-center gap-3 text-left"
+            style={{ background: "#111111" }}
           >
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-              <Settings size={20} className="text-white/60" />
-            </div>
-            <span className="text-sm font-semibold text-white flex-1">Settings</span>
-            <svg className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <Settings size={18} style={{ color: "var(--brand-accent)" }} />
+            <span className="text-sm font-bold text-white">Settings</span>
           </button>
         </motion.div>
 
@@ -225,15 +269,10 @@ export default function ProfilePage() {
           >
             <button 
               onClick={() => router.push("/subscribe")}
-              className="w-full rounded-2xl p-4 text-left flex items-center gap-4 bg-gradient-to-r from-[#F5A623]/10 to-[#E8892A]/5 border border-[#F5A623]/20 hover:border-[#F5A623]/30 transition-all duration-300 group"
+              className="w-full rounded-2xl p-4 flex items-center gap-3 text-left bg-gradient-to-r from-[var(--brand-primary)]/10 to-[var(--brand-accent)]/5"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#F5A623]/10 flex items-center justify-center group-hover:bg-[#F5A623]/20 transition-colors">
-                <Crown size={20} className="text-[#F5A623]" />
-              </div>
-              <span className="text-sm font-semibold text-[#F5A623] flex-1">Upgrade to PRO</span>
-              <svg className="w-5 h-5 text-[#F5A623]/50 group-hover:text-[#F5A623] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <Crown size={18} style={{ color: "var(--brand-primary)" }} />
+              <span className="text-sm font-bold text-[var(--brand-primary)]">Upgrade to PRO</span>
             </button>
           </motion.div>
         )}
@@ -256,6 +295,78 @@ export default function ProfilePage() {
           </PremiumButton>
         </motion.div>
       </div>
+
+      {/* Profile Edit Modal */}
+      <AnimatePresence>
+        {editingProfile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-5"
+            onClick={() => setEditingProfile(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-md bg-[#111] rounded-3xl p-6 border border-white/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">Hariri Profaili</h2>
+                <button
+                  onClick={() => setEditingProfile(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/60 mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={editUsername}
+                    onChange={(e) => setEditUsername(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
+                    placeholder="Weka username"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/60 mb-2">
+                    Tarehe ya Kuzaliwa
+                  </label>
+                  <input
+                    type="date"
+                    value={editDob}
+                    onChange={(e) => setEditDob(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
+                  />
+                </div>
+
+                <PremiumButton
+                  onClick={handleProfileSave}
+                  disabled={savingProfile}
+                  size="lg"
+                  fullWidth
+                  className="mt-6"
+                >
+                  {savingProfile ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    "Hifadhi Mabadiliko"
+                  )}
+                </PremiumButton>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

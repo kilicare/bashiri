@@ -16,7 +16,7 @@ export function GlassCard({ children, className, hover = false, glow = false }: 
         "bg-gradient-to-br from-white/5 to-white/[0.02]",
         "backdrop-blur-xl",
         hover && "hover:from-white/10 hover:to-white/5 hover:border-white/20 hover:scale-[1.02] transition-all duration-300",
-        glow && "shadow-[0_0_40px_rgba(139,92,246,0.15)]",
+        glow && "shadow-[0_0_40px_rgba(207,175,123,0.15)]",
         className
       )}
     >
@@ -29,15 +29,15 @@ export function GlassCard({ children, className, hover = false, glow = false }: 
 interface PremiumCardProps {
   children: ReactNode;
   className?: string;
-  variant?: "default" | "gold" | "purple" | "gradient";
+  variant?: "default" | "gold" | "sand" | "gradient";
   hover?: boolean;
 }
 
 export function PremiumCard({ children, className, variant = "default", hover = false }: PremiumCardProps) {
   const variants = {
     default: "bg-[#1A1A24] border-white/10",
-    gold: "bg-gradient-to-br from-[#F5A623]/10 to-[#E8892A]/5 border-[#F5A623]/20",
-    purple: "bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20",
+    gold: "bg-gradient-to-br from-[var(--brand-primary)]/10 to-[var(--brand-accent)]/5 border-[var(--brand-primary)]/20",
+    sand: "bg-gradient-to-br from-[var(--brand-accent)]/10 to-[var(--brand-accent)]/5 border-[var(--brand-accent)]/20",
     gradient: "bg-gradient-to-br from-[#1A1A24] to-[#22222E] border-white/10",
   };
 

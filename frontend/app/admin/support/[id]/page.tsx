@@ -6,7 +6,7 @@ import { ArrowLeft, Send } from "lucide-react";
 
 const STATUSES = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 const STATUS_COLORS: Record<string, string> = {
-  OPEN: "#FFD600", IN_PROGRESS: "#3B82F6", RESOLVED: "#00FF87", CLOSED: "rgba(255,255,255,0.4)",
+  OPEN: "var(--warning)", IN_PROGRESS: "var(--info)", RESOLVED: "var(--success)", CLOSED: "rgba(255,255,255,0.4)",
 };
 
 export default function AdminSupportTicketPage() {
@@ -80,10 +80,10 @@ export default function AdminSupportTicketPage() {
           <div key={m.id} className={`flex ${m.sender_type === "ADMIN" ? "justify-end" : "justify-start"}`}>
             <div
               className="rounded-2xl px-4 py-3 max-w-[80%] text-sm"
-              style={{ background: m.sender_type === "ADMIN" ? "#00FF87" : "#151515", color: m.sender_type === "ADMIN" ? "#000" : "#fff" }}
+              style={{ background: m.sender_type === "ADMIN" ? "var(--success)" : "#151515", color: m.sender_type === "ADMIN" ? "#000" : "#fff" }}
             >
               {m.sender_type === "USER" && (
-                <p className="text-[10px] font-bold mb-1" style={{ color: "#00FF87" }}>
+                <p className="text-[10px] font-bold mb-1" style={{ color: "var(--success)" }}>
                   {ticket.user_username ? `@${ticket.user_username}` : "Guest"}
                 </p>
               )}
@@ -102,7 +102,7 @@ export default function AdminSupportTicketPage() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
         />
-        <button onClick={handleSend} disabled={sending} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "#00FF87" }}>
+        <button onClick={handleSend} disabled={sending} className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "var(--success)" }}>
           <Send size={18} style={{ color: "#000" }} />
         </button>
       </div>

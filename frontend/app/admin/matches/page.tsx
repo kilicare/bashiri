@@ -32,7 +32,7 @@ export default function AdminMatchesPage() {
             key={s}
             onClick={() => setStatusFilter(s)}
             className="px-3 py-1.5 rounded-full text-xs font-bold"
-            style={{ background: statusFilter === s ? "#00FF87" : "rgba(255,255,255,0.06)", color: statusFilter === s ? "#000" : "rgba(255,255,255,0.5)" }}
+            style={{ background: statusFilter === s ? "var(--success)" : "rgba(255,255,255,0.06)", color: statusFilter === s ? "#000" : "rgba(255,255,255,0.5)" }}
           >
             {s || "Zote"}
           </button>
@@ -42,7 +42,7 @@ export default function AdminMatchesPage() {
         <button
           onClick={() => setLeagueFilter("")}
           className="px-3 py-1.5 rounded-full text-xs font-bold"
-          style={{ background: leagueFilter === "" ? "#00FF87" : "rgba(255,255,255,0.06)", color: leagueFilter === "" ? "#000" : "rgba(255,255,255,0.5)" }}
+          style={{ background: leagueFilter === "" ? "var(--success)" : "rgba(255,255,255,0.06)", color: leagueFilter === "" ? "#000" : "rgba(255,255,255,0.5)" }}
         >
           Ligi Zote
         </button>
@@ -51,7 +51,7 @@ export default function AdminMatchesPage() {
             key={league}
             onClick={() => setLeagueFilter(league)}
             className="px-3 py-1.5 rounded-full text-xs font-bold"
-            style={{ background: leagueFilter === league ? "#00FF87" : "rgba(255,255,255,0.06)", color: leagueFilter === league ? "#000" : "rgba(255,255,255,0.5)" }}
+            style={{ background: leagueFilter === league ? "var(--success)" : "rgba(255,255,255,0.06)", color: leagueFilter === league ? "#000" : "rgba(255,255,255,0.5)" }}
           >
             {league}
           </button>
@@ -80,7 +80,7 @@ export default function AdminMatchesPage() {
             <button
               onClick={() => toggleBigMatch(m.id, m.is_big_match)}
               className="w-full px-3 py-2 rounded-full text-xs font-bold"
-              style={{ background: m.is_big_match ? "#00FF87" : "rgba(255,255,255,0.06)", color: m.is_big_match ? "#000" : "rgba(255,255,255,0.5)" }}
+              style={{ background: m.is_big_match ? "var(--success)" : "rgba(255,255,255,0.06)", color: m.is_big_match ? "#000" : "rgba(255,255,255,0.5)" }}
             >
               {m.is_big_match ? "Ndiyo - Big Match" : "Hapana"}
             </button>
@@ -109,7 +109,7 @@ export default function AdminMatchesPage() {
                   <button
                     onClick={() => toggleBigMatch(m.id, m.is_big_match)}
                     className="px-3 py-1 rounded-full text-xs font-bold"
-                    style={{ background: m.is_big_match ? "#00FF87" : "rgba(255,255,255,0.06)", color: m.is_big_match ? "#000" : "rgba(255,255,255,0.5)" }}
+                    style={{ background: m.is_big_match ? "var(--success)" : "rgba(255,255,255,0.06)", color: m.is_big_match ? "#000" : "rgba(255,255,255,0.5)" }}
                   >
                     {m.is_big_match ? "Ndiyo" : "Hapana"}
                   </button>

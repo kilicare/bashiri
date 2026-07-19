@@ -8,6 +8,7 @@ type TabKey = "overview" | "predict" | "room" | "mic";
 interface Props {
   matchId: number;
   active: TabKey;
+  isFinished?: boolean;
 }
 
 const BASE_TABS: { key: TabKey; label: string; path: string }[] = [
@@ -17,7 +18,7 @@ const BASE_TABS: { key: TabKey; label: string; path: string }[] = [
   { key: "mic", label: "Mic", path: "match" },
 ];
 
-export function MatchHubTabs({ matchId, active }: Props) {
+export function MatchHubTabs({ matchId, active, isFinished = false }: Props) {
   const router = useRouter();
   const [badges, setBadges] = useState<MatchHubBadges | null>(null);
 
@@ -27,8 +28,9 @@ export function MatchHubTabs({ matchId, active }: Props) {
 
   function navigateTo(tab: TabKey) {
     if (tab === "overview") router.push(`/create/${matchId}/overview`);
-    else if (tab === "predict") router.push(`/create/${matchId}/predict`);
-    else if (tab === "room") router.push(`/match/${matchId}/room`);
+    else if (tab === "predict") {
+      router.push(isFinished ? `/match/${matchId}/track-record` : `/create/${matchId}/predict`);
+    } else if (tab === "room") router.push(`/match/${matchId}/room`);
     else if (tab === "mic") router.push(`/match/${matchId}/mic`);
   }
 
@@ -36,16 +38,14 @@ export function MatchHubTabs({ matchId, active }: Props) {
     if (!badges) return null;
     if (tab === "room") {
       if (badges.room_state === "live") return "🔴 LIVE";
-      if (badges.room_state === "watch_party") return null;
       return null;
     }
-    if (tab === "mic" && badges.mic_reaction_count > 0) {
-      return String(badges.mic_reaction_count);
-    }
+    if (tab === "mic" && badges.mic_reaction_count > 0) return String(badges.mic_reaction_count);
     return null;
   }
 
   function labelFor(tab: TabKey): string {
+    if (tab === "predict") return isFinished ? "Track Record" : "Predict";
     if (tab === "room") {
       if (badges?.room_state === "watch_party") return "Watch Party";
       if (badges?.room_state === "closed") return "Room (Closed)";
@@ -65,7 +65,7 @@ export function MatchHubTabs({ matchId, active }: Props) {
             onClick={() => navigateTo(tab.key)}
             className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
             style={{
-              background: isActive ? "#F5A623" : "rgba(255,255,255,0.06)",
+              background: isActive ? "var(--success)" : "rgba(255,255,255,0.06)",
               color: isActive ? "#000" : "rgba(255,255,255,0.5)",
             }}
           >
@@ -73,10 +73,7 @@ export function MatchHubTabs({ matchId, active }: Props) {
             {badge && (
               <span
                 className="px-1.5 py-0.5 rounded-full text-[9px]"
-                style={{
-                  background: isActive ? "rgba(0,0,0,0.2)" : "rgba(255,71,87,0.15)",
-                  color: isActive ? "#000" : "#FF4757",
-                }}
+                style={{ background: isActive ? "rgba(0,0,0,0.2)" : "rgba(239,68,68,0.15)", color: isActive ? "#000" : "var(--danger)" }}
               >
                 {badge}
               </span>

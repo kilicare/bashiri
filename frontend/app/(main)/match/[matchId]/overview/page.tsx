@@ -34,7 +34,7 @@ export default function MatchOverviewPage() {
     }
   }, [searchParams]);
 
-  if (!data) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  if (!data) return <div className="px-5 pt-safe pt-6"><CardSkeleton /></div>;
 
   const { match, home_form, away_form, head_to_head } = data;
 
@@ -63,7 +63,7 @@ export default function MatchOverviewPage() {
             onClick={() => router.push(tab.href)}
             className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
             style={{
-              background: tab.active ? "#00FF87" : "rgba(255,255,255,0.06)",
+              background: tab.active ? "var(--brand-accent)" : "rgba(255,255,255,0.06)",
               color: tab.active ? "#000" : "rgba(255,255,255,0.5)",
             }}
           >
@@ -80,9 +80,9 @@ export default function MatchOverviewPage() {
             onClick={() => handleTabChange(tab.key)}
             className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all"
             style={{
-              background: activeTab === tab.key ? "rgba(245,166,35,0.15)" : "rgba(255,255,255,0.06)",
-              color: activeTab === tab.key ? "#F5A623" : "rgba(255,255,255,0.5)",
-              border: activeTab === tab.key ? "1px solid rgba(245,166,35,0.3)" : "1px solid transparent",
+              background: activeTab === tab.key ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.06)",
+              color: activeTab === tab.key ? "var(--brand-primary)" : "rgba(255,255,255,0.5)",
+              border: activeTab === tab.key ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
             }}
           >
             {tab.label}
@@ -93,12 +93,12 @@ export default function MatchOverviewPage() {
       {/* Tab Content */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         {activeTab === "stats" && (
-          <PremiumCard variant="purple" hover className="mb-4">
+          <PremiumCard variant="sand" hover className="mb-4">
             <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs mb-1 text-white">{match.home_team.name}</p>
-                <p className="text-lg font-black tracking-widest mb-2" style={{ color: "#00FF87" }}>{home_form.sequence || "—"}</p>
+                <p className="text-lg font-black tracking-widest mb-2" style={{ color: "var(--brand-accent)" }}>{home_form.sequence || "—"}</p>
                 {home_form.matches && home_form.matches.length > 0 && (
                   <div className="space-y-1">
                     {home_form.matches.map((m: any, i: number) => (
@@ -119,7 +119,7 @@ export default function MatchOverviewPage() {
               </div>
               <div>
                 <p className="text-xs mb-1 text-white">{match.away_team.name}</p>
-                <p className="text-lg font-black tracking-widest mb-2" style={{ color: "#FFD600" }}>{away_form.sequence || "—"}</p>
+                <p className="text-lg font-black tracking-widest mb-2" style={{ color: "var(--warning)" }}>{away_form.sequence || "—"}</p>
                 {away_form.matches && away_form.matches.length > 0 && (
                   <div className="space-y-1">
                     {away_form.matches.map((m: any, i: number) => (
@@ -168,14 +168,14 @@ export default function MatchOverviewPage() {
               <button className="w-full p-3 rounded-xl text-left transition-all hover:scale-[1.02]" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <p className="text-sm font-bold text-white">{match.home_team.name}</p>
                 <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
-                  <div className="h-full rounded-full" style={{ width: "45%", background: "#00FF87" }}></div>
+                  <div className="h-full rounded-full" style={{ width: "45%", background: "var(--brand-accent)" }}></div>
                 </div>
                 <p className="text-xs text-white/50 mt-1">45%</p>
               </button>
               <button className="w-full p-3 rounded-xl text-left transition-all hover:scale-[1.02]" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <p className="text-sm font-bold text-white">{match.away_team.name}</p>
                 <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
-                  <div className="h-full rounded-full" style={{ width: "35%", background: "#F5A623" }}></div>
+                  <div className="h-full rounded-full" style={{ width: "35%", background: "var(--brand-primary)" }}></div>
                 </div>
                 <p className="text-xs text-white/50 mt-1">35%</p>
               </button>
@@ -191,7 +191,7 @@ export default function MatchOverviewPage() {
         )}
 
         {activeTab === "history" && (
-          <PremiumCard variant="purple" hover className="mb-4">
+          <PremiumCard variant="sand" hover className="mb-4">
             <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Derby History</p>
             {head_to_head.length === 0 ? (
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Hakuna historia ya mechi kati ya timu hizi.</p>
@@ -201,13 +201,13 @@ export default function MatchOverviewPage() {
                   <div key={i} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)" }}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{h.date}</span>
-                      <span className={`text-xs font-bold ${h.home_score > h.away_score ? 'text-green-400' : h.away_score > h.home_score ? 'text-red-400' : 'text-yellow-400'}`}>
+                      <span className={`text-xs font-bold ${h.home_score > h.away_score ? 'text-[var(--success)]' : h.away_score > h.home_score ? 'text-[var(--danger)]' : 'text-[var(--warning)]'}`}>
                         {h.home_score > h.away_score ? 'Home Win' : h.away_score > h.home_score ? 'Away Win' : 'Draw'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-bold text-white">{h.home_team}</span>
-                      <span className="text-lg font-black" style={{ color: "#F5A623" }}>{h.home_score}-{h.away_score}</span>
+                      <span className="text-lg font-black" style={{ color: "var(--brand-primary)" }}>{h.home_score}-{h.away_score}</span>
                       <span className="text-sm font-bold text-white">{h.away_team}</span>
                     </div>
                   </div>

@@ -1,24 +1,45 @@
+/**
+ * lib/api/auth.ts
+ *
+ * OTP flow (requestOTP/verifyOTP) imewekwa chini kama COMMENT.
+ */
 import { apiClient } from "./client";
 import { BashiriUser } from "@/stores/auth.store";
 
-export function requestOTP(phone_number: string) {
-  return apiClient<{ detail: string; phone_number: string }>("/auth/request-otp/", {
+interface AuthResponse {
+  access: string;
+  refresh: string;
+  profile_complete: boolean;
+  user: BashiriUser;
+}
+
+export function register(payload: {
+  phone_number: string;
+  password: string;
+  confirm_password: string;
+  username: string;
+  date_of_birth: string;
+}) {
+  return apiClient<AuthResponse>("/auth/register/", {
     method: "POST",
     skipAuth: true,
-    body: JSON.stringify({ phone_number }),
+    body: JSON.stringify(payload),
   });
 }
 
-export function verifyOTP(phone_number: string, code: string) {
-  return apiClient<{
-    access: string;
-    refresh: string;
-    profile_complete: boolean;
-    user: BashiriUser;
-  }>("/auth/verify-otp/", {
+export function login(phone_number: string, password: string) {
+  return apiClient<AuthResponse>("/auth/login/", {
     method: "POST",
     skipAuth: true,
-    body: JSON.stringify({ phone_number, code }),
+    body: JSON.stringify({ phone_number, password }),
+  });
+}
+
+export function requestPasswordReset(phone_number: string, message?: string) {
+  return apiClient<{ detail: string }>("/auth/request-password-reset/", {
+    method: "POST",
+    skipAuth: true,
+    body: JSON.stringify({ phone_number, message }),
   });
 }
 
@@ -37,7 +58,7 @@ export function logoutApi(refresh: string) {
   return apiClient("/auth/logout/", { method: "POST", body: JSON.stringify({ refresh }) });
 }
 
-export function saveOnboardingPreferences(preferences: { favorite_leagues: number[] }) {
+export function saveOnboardingPreferences(preferences: { favorite_leagues: number[]; favorite_teams?: number[] }) {
   return apiClient<BashiriUser>("/auth/onboarding/", {
     method: "POST",
     body: JSON.stringify(preferences),
@@ -65,3 +86,24 @@ export function updateAvatar(avatar: File) {
     skipContentType: true,
   });
 }
+
+/*
+// ============================================================
+// OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)
+// ============================================================
+export function requestOTP(phone_number: string) {
+  return apiClient<{ detail: string; phone_number: string }>("/auth/request-otp/", {
+    method: "POST",
+    skipAuth: true,
+    body: JSON.stringify({ phone_number }),
+  });
+}
+
+export function verifyOTP(phone_number: string, code: string) {
+  return apiClient<AuthResponse>("/auth/verify-otp/", {
+    method: "POST",
+    skipAuth: true,
+    body: JSON.stringify({ phone_number, code }),
+  });
+}
+*/
