@@ -3,10 +3,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Download, Share, SquarePlus, X, Zap } from "lucide-react";
 import { usePWAInstallStore } from "@/stores/pwaInstall.store";
 import { snoozeInstallPrompt } from "@/lib/pwa-install-utils";
-import { cloudinaryUrl } from "@/lib/cloudinary";
 
 export function InstallPromptSheet() {
   const { isOpen, platform, deferredPrompt, close } = usePWAInstallStore();
+  const installIconSrc = platform === "ios" ? "/apple-touch-icon.png" : "/icon-192.png";
 
   function handleDismiss() {
     snoozeInstallPrompt();
@@ -76,15 +76,11 @@ export function InstallPromptSheet() {
               {/* Logo yenye pulse glow */}
               <motion.div
                 className="w-20 h-20 rounded-3xl mx-auto mb-5 flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #00FF87, #00CC6A)", boxShadow: "0 0 40px rgba(0,255,135,0.5)" }}
+                style={{ background: "linear-gradient(135deg, #D4AF37, #CFAF7B)", boxShadow: "0 0 40px rgba(212,175,55,0.4)" }}
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
               >
-                <img src={cloudinaryUrl("bashiri/logo")} alt="Bashiri" className="w-11 h-11" />
-              </motion.div>
-
-              <h2 className="text-2xl font-black text-white mb-2">Karibu Kabisa kwenye Timu Yetu 🔥</h2>
-              <p className="text-sm mb-7 max-w-xs mx-auto" style={{ color: "rgba(255,255,255,0.55)" }}>
+                <img src={installIconSrc} alt="Bashiri" className="w-11 h-11" />
                 Sakinisha Bashiri kwenye simu yako upate AI Picks za haraka, live scores, na
                 notifications — bila kufungua browser kila wakati.
               </p>
