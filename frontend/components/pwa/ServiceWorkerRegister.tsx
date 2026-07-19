@@ -10,27 +10,38 @@ export function ServiceWorkerRegister() {
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("[SW] Imesajiliwa:", registration.scope);
+    // Register immediately, don't wait for load event
+    navigator.serviceWorker
+      .register("/sw.js", {
+        scope: "/",
+        updateViaCache: "none" // Force fresh service worker
+      })
+      .then((registration) => {
+        console.log("[SW] Imesajiliwa:", registration.scope);
 
-          // Wakati toleo jipya la sw.js linapopatikana, sasisha mara moja
-          // (skipWaiting + clients.claim ndani ya sw.js vinashughulikia hii)
-          registration.addEventListener("updatefound", () => {
-            const newWorker = registration.installing;
-            newWorker?.addEventListener("statechange", () => {
-              if (newWorker.state === "activated") {
-                console.log("[SW] Toleo jipya limewashwa.");
-              }
-            });
+        // Force the service worker to claim clients immediately
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+
+        // Wakati toleo jipya la sw.js linapopatikana, sasisha mara moja
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          newWorker?.addEventListener("statechange", () => {
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              // New version available, force update
+              newWorker.postMessage({ type: "SKIP_WAITING" });
+            }
+            if (newWorker.state === "activated") {
+              console.log("[SW] Toleo jipya limewashwa.");
+              window.location.reload();
+            }
           });
-        })
-        .catch((err) => {
-          console.error("[SW] Imeshindwa kusajiliwa:", err);
         });
-    });
+      })
+      .catch((err) => {
+        console.error("[SW] Imeshindwa kusajiliwa:", err);
+      });
   }, []);
 
   return null;
