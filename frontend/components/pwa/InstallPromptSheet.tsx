@@ -81,6 +81,9 @@ export function InstallPromptSheet() {
                 transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
               >
                 <img src={installIconSrc} alt="Bashiri" className="w-11 h-11" />
+              </motion.div>
+
+              <p className="text-sm text-white leading-6">
                 Sakinisha Bashiri kwenye simu yako upate AI Picks za haraka, live scores, na
                 notifications — bila kufungua browser kila wakati.
               </p>
