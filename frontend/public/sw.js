@@ -15,26 +15,13 @@ const CACHE_VERSION = "bashiri-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
-const PRECACHE_URLS = [
-  "/offline",
-  "/manifest.json",
-  "/icon.png",
-  "/icon-192.png",
-  "/icon-512.png"
-];
+const PRECACHE_URLS = ["/offline", "/manifest.json", "/icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
   );
   self.skipWaiting();
-});
-
-// Handle skip waiting message from client
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
 });
 
 self.addEventListener("activate", (event) => {
