@@ -3,26 +3,24 @@
  * Detection ya platform, hali ya standalone (tayari imesakinishwa),
  * na "snooze" ya siku 7 baada ya mtumiaji kubonyeza "Sio Sasa".
  */
+import { detectDevicePlatform, isStandalone } from "@/lib/device-utils";
+
 const SNOOZE_KEY = "bashiri_install_prompt_snooze_until";
 const SNOOZE_DAYS = 7;
 const SESSION_SHOWN_KEY = "bashiri_install_prompt_shown_session";
 
-export type PWAPlatform = "android" | "ios" | "other";
-
-export function isStandalone(): boolean {
-  if (typeof window === "undefined") return false;
-  const displayModeStandalone = window.matchMedia("(display-mode: standalone)").matches;
-  const iosStandalone = (window.navigator as any).standalone === true;
-  return displayModeStandalone || iosStandalone;
-}
+export type PWAPlatform = "android" | "ios" | "desktop" | "other";
 
 export function detectPlatform(): PWAPlatform {
-  if (typeof window === "undefined") return "other";
-  const ua = window.navigator.userAgent;
-  if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
-  if (/Android/i.test(ua)) return "android";
-  return "other";
+  const platform = detectDevicePlatform();
+  return platform === "desktop" ? "other" : platform;
 }
+
+export function isStandaloneMode(): boolean {
+  return isStandalone();
+}
+
+export { isStandalone };
 
 export function isSnoozed(): boolean {
   if (typeof window === "undefined") return true;

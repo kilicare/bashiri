@@ -17,8 +17,11 @@ def generate_result_recaps():
     from predictions.services import is_prediction_correct
 
     today = timezone.localdate()
-    finished_today = Match.objects.filter(
-        status="FINISHED", kickoff_at__date=today,
+    yesterday = today - timedelta(days=1)
+    finished_recent = Match.objects.filter(
+        status="FINISHED",
+        kickoff_at__date__gte=yesterday,
+        kickoff_at__date__lte=today,
         home_score__isnull=False, away_score__isnull=False,
     ).select_related("home_team", "away_team", "league")
 

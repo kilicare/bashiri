@@ -23,6 +23,7 @@ export default function MatchOverviewPage() {
   if (!data) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
 
   const { match, home_form, away_form, head_to_head } = data;
+  const isFinished = match.status === "FINISHED";
 
   return (
     <DerbyThemeProvider matchId={matchId}>
@@ -57,7 +58,7 @@ export default function MatchOverviewPage() {
           </div>
         </div>
 
-        <MatchHubTabs matchId={matchId} active="overview" />
+        <MatchHubTabs matchId={matchId} active="overview" isFinished={isFinished} />
 
         {/* Content */}
         <div className="max-w-2xl mx-auto px-4 sm:px-5 pb-6">

@@ -38,6 +38,7 @@ export default function PredictDashboardPage() {
   }
 
   if (!dashboard) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  const isFinished = dashboard.match.status === "FINISHED";
 
   return (
     <DerbyThemeProvider matchId={matchId}>
@@ -56,7 +57,7 @@ export default function PredictDashboardPage() {
         </div>
       </div>
 
-      <MatchHubTabs matchId={matchId} active="predict" />
+      <MatchHubTabs matchId={matchId} active="predict" isFinished={isFinished} />
 
       <div className="px-5 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

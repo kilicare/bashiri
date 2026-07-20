@@ -3,6 +3,15 @@ import { useEffect, useRef } from "react";
 import { usePWAInstallStore } from "@/stores/pwaInstall.store";
 import { detectPlatform } from "@/lib/pwa-install-utils";
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 const TIME_TRIGGER_MS = 90 * 1000; // dakika 1.5 — trigger ya "muda"
 
 /**
@@ -22,10 +31,11 @@ export function PWAInstallProvider({ children }: { children: React.ReactNode }) 
     setPlatform(detectPlatform());
 
     function handleBeforeInstallPrompt(e: Event) {
-      e.preventDefault();
-      setDeferredPrompt(e);
+      const promptEvent = e as BeforeInstallPromptEvent;
+      promptEvent.preventDefault();
+      setDeferredPrompt(promptEvent);
     }
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt as EventListener);
 
     timerRef.current = setTimeout(() => attemptShow(), TIME_TRIGGER_MS);
 
