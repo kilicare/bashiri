@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getMatchDashboard, saveMatch, Dashboard } from "@/lib/api/predictions";
+import { useAuthStore } from "@/stores/auth.store";
 import { MarketRow } from "@/components/predictions/MarketRow";
 import { SubscriptionSheet } from "@/components/predictions/SubscriptionSheet";
 import { Spinner } from "@/components/ui/Spinner";
@@ -20,10 +21,19 @@ export default function PredictDashboardPage() {
   const [showSub, setShowSub] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const isSubscriptionActive = useAuthStore((s) => s.user?.is_subscription_active ?? false);
+  const prevSubscriptionActive = useRef(isSubscriptionActive);
 
   useEffect(() => {
     getMatchDashboard(matchId).then(setDashboard);
   }, [matchId]);
+
+  useEffect(() => {
+    if (isSubscriptionActive && !prevSubscriptionActive.current) {
+      getMatchDashboard(matchId).then(setDashboard).catch(() => {});
+    }
+    prevSubscriptionActive.current = isSubscriptionActive;
+  }, [isSubscriptionActive, matchId]);
 
   async function handleSave() {
     if (!requireAuth("Ingia ili kuhifadhi mechi hii.")) return;

@@ -113,7 +113,7 @@ export interface MatchAnalysis {
 }
 
 export function getMatchAnalysis(matchId: number) {
-  return apiClient<MatchAnalysis>(`/predictions/matches/${matchId}/analysis/`, { skipAuth: true });
+  return apiClient<MatchAnalysis>(`/predictions/matches/${matchId}/analysis/`);
 }
 
 export interface AITrackRecordMarketStat {

@@ -5,6 +5,9 @@ import { adminLogin } from "@/lib/api/admin";
 import { useAdminAuthStore } from "@/stores/admin-auth.store";
 import { BashiriButton } from "@/components/ui/Button";
 import { BashiriInput } from "@/components/ui/Input";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+
+const isPhoneValid = (value: string) => /^\+255\d{9}$/.test(value);
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -16,13 +19,24 @@ export default function AdminLoginPage() {
 
   async function handleLogin() {
     setError("");
+
+    if (!isPhoneValid(phone)) {
+      setError("Namba ya simu si sahihi. Andika kwa muundo +255712345678");
+      return;
+    }
+
+    if (!password) {
+      setError("Weka password yako ili kuingia");
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await adminLogin(phone, password);
       setSession(data.access, data.refresh, data.user);
       router.push("/admin/dashboard");
     } catch (e: any) {
-      setError(e.message);
+      setError(e.message || "Hitilafu wakati wa kuingia");
     } finally {
       setLoading(false);
     }
@@ -38,7 +52,7 @@ export default function AdminLoginPage() {
         <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.7)" }}>Ingia kama msimamizi wa mfumo.</p>
 
         <div className="space-y-4">
-          <BashiriInput label="Namba ya Simu" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <PhoneInput label="Namba ya Simu" value={phone} onChange={setPhone} />
           <BashiriInput label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           {error && <p className="text-xs text-bashiri-red">{error}</p>}
           <BashiriButton className="w-full" size="lg" loading={loading} onClick={handleLogin}>

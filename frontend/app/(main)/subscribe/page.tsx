@@ -25,6 +25,8 @@ function SubscribeContent() {
   const searchParams = useSearchParams();
   const { requireAuth } = useRequireAuth();
   const plan = (searchParams.get("plan") || "monthly") as "weekly" | "monthly";
+  const rawReturnTo = searchParams.get("return_to");
+  const returnTo = rawReturnTo && rawReturnTo.startsWith("/") ? rawReturnTo : "/profile";
   const { user, setUser } = useAuthStore();
 
   const [stage, setStage] = useState<Stage>("confirm");

@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getMatchAnalysis, MatchAnalysis } from "@/lib/api/predictions";
+import { useAuthStore } from "@/stores/auth.store";
 import { AnalysisMarketRow } from "@/components/predictions/AnalysisMarketRow";
 import { SubscriptionSheet } from "@/components/predictions/SubscriptionSheet";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
@@ -14,12 +15,21 @@ export default function MatchTrackRecordPage() {
   const [analysis, setAnalysis] = useState<MatchAnalysis | null>(null);
   const [showSub, setShowSub] = useState(false);
   const [error, setError] = useState("");
+  const isSubscriptionActive = useAuthStore((s) => s.user?.is_subscription_active ?? false);
+  const prevSubscriptionActive = useRef(isSubscriptionActive);
 
   useEffect(() => {
     getMatchAnalysis(matchId)
       .then(setAnalysis)
       .catch((e) => setError(e.message || "Uchambuzi haupatikani bado."));
   }, [matchId]);
+
+  useEffect(() => {
+    if (isSubscriptionActive && !prevSubscriptionActive.current) {
+      getMatchAnalysis(matchId).then(setAnalysis).catch(() => {});
+    }
+    prevSubscriptionActive.current = isSubscriptionActive;
+  }, [isSubscriptionActive, matchId]);
 
   if (error) {
     return (

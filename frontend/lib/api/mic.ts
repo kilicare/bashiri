@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { Match } from "./predictions";
 
 export interface MicReaction {
   id: number;
@@ -87,4 +88,8 @@ export function voteOnReaction(reactionId: number, emoji: string) {
 
 export function getFanOfMatch(matchId: number) {
   return apiClient<MicReaction>(`/mic/${matchId}/fan-of-match/`, { skipAuth: true }).catch(() => null);
+}
+
+export function getActiveMicMatches() {
+  return apiClient<{ match: Match; reaction_count: number }[]>("/mic/active-matches/", { skipAuth: true });
 }

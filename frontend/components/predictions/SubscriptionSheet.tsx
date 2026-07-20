@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Check, Zap, X } from "lucide-react";
 import { BashiriButton } from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +19,11 @@ const PLANS = [
 
 export function SubscriptionSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selected, setSelected] = useState("monthly");
+  const currentSearch = searchParams.toString();
+  const returnTo = `${pathname}${currentSearch ? `?${currentSearch}` : ""}`;
 
   return (
     <AnimatePresence>
@@ -89,7 +93,7 @@ export function SubscriptionSheet({ isOpen, onClose }: { isOpen: boolean; onClos
             <BashiriButton
               size="lg"
               fullWidth
-              onClick={() => router.push(`/subscribe?plan=${selected}`)}
+              onClick={() => router.push(`/subscribe?plan=${selected}&return_to=${encodeURIComponent(returnTo)}`)}
             >
               Lipa kwa M-Pesa →
             </BashiriButton>

@@ -3,6 +3,7 @@ import { BottomNav } from "@/components/navigation/BottomNav";
 import { AuthRequiredSheet } from "@/components/auth/AuthRequiredSheet";
 import { PWAInstallProvider } from "@/components/pwa/PWAInstallProvider";
 import { InstallPromptSheet } from "@/components/pwa/InstallPromptSheet";
+import { CommandPaletteProvider } from "@/components/pulse/CommandPaletteProvider";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   console.log('[TRACE] MainLayout called');
@@ -13,6 +14,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <BottomNav />
         <AuthRequiredSheet />
         <InstallPromptSheet />
+        <CommandPaletteProvider />
       </div>
     </PWAInstallProvider>
   );

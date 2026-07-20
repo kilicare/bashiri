@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FeedContainer } from "@/components/feed/FeedContainer";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { PulseIndicatorButton } from "@/components/pulse/PulseIndicatorButton";
 import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
-import { Bell, Search } from "lucide-react";
+import { Bell } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
@@ -42,17 +43,19 @@ export default function HomePage() {
           type="button"
           aria-label="Open notifications"
           onClick={() => router.push("/notifications")}
-          className="relative grid place-items-center rounded-2xl p-2 transition hover:bg-white/10"
+          className="relative grid place-items-center rounded-2xl p-3 transition-all duration-300 hover:scale-105 hover:bg-white/10 active:scale-95"
+          style={{ background: "linear-gradient(135deg, rgba(192,192,192,0.15), rgba(169,169,169,0.08))", border: "1px solid rgba(192,192,192,0.25)" }}
         >
-          <Bell size={22} style={{ color: "rgba(255,255,255,0.8)" }} />
+          <Bell size={22} style={{ color: "#D4AF37" }} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-5 rounded-full bg-[var(--danger)] text-[10px] font-bold text-white flex items-center justify-center px-1.5">
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-5 rounded-full flex items-center justify-center px-1.5 text-xs font-bold transition-all duration-300 hover:scale-110"
+              style={{ background: "linear-gradient(135deg, var(--danger), #dc2626)", color: "white", boxShadow: "0 0 12px rgba(239,68,68,0.4)" }}>
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
         <h1 className="text-xl font-bold" style={{ color: "var(--brand-accent)" }}>BASHIRI</h1>
-        <Search size={22} style={{ color: "rgba(255,255,255,0.6)" }} />
+        <PulseIndicatorButton />
       </div>
       <HeroCarousel />
       <FeedContainer />
