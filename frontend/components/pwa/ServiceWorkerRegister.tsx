@@ -16,6 +16,8 @@ export function ServiceWorkerRegister() {
         .then((registration) => {
           console.log("[SW] Imesajiliwa:", registration.scope);
 
+          registration.update();
+
           // Wakati toleo jipya la sw.js linapopatikana, sasisha mara moja
           // (skipWaiting + clients.claim ndani ya sw.js vinashughulikia hii)
           registration.addEventListener("updatefound", () => {

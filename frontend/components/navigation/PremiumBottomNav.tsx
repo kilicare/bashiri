@@ -44,6 +44,12 @@ export function PremiumBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const vibrate = () => {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(12);
+    }
+  };
+
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
       <div className="bg-[#050508]/80 backdrop-blur-xl border border-white/10 rounded-[30px] px-4 md:px-6 py-3 md:py-4 shadow-2xl">
@@ -52,6 +58,8 @@ export function PremiumBottomNav() {
             <a
               key={item.id}
               href={item.href}
+              onClick={vibrate}
+              onTouchStart={vibrate}
               className={clsx(
                 "flex flex-col items-center gap-1 transition-all duration-300",
                 pathname === item.href ? "text-white" : "text-white/40 hover:text-white"
@@ -66,7 +74,11 @@ export function PremiumBottomNav() {
 
           {/* Floating Center Button */}
           <button 
-            onClick={() => router.push("/create")}
+            onClick={() => {
+              vibrate();
+              router.push("/create");
+            }}
+            onTouchStart={vibrate}
             className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_40px_rgba(212,175,55,0.5)] transition-all duration-300 -mt-4 md:-mt-8 border-4 border-[#050508]"
             aria-label="Unda ubashiri mpya"
           >

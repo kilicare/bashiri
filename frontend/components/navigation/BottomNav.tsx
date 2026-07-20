@@ -18,6 +18,12 @@ export function BottomNav() {
   const router = useRouter();
   const { requireAuth } = useRequireAuth();
 
+  const vibrate = () => {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(12);
+    }
+  };
+
   function navigate(item: any) {
     if (item.requiresAuth && !requireAuth("Fungua Profile yako — jisajili kwa dakika chache!")) return;
     router.push(item.href);
@@ -29,6 +35,7 @@ export function BottomNav() {
     return (
       <button
         onClick={() => navigate(item)}
+        onTouchStart={vibrate}
         className="group flex flex-col items-center gap-1 px-2 py-1.5 rounded-3xl flex-1 transition-all duration-200"
         style={{
           background: isActive ? "rgba(212,175,55,0.12)" : "transparent",
@@ -60,7 +67,13 @@ export function BottomNav() {
         {LEFT_ITEMS.map((item) => <NavButton key={item.href} item={item} />)}
 
         <motion.button
-          onClick={() => router.push("/create")}
+          onClick={() => {
+            if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+              navigator.vibrate(12);
+            }
+            router.push("/create");
+          }}
+          onTouchStart={vibrate}
           className="w-16 h-16 rounded-[26px] flex items-center justify-center -mt-7 mx-2 shrink-0"
           style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))", boxShadow: "0 14px 32px rgba(212,175,55,0.22)" }}
           whileTap={{ scale: 0.94 }}
