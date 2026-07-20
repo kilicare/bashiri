@@ -108,12 +108,12 @@ def sync_live_and_upcoming_matches():
 
     for match in candidates:
         url = f"{base_url}/matches/{match.external_id}"
-        resp = requests.get(url, headers=headers, timeout=10)
+        resp = requests.get(url, headers=headers, timeout=20)
 
         if resp.status_code == 429:
             logger.warning("Rate limited kwenye quick sync, tunasubiri sekunde 60...")
             time.sleep(60)
-            resp = requests.get(url, headers=headers, timeout=10)
+            resp = requests.get(url, headers=headers, timeout=20)
 
         if resp.status_code != 200:
             logger.warning(f"Quick sync: error {resp.status_code} kwa match #{match.id}")
@@ -187,12 +187,12 @@ def sync_recently_finished_matches():
 
     for match in candidates:
         url = f"{base_url}/matches/{match.external_id}"
-        resp = requests.get(url, headers=headers, timeout=10)
+        resp = requests.get(url, headers=headers, timeout=20)
 
         if resp.status_code == 429:
             logger.warning("Rate limited kwenye finished matches sync, tunasubiri sekunde 60...")
             time.sleep(60)
-            resp = requests.get(url, headers=headers, timeout=10)
+            resp = requests.get(url, headers=headers, timeout=20)
 
         if resp.status_code != 200:
             logger.warning(f"Finished sync: error {resp.status_code} kwa match #{match.id}")

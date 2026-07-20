@@ -1,13 +1,14 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X } from "lucide-react";
+import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X, Flame, Sparkles, Power } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { PremiumButton } from "@/components/ui/Button";
 import { PremiumCard, GlassCard } from "@/components/ui/GlassCard";
 import { PremiumBadge } from "@/components/ui/Badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { updateAvatar, completeProfile } from "@/lib/api/auth";
+import { getAIPerformanceStats } from "@/lib/api/predictions";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -18,6 +19,23 @@ export default function ProfilePage() {
   const [editUsername, setEditUsername] = useState("");
   const [editDob, setEditDob] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [aiPerformance, setAiPerformance] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(true);
+
+  useEffect(() => {
+    fetchAIPerformance();
+  }, []);
+
+  async function fetchAIPerformance() {
+    try {
+      const data = await getAIPerformanceStats();
+      setAiPerformance(data);
+    } catch (error) {
+      console.error("Failed to fetch AI performance:", error);
+    } finally {
+      setLoadingAI(false);
+    }
+  }
 
   if (!user) return null;
 
@@ -86,11 +104,40 @@ export default function ProfilePage() {
     setEditingProfile(true);
   }
 
-  const STATS = [
-    { label: "Usahihi", value: `${user?.accuracy_percentage}%`, icon: <Target size={20} />, color: "from-[var(--success)]/20 to-[var(--success)]/10 border-[var(--success)]/30 text-[var(--success)]" },
-    { label: "Sahihi", value: user?.correct_predictions || 0, icon: <TrendingUp size={20} />, color: "from-[var(--brand-primary)]/20 to-[var(--brand-accent)]/10 border-[var(--brand-primary)]/30 text-[var(--brand-primary)]" },
-    { label: "Jumla", value: user?.total_predictions || 0, icon: <Zap size={20} />, color: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400" },
-    { label: "Streak", value: user?.current_streak || 0, icon: <Award size={20} />, color: "from-red-500/20 to-red-600/10 border-red-500/30 text-red-400" },
+  const STATS = loadingAI ? [
+    { label: "Usahihi", value: "Loading...", icon: <Target size={20} />, color: "from-[var(--success)]/20 to-[var(--success)]/10 border-[var(--success)]/30 text-[var(--success)]", subtitle: "" },
+    { label: "Sahihi", value: "Loading...", icon: <TrendingUp size={20} />, color: "from-[var(--brand-primary)]/20 to-[var(--brand-accent)]/10 border-[var(--brand-primary)]/30 text-[var(--brand-primary)]", subtitle: "" },
+    { label: "Jumla", value: "Loading...", icon: <Zap size={20} />, color: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400", subtitle: "" },
+    { label: "Streak", value: "Loading...", icon: <Flame size={20} />, color: "from-red-500/20 to-red-600/10 border-red-500/30 text-red-400", subtitle: "" },
+  ] : [
+    { 
+      label: "Usahihi (Wiki)", 
+      value: `${aiPerformance?.weekly?.accuracy_percentage || 0}%`, 
+      icon: <Sparkles size={20} />, 
+      color: "from-[var(--success)]/20 to-[var(--success)]/10 border-[var(--success)]/30 text-[var(--success)]",
+      subtitle: "AI Performance"
+    },
+    { 
+      label: "Sahihi", 
+      value: aiPerformance?.weekly?.correct_predictions || 0, 
+      icon: <TrendingUp size={20} />, 
+      color: "from-[var(--brand-primary)]/20 to-[var(--brand-accent)]/10 border-[var(--brand-primary)]/30 text-[var(--brand-primary)]",
+      subtitle: "Weekly Correct"
+    },
+    { 
+      label: "Jumla", 
+      value: aiPerformance?.weekly?.total_predictions || 0, 
+      icon: <Zap size={20} />, 
+      color: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400",
+      subtitle: "Weekly Predictions"
+    },
+    { 
+      label: "Usahihi (Leo)", 
+      value: `${aiPerformance?.daily?.accuracy_percentage || 0}%`, 
+      icon: <Flame size={20} />, 
+      color: "from-red-500/20 to-red-600/10 border-red-500/30 text-red-400",
+      subtitle: "Today's Accuracy"
+    },
   ];
 
   return (
@@ -116,6 +163,14 @@ export default function ProfilePage() {
             className="w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
           >
             <Share2 size={18} />
+          </motion.button>
+          <motion.button
+            onClick={() => { logout(); router.push("/login"); }}
+            whileTap={{ scale: 0.9 }}
+            className="w-10 h-10 rounded-xl bg-red-500/20 backdrop-blur-sm flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+            title="Toka"
+          >
+            <Power size={18} />
           </motion.button>
         </div>
       </div>
@@ -196,22 +251,66 @@ export default function ProfilePage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 px-5 py-4">
-        {STATS.map((stat) => (
+      <div className="px-5 py-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles size={16} className="text-[var(--brand-primary)]" />
+          <span className="text-sm font-bold text-white/80">AI Performance Stats</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {STATS.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index }}
+              className={`rounded-2xl p-4 backdrop-blur-sm border cursor-pointer group transition-all duration-300 hover:scale-105 ${stat.color}`}
+              whileTap={{ scale: 0.97 }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                {stat.icon}
+                <span className="text-xs text-white/60">{stat.label}</span>
+              </div>
+              <p className="text-2xl font-black text-white">
+                {stat.value}
+              </p>
+              {stat.subtitle && (
+                <p className="text-xs text-white/40 mt-1">{stat.subtitle}</p>
+              )}
+            </motion.div>
+          ))}
+        </div>
+        
+        {/* Weekly Trend Mini Chart */}
+        {!loadingAI && aiPerformance?.weekly_trend && aiPerformance.weekly_trend.length > 0 && (
           <motion.div
-            key={stat.label}
-            className={`rounded-2xl p-4 backdrop-blur-sm border cursor-pointer group transition-all duration-300 hover:scale-105 ${stat.color}`}
-            whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-4 rounded-2xl p-4 backdrop-blur-sm border border-white/10 bg-white/5"
           >
-            <div className="flex items-center gap-2 mb-2">
-              {stat.icon}
-              <span className="text-xs text-white/60">{stat.label}</span>
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 size={16} className="text-[var(--brand-primary)]" />
+              <span className="text-xs text-white/60">Weekly Trend</span>
             </div>
-            <p className="text-2xl font-black text-white">
-              {stat.value}
-            </p>
+            <div className="flex items-end gap-2 h-16">
+              {aiPerformance.weekly_trend.map((day: any, index: number) => {
+                const height = Math.max(10, (day.accuracy_percentage / 100) * 60);
+                const isToday = index === aiPerformance.weekly_trend.length - 1;
+                return (
+                  <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
+                    <div 
+                      className={`w-full rounded-t-sm transition-all duration-300 ${isToday ? 'bg-[var(--brand-primary)]' : 'bg-white/20'}`}
+                      style={{ height: `${height}px` }}
+                    />
+                    <span className="text-xs text-white/40">
+                      {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </motion.div>
-        ))}
+        )}
       </div>
 
       {/* Quick Actions */}
@@ -276,24 +375,6 @@ export default function ProfilePage() {
             </button>
           </motion.div>
         )}
-
-        {/* Logout Button */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <PremiumButton 
-            variant="outline" 
-            size="lg" 
-            fullWidth 
-            onClick={() => { logout(); router.push("/login"); }}
-            className="border-red-500/30 text-red-400 hover:bg-red-500/10 !rounded-2xl"
-          >
-            <LogOut size={20} />
-            Toka
-          </PremiumButton>
-        </motion.div>
       </div>
 
       {/* Profile Edit Modal */}

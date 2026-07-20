@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (
-    ActiveDerbyView, AITrackRecordView, FixturesView, LeagueListView, LiveMatchesView,
+    ActiveDerbyView, AITrackRecordView, AIPerformanceStatsView, FixturesView, LeagueListView, LiveMatchesView,
     MatchAnalysisView, MatchDashboardView, MatchOverviewView, SavedMatchesListView,
     SaveMatchView, SearchView, TeamListView, FinishedMatchesView,
 )
@@ -14,6 +14,7 @@ urlpatterns = [
     path("teams/", TeamListView.as_view(), name="team-list"),
     path("active-derby/", ActiveDerbyView.as_view(), name="active-derby"),
     path("ai-track-record/", AITrackRecordView.as_view(), name="ai-track-record"),
+    path("ai-performance/", AIPerformanceStatsView.as_view(), name="ai-performance"),
     path("matches/<int:match_id>/overview/", MatchOverviewView.as_view(), name="match-overview"),
     path("matches/<int:match_id>/dashboard/", MatchDashboardView.as_view(), name="match-dashboard"),
     path("matches/<int:match_id>/analysis/", MatchAnalysisView.as_view(), name="match-analysis"),

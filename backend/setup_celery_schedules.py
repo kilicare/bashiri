@@ -62,7 +62,7 @@ make_interval_task_seconds("Update Live Match Cards", "feed.tasks.update_live_ma
 make_task("Generate Weekly Report", "feed.tasks.generate_weekly_report", {"minute": "0", "hour": "20", "day_of_week": "0"})
 make_task("Generate Did You Know Cards", "feed.tasks.generate_did_you_know_cards", {"minute": "30", "hour": "5"})
 make_task("Close Expired Debates", "feed.tasks.close_expired_debates", {"minute": "0", "hour": "*"})
-make_interval_task("Deactivate Finished Live Cards", "feed.tasks.deactivate_finished_live_cards", 5)
+make_interval_task("Deactivate Finished Live Cards", "feed.tasks.deactivate_finished_live_cards", 1)
 
 # Notifications
 make_task("Notify Daily Picks", "notifications.tasks.notify_daily_picks", {"minute": "0", "hour": "7"})

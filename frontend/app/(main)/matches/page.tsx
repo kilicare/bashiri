@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getFixtures, getLiveMatches, getFinishedMatches, searchMatches, Match } from "@/lib/api/predictions";
-import { Search } from "lucide-react";
+import { getFixtures, getLiveMatches, getFinishedMatches, searchMatches, Match, getLeagues, League } from "@/lib/api/predictions";
+import { Search, ChevronDown } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
 
 function formatMatchDate(kickoffAt: string): string {
   const date = new Date(kickoffAt);
@@ -25,31 +27,53 @@ export default function MatchesPage() {
   const [query, setQuery] = useState("");
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [useDateInSearch, setUseDateInSearch] = useState(false);
+  const [selectedLeague, setSelectedLeague] = useState<string>("");
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
+
+  useEffect(() => {
+    getLeagues().then(setLeagues);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     setOffset(0);
     if (tab === "fixtures") {
-      getFixtures().then((data) => { setMatches(data); setLoading(false); });
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      getFixtures(dateStr).then((data) => { 
+        const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+        setMatches(filtered); 
+        setLoading(false); 
+      });
     } else if (tab === "live") {
-      getLiveMatches().then((data) => { setMatches(data); setLoading(false); });
+      getLiveMatches().then((data) => { 
+        const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+        setMatches(filtered); 
+        setLoading(false); 
+      });
     } else if (tab === "finished") {
-      getFinishedMatches(20, 0).then((data) => {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      getFinishedMatches(20, 0, selectedLeague || undefined, undefined, dateStr).then((data) => {
         setMatches(data.results);
         setHasMore(data.count > 20);
         setLoading(false);
       });
     }
-  }, [tab]);
+  }, [tab, selectedDate, selectedLeague]);
 
   // Poll live matches every 15 seconds when on live tab
   useEffect(() => {
     if (tab !== "live") return;
     const interval = setInterval(() => {
-      getLiveMatches().then((data) => { setMatches(data); });
+      getLiveMatches().then((data) => { 
+        const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+        setMatches(filtered); 
+      });
     }, 15000);
     return () => clearInterval(interval);
-  }, [tab]);
+  }, [tab, selectedLeague]);
 
   async function loadMoreFinished() {
     const newOffset = offset + 20;
@@ -62,7 +86,8 @@ export default function MatchesPage() {
   async function handleSearch(q: string) {
     setQuery(q);
     if (q.length < 2) return;
-    const data = await searchMatches(q);
+    const dateStr = useDateInSearch ? format(selectedDate, 'yyyy-MM-dd') : undefined;
+    const data = await searchMatches(q, dateStr, selectedLeague || undefined);
     setMatches(data.results);
   }
 
@@ -78,7 +103,65 @@ export default function MatchesPage() {
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
           />
+          {/* Date filter toggle for search */}
+          <button
+            onClick={() => setUseDateInSearch(!useDateInSearch)}
+            className="px-3 py-1.5 rounded-full text-xs font-bold transition-colors"
+            style={{ 
+              background: useDateInSearch ? "var(--brand-accent)" : "rgba(255,255,255,0.06)", 
+              color: useDateInSearch ? "#000" : "rgba(255,255,255,0.5)" 
+            }}
+          >
+            {useDateInSearch ? "Date: ON" : "Date: OFF"}
+          </button>
         </div>
+        
+        {/* Date picker for fixtures and finished tabs */}
+        {(tab === "fixtures" || tab === "finished") && (
+          <div className="mb-4">
+            <DatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+          </div>
+        )}
+
+        {/* League filter dropdown */}
+        <div className="mb-4 relative">
+          <button
+            onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl"
+            style={{ background: "#151515" }}
+          >
+            <span className="text-sm font-bold text-white">
+              {selectedLeague ? leagues.find(l => l.code === selectedLeague)?.name : "All Leagues"}
+            </span>
+            <ChevronDown size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
+          </button>
+          
+          {showLeagueDropdown && (
+            <div className="absolute top-full left-0 right-0 mt-2 p-2 rounded-2xl z-50 max-h-60 overflow-y-auto"
+                 style={{ background: "#151515", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <button
+                onClick={() => { setSelectedLeague(""); setShowLeagueDropdown(false); }}
+                className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-white/5 transition-colors"
+              >
+                All Leagues
+              </button>
+              {leagues.map((league) => (
+                <button
+                  key={league.code}
+                  onClick={() => { setSelectedLeague(league.code); setShowLeagueDropdown(false); }}
+                  className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+                  style={{ 
+                    color: selectedLeague === league.code ? "var(--brand-accent)" : "rgba(255,255,255,0.6)",
+                    background: selectedLeague === league.code ? "rgba(207,175,123,0.1)" : "transparent"
+                  }}
+                >
+                  {league.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        
         <div className="flex gap-2 flex-wrap">
           {(["fixtures", "live", "finished"] as const).map((t) => (
             <button

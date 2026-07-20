@@ -27,20 +27,25 @@ export interface Match {
   matchday?: number | null;
 }
 
-export function getFixtures() {
-  return apiClient<Match[]>("/predictions/fixtures/", { skipAuth: true });
+export function getFixtures(date?: string) {
+  const query = date ? `?date=${date}` : "";
+  return apiClient<Match[]>(`/predictions/fixtures/${query}`, { skipAuth: true });
 }
 export function getLiveMatches() {
   return apiClient<Match[]>("/predictions/live/", { skipAuth: true });
 }
-export function getFinishedMatches(limit = 20, offset = 0, league?: string, team?: string) {
+export function getFinishedMatches(limit = 20, offset = 0, league?: string, team?: string, date?: string) {
   const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
   if (league) params.append("league", league);
   if (team) params.append("team", team);
+  if (date) params.append("date", date);
   return apiClient<{ count: number; results: Match[] }>(`/predictions/finished/?${params}`, { skipAuth: true });
 }
-export function searchMatches(q: string) {
-  return apiClient<{ results: Match[] }>(`/predictions/search/?q=${encodeURIComponent(q)}`, { skipAuth: true });
+export function searchMatches(q: string, date?: string, league?: string) {
+  const params = new URLSearchParams({ q });
+  if (date) params.append("date", date);
+  if (league) params.append("league", league);
+  return apiClient<{ results: Match[] }>(`/predictions/search/?${params}`, { skipAuth: true });
 }
 export function getMatchOverview(matchId: number) {
   return apiClient<{
@@ -134,4 +139,45 @@ export interface AITrackRecord {
 export function getAITrackRecord(league?: string) {
   const q = league ? `?league=${league}` : "";
   return apiClient<AITrackRecord>(`/predictions/ai-track-record/${q}`, { skipAuth: true });
+}
+
+export interface AIPerformanceStats {
+  daily: {
+    accuracy_percentage: number;
+    total_predictions: number;
+    correct_predictions: number;
+    high_confidence_accuracy: number;
+  };
+  weekly: {
+    accuracy_percentage: number;
+    total_predictions: number;
+    correct_predictions: number;
+    high_confidence_accuracy: number;
+  };
+  all_time: {
+    accuracy_percentage: number;
+    total_predictions: number;
+    correct_predictions: number;
+    high_confidence_accuracy: number;
+  };
+  weekly_trend: {
+    date: string;
+    accuracy_percentage: number;
+    total_predictions: number;
+  }[];
+}
+
+export function getAIPerformanceStats() {
+  return apiClient<AIPerformanceStats>("/predictions/ai-performance/", { skipAuth: true });
+}
+
+export interface League {
+  id: number;
+  code: string;
+  name: string;
+  poisson_key: string;
+}
+
+export function getLeagues() {
+  return apiClient<League[]>("/predictions/leagues/", { skipAuth: true });
 }

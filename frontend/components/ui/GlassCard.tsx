@@ -14,7 +14,7 @@ export function GlassCard({ children, className, hover = false, glow = false }: 
       className={clsx(
         "relative rounded-3xl border border-white/10",
         "bg-gradient-to-br from-white/5 to-white/[0.02]",
-        "backdrop-blur-xl",
+        "backdrop-blur-md",
         hover && "hover:from-white/10 hover:to-white/5 hover:border-white/20 hover:scale-[1.02] transition-all duration-300",
         glow && "shadow-[0_0_40px_rgba(207,175,123,0.15)]",
         className

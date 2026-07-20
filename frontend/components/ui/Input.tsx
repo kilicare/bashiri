@@ -25,11 +25,12 @@ export const BashiriInput = forwardRef<HTMLInputElement, Props>(
             ref={ref}
             type={inputType}
             className={clsx(
-              "w-full rounded-2xl px-4 py-3.5 text-white text-base bg-[var(--surface)] border outline-none",
-              error ? "border-[var(--danger)]" : "border-[var(--border)] focus:border-[var(--brand-primary)]",
+              "w-full rounded-2xl px-4 py-3.5 text-white text-base bg-[var(--glass-bg)] border border-[var(--color-gold)] outline-none",
+              error ? "border-[var(--danger)]" : "border-[var(--color-gold)] focus:border-[var(--color-gold)]",
               showPasswordToggle && "pr-12",
               className
             )}
+            style={{ backdropFilter: "blur(20px)", boxShadow: "0 0 20px rgba(245,166,35,0.12)" }}
             {...rest}
           />
           {showPasswordToggle && type === "password" && (

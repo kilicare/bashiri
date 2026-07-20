@@ -1,7 +1,7 @@
 """
 predictions/views.py
 """
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -22,8 +22,41 @@ class FixturesView(APIView):
 
     def get(self, request):
         from django.core.cache import cache
+        from datetime import datetime
 
-        # Cache fixtures for 2 minutes (match schedule changes infrequently)
+        # Get date parameter (format: YYYY-MM-DD)
+        date_str = request.query_params.get("date")
+        
+        if date_str:
+            try:
+                target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                # Get all matches for the specific date (start of day to end of day)
+                from django.utils import timezone
+                start_of_day = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
+                end_of_day = timezone.make_aware(datetime.combine(target_date, datetime.max.time()))
+                
+                cache_key = f"fixtures_list_{date_str}"
+                cached_data = cache.get(cache_key)
+                
+                if cached_data is not None:
+                    return Response(cached_data)
+                
+                matches = (
+                    Match.objects.filter(
+                        kickoff_at__gte=start_of_day,
+                        kickoff_at__lte=end_of_day
+                    )
+                    .select_related("league", "home_team", "away_team")
+                    .order_by("kickoff_at")[:100]
+                )
+                data = MatchListSerializer(matches, many=True).data
+                cache.set(cache_key, data, timeout=300)  # 5 minutes cache for specific date
+                
+                return Response(data)
+            except ValueError:
+                return Response({"detail": "Invalid date format. Use YYYY-MM-DD"}, status=400)
+        
+        # Default: Show fixtures from now onwards (original behavior)
         cache_key = "fixtures_list"
         cached_data = cache.get(cache_key)
         
@@ -70,15 +103,17 @@ class FinishedMatchesView(APIView):
 
     def get(self, request):
         from django.core.cache import cache
+        from datetime import datetime
 
         # Get query params for pagination and filtering
         limit = int(request.query_params.get("limit", 20))
         offset = int(request.query_params.get("offset", 0))
         league_code = request.query_params.get("league", None)
         team_name = request.query_params.get("team", None)
+        date_str = request.query_params.get("date", None)
 
         # Cache key based on filters (shorter cache for filtered queries)
-        cache_key = f"finished_matches_{limit}_{offset}_{league_code or 'all'}_{team_name or 'all'}"
+        cache_key = f"finished_matches_{limit}_{offset}_{league_code or 'all'}_{team_name or 'all'}_{date_str or 'all'}"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
@@ -88,6 +123,16 @@ class FinishedMatchesView(APIView):
         matches = Match.objects.filter(status="FINISHED").select_related(
             "league", "home_team", "away_team"
         )
+
+        # Filter by date if provided
+        if date_str:
+            try:
+                target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                start_of_day = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
+                end_of_day = timezone.make_aware(datetime.combine(target_date, datetime.max.time()))
+                matches = matches.filter(kickoff_at__gte=start_of_day, kickoff_at__lte=end_of_day)
+            except ValueError:
+                return Response({"detail": "Invalid date format. Use YYYY-MM-DD"}, status=400)
 
         # Filter by league if provided
         if league_code:
@@ -168,17 +213,38 @@ class MatchDashboardView(APIView):
 
 
 class SearchView(APIView):
-    """GET /search/?q=... — tafuta mechi kwa jina la timu."""
+    """GET /search/?q=...&date=YYYY-MM-DD — tafuta mechi kwa jina la timu, optionally by date."""
     permission_classes = [AllowAny]
 
     def get(self, request):
+        from datetime import datetime
+
         query = request.query_params.get("q", "").strip()
         if len(query) < 2:
             return Response({"results": []})
 
+        date_str = request.query_params.get("date", None)
+        league_code = request.query_params.get("league", None)
+
         matches = Match.objects.filter(
             Q(home_team__name__icontains=query) | Q(away_team__name__icontains=query)
-        ).select_related("league", "home_team", "away_team").order_by("-kickoff_at")[:20]
+        ).select_related("league", "home_team", "away_team")
+
+        # Filter by date if provided
+        if date_str:
+            try:
+                target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                start_of_day = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
+                end_of_day = timezone.make_aware(datetime.combine(target_date, datetime.max.time()))
+                matches = matches.filter(kickoff_at__gte=start_of_day, kickoff_at__lte=end_of_day)
+            except ValueError:
+                return Response({"detail": "Invalid date format. Use YYYY-MM-DD"}, status=400)
+
+        # Filter by league if provided
+        if league_code:
+            matches = matches.filter(league__code=league_code)
+
+        matches = matches.order_by("-kickoff_at")[:20]
 
         return Response({"results": MatchListSerializer(matches, many=True).data})
 
@@ -340,3 +406,102 @@ class AITrackRecordView(APIView):
             "weekly_trend": data.get("weekly_trend", []),
             "boldest_calls": data.get("boldest_calls", []),
         })
+
+
+class AIPerformanceStatsView(APIView):
+    """GET /ai-performance/ — Daily & Weekly AI accuracy stats kwa profile page."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from django.core.cache import cache
+        from datetime import timedelta
+        from .models import AIPerformance
+        from feed.models import Card
+
+        # Cache for 5 minutes
+        cache_key = "ai_performance_stats"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
+        today = timezone.localdate()
+        week_ago = today - timedelta(days=7)
+
+        # Daily performance (today)
+        daily_performance = AIPerformance.objects.filter(date=today).first()
+        daily_stats = {
+            "accuracy_percentage": daily_performance.accuracy_percentage if daily_performance else 0.0,
+            "total_predictions": daily_performance.total_predictions if daily_performance else 0,
+            "correct_predictions": daily_performance.correct_predictions if daily_performance else 0,
+            "high_confidence_accuracy": daily_performance.high_confidence_accuracy if daily_performance else 0.0,
+        }
+
+        # Weekly performance (last 7 days)
+        weekly_performances = AIPerformance.objects.filter(date__gte=week_ago, date__lte=today)
+        weekly_total = weekly_performances.aggregate(
+            total_predictions=Sum('total_predictions'),
+            correct_predictions=Sum('correct_predictions'),
+            high_conf_predictions=Sum('high_confidence_predictions'),
+            high_conf_correct=Sum('high_confidence_correct')
+        )
+
+        weekly_total_predictions = weekly_total['total_predictions'] or 0
+        weekly_correct = weekly_total['correct_predictions'] or 0
+        weekly_high_conf = weekly_total['high_conf_predictions'] or 0
+        weekly_high_conf_correct = weekly_total['high_conf_correct'] or 0
+
+        weekly_accuracy = round((weekly_correct / weekly_total_predictions) * 100, 1) if weekly_total_predictions > 0 else 0.0
+        weekly_high_conf_accuracy = round((weekly_high_conf_correct / weekly_high_conf) * 100, 1) if weekly_high_conf > 0 else 0.0
+
+        weekly_stats = {
+            "accuracy_percentage": weekly_accuracy,
+            "total_predictions": weekly_total_predictions,
+            "correct_predictions": weekly_correct,
+            "high_confidence_accuracy": weekly_high_conf_accuracy,
+        }
+
+        # All-time performance
+        all_time_performances = AIPerformance.objects.all()
+        all_time_total = all_time_performances.aggregate(
+            total_predictions=Sum('total_predictions'),
+            correct_predictions=Sum('correct_predictions'),
+            high_conf_predictions=Sum('high_confidence_predictions'),
+            high_conf_correct=Sum('high_confidence_correct')
+        )
+
+        all_time_total_predictions = all_time_total['total_predictions'] or 0
+        all_time_correct = all_time_total['correct_predictions'] or 0
+        all_time_high_conf = all_time_total['high_conf_predictions'] or 0
+        all_time_high_conf_correct = all_time_total['high_conf_correct'] or 0
+
+        all_time_accuracy = round((all_time_correct / all_time_total_predictions) * 100, 1) if all_time_total_predictions > 0 else 0.0
+        all_time_high_conf_accuracy = round((all_time_high_conf_correct / all_time_high_conf) * 100, 1) if all_time_high_conf > 0 else 0.0
+
+        all_time_stats = {
+            "accuracy_percentage": all_time_accuracy,
+            "total_predictions": all_time_total_predictions,
+            "correct_predictions": all_time_correct,
+            "high_confidence_accuracy": all_time_high_conf_accuracy,
+        }
+
+        # Weekly trend (last 7 days daily accuracy)
+        weekly_trend = []
+        for i in range(7):
+            date = today - timedelta(days=i)
+            perf = AIPerformance.objects.filter(date=date).first()
+            if perf:
+                weekly_trend.append({
+                    "date": date.isoformat(),
+                    "accuracy_percentage": perf.accuracy_percentage,
+                    "total_predictions": perf.total_predictions,
+                })
+
+        data = {
+            "daily": daily_stats,
+            "weekly": weekly_stats,
+            "all_time": all_time_stats,
+            "weekly_trend": list(reversed(weekly_trend)),
+        }
+
+        cache.set(cache_key, data, timeout=300)  # 5 minutes cache
+        return Response(data)

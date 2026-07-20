@@ -54,8 +54,8 @@ export function HeroCarousel() {
   const slide = slides[index];
 
   return (
-    <div className="px-4 pt-2 pb-4">
-      <div className="relative w-full h-60 sm:h-64 md:h-72 rounded-3xl overflow-hidden" style={{ background: "#111111" }}>
+    <div className="px-3 pt-2 pb-4">
+      <div className="relative w-full h-72 sm:h-80 md:h-96 rounded-3xl overflow-hidden" style={{ background: "#111111" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}

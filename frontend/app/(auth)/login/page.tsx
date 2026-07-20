@@ -4,11 +4,14 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BashiriButton } from "@/components/ui/Button";
 import { BashiriInput } from "@/components/ui/Input";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { register, login } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth.store";
 import { consumeReturnTo } from "@/lib/return-to";
 
 type Tab = "login" | "register";
+
+const isPhoneValid = (value: string) => /^\+255\d{9}$/.test(value);
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,13 +29,24 @@ export default function LoginPage() {
 
   async function handleLogin() {
     setError("");
+
+    if (!isPhoneValid(phone)) {
+      setError("Namba ya simu si sahihi. Andika kwa muundo +255712345678");
+      return;
+    }
+
+    if (!password) {
+      setError("Weka password yako ili kuingia");
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await login(phone, password);
       setSession(data.access, data.refresh, data.user);
       router.push(consumeReturnTo() || "/home");
     } catch (e: any) {
-      setError(e.message);
+      setError(e.message || "Hitilafu wakati wa kuingia");
     } finally {
       setLoading(false);
     }
@@ -41,8 +55,8 @@ export default function LoginPage() {
   function handleNextStep() {
     setError("");
     if (registerStep === 1) {
-      if (!phone || !username || !dob) {
-        setError("Tafadhali jaza sehemu zote");
+      if (!isPhoneValid(phone) || !username || !dob) {
+        setError("Tafadhali jaza sehemu zote na weka namba sahihi ya simu");
         return;
       }
       setRegisterStep(2);
@@ -56,6 +70,22 @@ export default function LoginPage() {
 
   async function handleRegister() {
     setError("");
+
+    if (!password || !confirmPassword) {
+      setError("Weka password na hakikisha umeirudia");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Password hazilingani");
+      return;
+    }
+
+    if (password.length < 4) {
+      setError("Password inapaswa kuwa na angalau herufi 4");
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await register({
@@ -68,7 +98,7 @@ export default function LoginPage() {
       setSession(data.access, data.refresh, data.user);
       router.push(consumeReturnTo() || "/onboarding");
     } catch (e: any) {
-      setError(e.message);
+      setError(e.message || "Hitilafu wakati wa kusajili");
     } finally {
       setLoading(false);
     }
@@ -101,13 +131,7 @@ export default function LoginPage() {
       {tab === "login" && (
         <div className="space-y-4">
           <h1 className="text-xl font-black text-white">Karibu Tena</h1>
-          <BashiriInput
-            label="Namba ya Simu"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+255712345678"
-          />
+          <PhoneInput label="Namba ya Simu" value={phone} onChange={setPhone} />
           <BashiriInput
             label="Password"
             type="password"
@@ -168,13 +192,7 @@ export default function LoginPage() {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-4"
             >
-              <BashiriInput
-                label="Namba ya Simu"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+255712345678"
-              />
+                  <PhoneInput label="Namba ya Simu" value={phone} onChange={setPhone} />
               <BashiriInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="mfano: lastmateru" />
               <BashiriInput label="Tarehe ya Kuzaliwa" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
               {error && <p className="text-xs text-bashiri-red">{error}</p>}

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { BashiriButton } from "@/components/ui/Button";
-import { BashiriInput } from "@/components/ui/Input";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { requestPasswordReset } from "@/lib/api/auth";
 
 export default function ForgotPasswordPage() {
@@ -54,13 +54,7 @@ export default function ForgotPasswordPage() {
             Weka namba yako ya simu. Kwa sababu hatuna huduma ya SMS/Email ya moja kwa moja
             kwa sasa, timu yetu itakupigia/kukutumia ujumbe kukusaidia kwa mkono.
           </p>
-          <BashiriInput
-            label="Namba ya Simu"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+255712345678"
-          />
+          <PhoneInput label="Namba ya Simu" value={phone} onChange={setPhone} />
           <textarea
             className="w-full rounded-2xl px-4 py-3 text-sm text-white bg-[#151515] outline-none"
             placeholder="Maelezo ya ziada (hiari) — mfano: 'Sikumbuki password yangu tangu wiki iliyopita'"

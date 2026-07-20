@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import clsx from "clsx";
+import { cloudinaryUrl } from "@/lib/cloudinary";
 import { LeagueCard } from "@/components/onboarding/LeagueCard";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { saveOnboardingPreferences } from "@/lib/api/auth";
 import { getLeagues, getTeams } from "@/lib/api/settings";
 import { useAuthStore } from "@/stores/auth.store";
@@ -216,20 +219,36 @@ export default function OnboardingPage() {
                       {(teamsByLeague[league.id] || []).map((team) => {
                         const isSelected = selectedTeams.has(team.id);
                         return (
-                          <button
+                          <GlassCard
                             key={team.id}
-                            onClick={() => toggleTeam(team.id)}
-                            className="rounded-2xl p-3 flex items-center gap-2 text-left"
-                            style={{
-                              background: isSelected ? "rgba(0,255,135,0.1)" : "#111111",
-                              border: isSelected ? "1px solid #00FF87" : "1px solid rgba(255,255,255,0.06)",
-                            }}
-                          >
-                            <span className="text-xs font-bold text-white flex-1 truncate">{team.name}</span>
-                            {isSelected && (
-                              <span className="text-[var(--brand-accent)] font-bold text-xs">✓</span>
+                            hover
+                            glow={isSelected}
+                            className={clsx(
+                              "cursor-pointer p-3 transition-all",
+                              isSelected
+                                ? "border-cyan-400/70 bg-cyan-500/10 shadow-[0_0_30px_rgba(45,212,255,0.16)]"
+                                : "border-white/10 hover:border-cyan-400/30 hover:shadow-[0_0_20px_rgba(45,212,255,0.08)]"
                             )}
-                          </button>
+                          >
+                            <button
+                              type="button"
+                              onClick={() => toggleTeam(team.id)}
+                              className="w-full text-left"
+                              style={{
+                                background: "transparent",
+                                padding: 0,
+                              }}
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs font-bold text-white truncate">{team.name}</span>
+                                {isSelected ? (
+                                  <span className="text-cyan-300 font-bold text-xs">✓</span>
+                                ) : (
+                                  <span className="text-cyan-200 text-xs">Select</span>
+                                )}
+                              </div>
+                            </button>
+                          </GlassCard>
                         );
                       })}
                     </div>

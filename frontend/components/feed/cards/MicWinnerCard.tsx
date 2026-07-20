@@ -6,6 +6,7 @@ import { useState } from "react";
 export function MicWinnerCard({ cardId, data }: { cardId: number; data: any }) {
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
+  const [hasVideoError, setHasVideoError] = useState(false);
 
   if (!data.winner) return null;
 
@@ -49,7 +50,19 @@ export function MicWinnerCard({ cardId, data }: { cardId: number; data: any }) {
 
       {/* Video Preview - Responsive */}
       <div className="relative aspect-video bg-black mx-3 sm:mx-4 rounded-2xl overflow-hidden">
-        {winner.thumbnail_url && !imageError ? (
+        {winner.video_url && !hasVideoError ? (
+          <video
+            src={winner.video_url}
+            poster={winner.thumbnail_url}
+            muted
+            autoPlay
+            loop
+            playsInline
+            preload="metadata"
+            className="w-full h-full object-cover"
+            onError={() => setHasVideoError(true)}
+          />
+        ) : winner.thumbnail_url && !imageError ? (
           <img 
             src={winner.thumbnail_url} 
             alt="Winner video" 
