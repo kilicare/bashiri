@@ -37,28 +37,32 @@ export default function HomePage() {
   }, [user]);
 
   return (
-    <div>
-      <div className="flex items-center justify-between px-5 pt-safe pt-6 pb-2">
-        <button
-          type="button"
-          aria-label="Open notifications"
-          onClick={() => router.push("/notifications")}
-          className="relative grid place-items-center rounded-2xl p-3 transition-all duration-300 hover:scale-105 hover:bg-white/10 active:scale-95"
-          style={{ background: "linear-gradient(135deg, rgba(192,192,192,0.15), rgba(169,169,169,0.08))", border: "1px solid rgba(192,192,192,0.25)" }}
-        >
-          <Bell size={22} style={{ color: "#D4AF37" }} />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[20px] h-5 rounded-full flex items-center justify-center px-1.5 text-xs font-bold transition-all duration-300 hover:scale-110"
-              style={{ background: "linear-gradient(135deg, var(--danger), #dc2626)", color: "white", boxShadow: "0 0 12px rgba(239,68,68,0.4)" }}>
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </button>
-        <h1 className="text-xl font-bold" style={{ color: "var(--brand-accent)" }}>BASHIRI</h1>
-        <PulseIndicatorButton />
+    <div className="min-h-dvh pb-safe" style={{ background: "var(--background)" }}>
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between pt-safe pt-8 pb-6">
+          <button
+            type="button"
+            aria-label="Open notifications"
+            onClick={() => router.push("/notifications")}
+            className="relative grid place-items-center rounded-2xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.1)" }}
+          >
+            <Bell size={24} style={{ color: "var(--brand-primary)" }} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] rounded-full flex items-center justify-center px-1.5 text-xs font-bold transition-all duration-300 hover:scale-110"
+                style={{ background: "var(--danger)", color: "var(--text-primary)", boxShadow: "0 0 16px var(--danger)" }}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--brand-accent)", letterSpacing: "-0.02em" }}>BASHIRI</h1>
+          <PulseIndicatorButton />
+        </div>
+        <div className="pb-8">
+          <HeroCarousel />
+        </div>
+        <FeedContainer />
       </div>
-      <HeroCarousel />
-      <FeedContainer />
     </div>
   );
 }

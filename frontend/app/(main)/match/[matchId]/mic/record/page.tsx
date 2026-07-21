@@ -75,13 +75,18 @@ export default function MicRecordPage() {
     setUploadError("");
     
     try {
-      // Simulate upload progress
+      // Simulate upload progress from 0 to 100
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
+        setUploadProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(progressInterval);
+            return 100;
+          }
+          return prev + 5;
+        });
       }, 200);
 
       const sig = await getUploadSignature();
-      setUploadProgress(90);
       
       const { secure_url, duration: uploadedDuration } = await uploadVideoToCloudinary(selectedFile, sig);
       

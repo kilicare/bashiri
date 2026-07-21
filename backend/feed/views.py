@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import Card, PollVote
 from .ranking import rank_cards
@@ -15,6 +16,10 @@ from .serializers import CardSerializer, PollVoteSerializer
 
 FEED_WINDOW_DAYS = 3
 MAX_FEED_ITEMS = 200
+
+
+class NoThrottle(AnonRateThrottle):
+    rate = '10000/hour'  # effectively unlimited for feed endpoints
 
 
 class FeedListView(APIView):
@@ -95,3 +100,20 @@ class DebateVoteView(APIView):
         card.save(update_fields=["data"])
 
         return Response(PollVoteSerializer(vote).data, status=status.HTTP_201_CREATED)
+
+
+class DebateListView(APIView):
+    """GET /api/feed/debates/?status=open|closed — archive KAMILI ya Debate cards, si Feed rotation."""
+    permission_classes = [AllowAny]
+    throttle_classes = [NoThrottle]
+
+    def get(self, request):
+        qs = Card.objects.filter(type="DEBATE", is_active=True).order_by("-created_at")
+
+        status_filter = request.query_params.get("status")
+        if status_filter == "open":
+            qs = qs.filter(data__is_closed=False)
+        elif status_filter == "closed":
+            qs = qs.filter(data__is_closed=True)
+
+        return Response(CardSerializer(qs[:100], many=True).data)

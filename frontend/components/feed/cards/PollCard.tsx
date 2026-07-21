@@ -54,9 +54,13 @@ export function PollCard({ cardId, data }: { cardId: number; data: any }) {
   console.log("Render state:", { voted, tallies, total });
 
   return (
-    <div className="rounded-3xl p-5" style={{ background: "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(207,175,123,0.1))", border: "1px solid rgba(212,175,55,0.26)" }}>
-      <span className="text-[10px] font-medium uppercase tracking-widest mb-3 block" style={{ color: "var(--warning)" }}>Poll</span>
-      <p className="text-sm font-semibold text-white mb-4">{data.question}</p>
+    <div className="rounded-3xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg" style={{ 
+      background: "linear-gradient(135deg, rgba(212,175,55,0.08), rgba(207,175,123,0.04))", 
+      border: "1px solid rgba(212,175,55,0.15)",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 1px rgba(212,175,55,0.1)"
+    }}>
+      <span className="text-[10px] font-medium uppercase tracking-wider mb-3 block" style={{ color: "var(--warning)" }}>Poll</span>
+      <p className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>{data.question}</p>
 
       {error && (
         <p className="text-xs mb-3" style={{ color: "var(--danger)" }}>{error}</p>
@@ -67,9 +71,9 @@ export function PollCard({ cardId, data }: { cardId: number; data: any }) {
           const count = tallies[opt] || 0;
           const pct = total > 0 ? count / total : 0;
           return (
-            <button key={opt} onClick={() => handleVote(opt)} className="w-full text-left" disabled={voted}>
+            <button key={opt} onClick={() => handleVote(opt)} className="w-full text-left rounded-xl p-3 transition-all duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[var(--warning)] focus:ring-offset-2 focus:ring-offset-[var(--background)]" style={{ border: "1px solid var(--border)" }} disabled={voted}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-white">{opt}</span>
+                <span className="text-xs" style={{ color: "var(--text-primary)" }}>{opt}</span>
                 {voted && <span className="text-xs font-medium" style={{ color: "var(--success)" }}>{Math.round(pct * 100)}%</span>}
               </div>
               {voted && <ProgressBar value={pct} />}

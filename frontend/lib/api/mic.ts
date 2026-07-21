@@ -93,3 +93,11 @@ export function getFanOfMatch(matchId: number) {
 export function getActiveMicMatches() {
   return apiClient<{ match: Match; reaction_count: number }[]>("/mic/active-matches/", { skipAuth: true });
 }
+
+export function getUserMicReactions() {
+  return apiClient<MicReaction[]>("/mic/my-reactions/");
+}
+
+export function deleteMicReaction(reactionId: number) {
+  return apiClient(`/mic/reactions/${reactionId}/`, { method: "DELETE" });
+}

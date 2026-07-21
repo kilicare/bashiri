@@ -12,7 +12,7 @@ export function ConfidenceBadge({ confidence }: { confidence: number }) {
       className="text-xs font-medium px-3 py-1 rounded-full inline-flex items-center gap-1.5 transition-all duration-300 hover:scale-105"
       style={{ background: bgColor, color, border: `1px solid ${borderColor}` }}
     >
-      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: color }} />
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: color, animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
       {confidence}%
     </span>
   );
@@ -35,8 +35,8 @@ export function PremiumBadge({ children, variant = "gold" }: { children: React.R
 
 export function LiveBadge() {
   return (
-    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--danger)]/20 border border-[var(--danger)]/30 text-[var(--danger)] text-xs font-medium">
-      <span className="w-2 h-2 rounded-full bg-[var(--danger)] animate-pulse" />
+    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-300" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "var(--danger)" }}>
+      <span className="w-2 h-2 rounded-full" style={{ background: "var(--danger)", animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
       LIVE
     </span>
   );

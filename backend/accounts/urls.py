@@ -14,6 +14,7 @@ from .views import (
     LogoutView,
     MeView,
     OnboardingView,
+    PublicProfileView,
     RegisterView,
     RequestPasswordResetView,
     UpdateAvatarView,
@@ -33,6 +34,7 @@ urlpatterns = [
     path("onboarding/", OnboardingView.as_view(), name="onboarding"),
     path("settings/", UpdateSettingsView.as_view(), name="update-settings"),
     path("update-avatar/", UpdateAvatarView.as_view(), name="update-avatar"),
+    path("profile/<str:username>/", PublicProfileView.as_view(), name="public-profile"),
 
     # ============================================================
     # OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)

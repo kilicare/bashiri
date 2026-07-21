@@ -4,6 +4,7 @@ import { apiClient } from "@/lib/api/client";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Flame } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { motion } from "framer-motion";
 
 function useCountdown(target: string) {
   const [text, setText] = useState("");
@@ -54,14 +55,23 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
   }
 
   return (
-    <div className="rounded-3xl p-5" style={{ background: "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(207,175,123,0.08)), #111116", border: "1px solid rgba(212,175,55,0.22)" }}>
-      <div className="flex items-center gap-2 mb-3">
-        <Flame size={14} style={{ color: "var(--brand-accent)" }} />
-        <span className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--brand-accent)" }}>Debate</span>
-        {!isClosed && <span className="ml-auto text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>Closes in {countdown}</span>}
+    <div className="rounded-3xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg" style={{ 
+      background: "linear-gradient(135deg, rgba(212,175,55,0.08), rgba(207,175,123,0.04), var(--surface))", 
+      border: "1px solid rgba(212,175,55,0.15)",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 1px rgba(212,175,55,0.1)"
+    }}>
+      <div className="flex items-center gap-2 mb-4">
+        <motion.div
+          animate={{ rotate: [-5, 5, -5] }}
+          transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+        >
+          <Flame size={14} style={{ color: "var(--brand-accent)" }} />
+        </motion.div>
+        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--brand-accent)" }}>Debate</span>
+        {!isClosed && <span className="ml-auto text-[10px]" style={{ color: "var(--text-secondary)" }}>Closes in {countdown}</span>}
       </div>
 
-      <p className="text-base font-semibold text-white mb-4">{data.question}</p>
+      <p className="text-base font-semibold mb-4" style={{ color: "var(--text-primary)" }}>{data.question}</p>
 
       {error && (
         <p className="text-xs mb-3" style={{ color: "var(--danger)" }}>{error}</p>
@@ -76,9 +86,9 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
           
           // Different hover colors for each option
           const hoverColors = [
-            "rgba(239, 68, 68, 0.15)",  // Danger for first option
-            "rgba(207, 175, 123, 0.15)",  // Brand accent for second option
-            "rgba(245, 158, 11, 0.15)",  // Warning for third option
+            "rgba(239, 68, 68, 0.08)",  // Danger for first option
+            "rgba(212, 175, 55, 0.08)",  // Brand accent for second option
+            "rgba(245, 158, 11, 0.08)",  // Warning for third option
           ];
           const hoverColor = hoverColors[idx % hoverColors.length];
           
@@ -86,10 +96,10 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
             <button 
               key={opt} 
               onClick={() => handleVote(opt)} 
-              className="w-full text-left rounded-xl p-3 transition-all duration-200 hover:scale-[1.02]"
+              className="w-full text-left rounded-xl p-3 transition-all duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
               style={{ 
                 background: "transparent",
-                border: "1px solid rgba(255,255,255,0.1)",
+                border: "1px solid var(--border)",
                 opacity: (voted || isClosed) ? 0.7 : 1,
                 cursor: (voted || isClosed) ? "not-allowed" : "pointer"
               }}
@@ -97,16 +107,16 @@ export function DebateCard({ cardId, data }: { cardId: number; data: any }) {
               onMouseEnter={(e) => {
                 if (!(voted || isClosed)) {
                   e.currentTarget.style.background = hoverColor;
-                  e.currentTarget.style.borderColor = hoverColor.replace("0.15", "0.3");
+                  e.currentTarget.style.borderColor = hoverColor.replace("0.08", "0.18");
                 }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                e.currentTarget.style.borderColor = "var(--border)";
               }}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium" style={{ color: isResult ? "var(--success)" : "#fff" }}>
+                <span className="text-sm font-medium" style={{ color: isResult ? "var(--success)" : "var(--text-primary)" }}>
                   {opt} {isResult && "✅"}
                 </span>
                 {showResults && total > 0 && <span className="text-xs font-medium" style={{ color: "var(--brand-accent)" }}>{Math.round(pct * 100)}%</span>}

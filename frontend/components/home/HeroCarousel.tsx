@@ -54,15 +54,18 @@ export function HeroCarousel() {
   const slide = slides[index];
 
   return (
-    <div className="px-3 pt-2 pb-4">
-      <div className="relative w-full h-72 sm:h-80 md:h-96 rounded-3xl overflow-hidden" style={{ background: "#111111" }}>
+    <div className="py-6">
+      <div className="relative w-full h-80 sm:h-96 md:h-[28rem] lg:h-[32rem] rounded-3xl overflow-hidden" style={{ 
+        background: "var(--surface)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 1px var(--border), inset 0 1px 0 var(--border)"
+      }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}
             className="absolute inset-0"
             style={{
               cursor: slide.route ? "pointer" : "default",
-              backgroundImage: `linear-gradient(180deg, rgba(10,10,10,0.1) 30%, rgba(10,10,10,0.92) 100%), url(${slide.image_url})`,
+              backgroundImage: `linear-gradient(180deg, rgba(9,9,11,0.05) 0%, rgba(9,9,11,0.3) 40%, rgba(9,9,11,0.85) 80%, rgba(9,9,11,0.95) 100%), radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.2) 100%), url(${slide.image_url})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
@@ -77,15 +80,19 @@ export function HeroCarousel() {
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="absolute bottom-0 left-0 right-0 p-5">
-              <p className="text-xs font-medium uppercase tracking-widest mb-1" style={{ color: slide.accent_color }}>
+            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 lg:p-12">
+              <p className="text-xs font-medium uppercase tracking-widest mb-4" style={{ color: slide.accent_color, letterSpacing: "0.15em", textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
                 {slide.subtitle}
               </p>
-              <p className="text-xl font-semibold text-white mb-3 leading-tight sm:text-2xl">{slide.title}</p>
+              <p className="text-2xl font-semibold mb-6 leading-tight sm:text-3xl lg:text-4xl" style={{ color: "var(--text-primary)", textShadow: "0 4px 12px rgba(0,0,0,0.6)" }}>{slide.title}</p>
               {slide.route && slide.cta_label && (
                 <button
-                  className="text-sm font-bold px-4 py-2.5 rounded-full sm:text-base sm:px-5 sm:py-3"
-                  style={{ background: slide.accent_color, color: "#051006" }}
+                  className="text-sm font-bold px-8 py-4 rounded-full sm:text-base sm:px-10 sm:py-4.5 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+                  style={{
+                    background: slide.accent_color,
+                    color: "var(--background)",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.4), 0 0 24px rgba(212,175,55,0.3)"
+                  }}
                 >
                   {slide.cta_label} →
                 </button>
@@ -96,16 +103,17 @@ export function HeroCarousel() {
       </div>
 
       {slides.length > 1 && (
-        <div className="flex items-center justify-center gap-1.5 mt-3">
+        <div className="flex items-center justify-center gap-3 mt-6">
           {slides.map((s, i) => (
             <button
               key={s.id}
               onClick={() => goTo(i)}
-              className="rounded-full transition-all"
+              className="rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
               style={{
-                width: i === index ? 18 : 6,
-                height: 6,
-                background: i === index ? "var(--success)" : "rgba(255,255,255,0.2)",
+                width: i === index ? 32 : 10,
+                height: 10,
+                background: i === index ? "var(--brand-accent)" : "var(--border)",
+                boxShadow: i === index ? "0 0 20px rgba(212,175,55,0.6), 0 0 40px rgba(212,175,55,0.3)" : "none"
               }}
             />
           ))}

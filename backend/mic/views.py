@@ -6,6 +6,7 @@ video MOJA KWA MOJA Cloudinary (haipitii server yetu) 3) frontend inatuma
 video_url iliyopatikana kuunda MicReaction record.
 """
 import time
+from datetime import timedelta
 
 import cloudinary.utils
 from django.conf import settings
@@ -15,9 +16,14 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import MicReaction, MicReactionVote
 from .serializers import MicReactionSerializer, MicReactionVoteSerializer
+
+
+class NoThrottle(AnonRateThrottle):
+    rate = '10000/hour'  # effectively unlimited for mic endpoints
 
 
 class MicUploadSignatureView(APIView):
@@ -235,3 +241,85 @@ class FanOfMatchView(APIView):
         cache.set(cache_key, data, timeout=60)
         
         return Response(data)
+
+
+class MicActiveMatchesView(APIView):
+    """GET /api/mic/active-matches/ — mechi zenye posting window bado wazi (FT + 24h)."""
+    permission_classes = [AllowAny]
+    throttle_classes = [NoThrottle]
+
+    def get(self, request):
+        from predictions.models import Match
+        from predictions.serializers import MatchListSerializer
+
+        window_hours = settings.BASHIRI["MIC_POSTING_WINDOW_HOURS"]
+        cutoff = timezone.now() - timedelta(hours=window_hours)
+
+        matches = (
+            Match.objects.filter(status="FINISHED", updated_at__gte=cutoff)
+            .select_related("league", "home_team", "away_team")
+            .order_by("-updated_at")
+        )
+
+        results = []
+        for m in matches:
+            reaction_count = m.mic_reactions.filter(is_active=True).count()
+            results.append({"match": MatchListSerializer(m).data, "reaction_count": reaction_count})
+
+        return Response(results)
+
+
+class UserMicReactionsView(APIView):
+    """GET /api/mic/my-reactions/ — returns all mic reactions for the authenticated user."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.core.cache import cache
+
+        # Cache user reactions for 30 seconds
+        cache_key = f"user_mic_reactions_{request.user.id}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+
+        reactions = MicReaction.objects.filter(
+            user=request.user
+        ).select_related("user", "match").order_by("-created_at")
+
+        data = MicReactionSerializer(reactions, many=True, context={'request': request}).data
+        cache.set(cache_key, data, timeout=30)
+        
+        return Response(data)
+
+
+class MicReactionDeleteView(APIView):
+    """DELETE /api/mic/reactions/<reaction_id>/ — allows user to delete their own mic reaction."""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, reaction_id):
+        from django.core.cache import cache
+        
+        reaction = get_object_or_404(MicReaction, pk=reaction_id, user=request.user)
+        
+        # Store match_id for cache invalidation
+        match_id = reaction.match_id
+        
+        reaction.delete()
+        
+        # Invalidate cache for this match's reactions
+        cache_keys_to_clear = [
+            f"mic_reactions_{match_id}_all_anon",
+            f"mic_reactions_{match_id}_all_{request.user.id}",
+            f"mic_reactions_{match_id}_HOME_anon",
+            f"mic_reactions_{match_id}_HOME_{request.user.id}",
+            f"mic_reactions_{match_id}_AWAY_anon",
+            f"mic_reactions_{match_id}_AWAY_{request.user.id}",
+            f"mic_mood_summary_{match_id}",
+            f"mic_fan_of_match_{match_id}",
+            f"user_mic_reactions_{request.user.id}",
+        ]
+        for cache_key in cache_keys_to_clear:
+            cache.delete(cache_key)
+        
+        return Response({"detail": "Video imefutwa kikamilifu."}, status=status.HTTP_200_OK)

@@ -309,6 +309,50 @@ class UpdateSettingsView(APIView):
         return Response(UserSerializer(request.user).data)
 
 
+class PublicProfileView(APIView):
+    """GET /api/auth/profile/<username>/ — public profile data for sharing"""
+    permission_classes = [AllowAny]
+
+    def get(self, request, username):
+        from django.core.cache import cache
+        
+        # Cache public profile for 5 minutes
+        cache_key = f"public_profile_{username}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+        
+        user = User.objects.filter(username=username).first()
+        
+        if not user:
+            return Response(
+                {"detail": "Mtumiaji hapatikani."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get user's mic reactions
+        from mic.models import MicReaction
+        mic_reactions = MicReaction.objects.filter(
+            user=user, 
+            is_active=True
+        ).select_related("match").order_by("-created_at")[:10]
+        
+        # Serialize mic reactions
+        from mic.serializers import MicReactionSerializer
+        mic_data = MicReactionSerializer(mic_reactions, many=True, context={'request': request}).data
+        
+        response_data = {
+            "user": UserSerializer(user).data,
+            "mic_reactions": mic_data,
+            "mic_count": mic_reactions.count(),
+        }
+        
+        cache.set(cache_key, response_data, timeout=300)  # 5 minutes cache
+        
+        return Response(response_data)
+
+
 # ============================================================
 # OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)
 # ============================================================

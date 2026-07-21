@@ -16,7 +16,11 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-3xl p-5 bg-[#1A1A24] border border-white/5 space-y-4">
+    <div className="rounded-3xl p-5 space-y-4 transition-all duration-300" style={{ 
+      background: "linear-gradient(135deg, rgba(212,175,55,0.08), rgba(207,175,123,0.04), var(--surface))", 
+      border: "1px solid rgba(212,175,55,0.15)",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 1px rgba(212,175,55,0.1)"
+    }}>
       <div className="flex items-center gap-3">
         <Skeleton className="h-10 w-10 rounded-full" />
         <div className="space-y-2 flex-1">

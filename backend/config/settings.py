@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "mic",
     "support",
     "herocarousel",
+    "pulse",
 ]
 
 MIDDLEWARE = [

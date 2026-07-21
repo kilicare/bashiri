@@ -7,7 +7,7 @@ interface ConfidenceEducationProps {
 
 export function ConfidenceEducation({ onClose }: ConfidenceEducationProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-[#111111] rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-white/10">
         {/* Header */}
         <div className="sticky top-0 bg-[#111111] border-b border-white/10 p-5 flex items-center justify-between">

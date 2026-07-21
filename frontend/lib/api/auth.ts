@@ -87,6 +87,10 @@ export function updateAvatar(avatar: File) {
   });
 }
 
+export function getPublicProfile(username: string) {
+  return apiClient<{ user: BashiriUser; mic_reactions: any[]; mic_count: number }>(`/auth/profile/${username}/`, { skipAuth: true });
+}
+
 /*
 // ============================================================
 // OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)

@@ -57,17 +57,23 @@ export function FeedContainer() {
 
   if (loading) {
     return (
-      <div className="px-4 py-5 md:px-6 lg:px-8">
-        <div className="mb-6">
+      <div className="py-6">
+        <div className="mb-8 relative z-10">
           <button
             type="button"
             onClick={() => setShowTutorial(true)}
-            className="w-full rounded-2xl bg-gradient-to-r from-[rgba(212,175,55,0.15)] to-[rgba(212,175,55,0.05)] border border-[rgba(212,175,55,0.3)] px-5 py-3.5 text-sm font-bold text-white hover:from-[rgba(212,175,55,0.25)] hover:to-[rgba(212,175,55,0.1)] transition-all duration-300 shadow-lg"
+            className="w-full rounded-2xl px-6 py-4 text-sm font-bold transition-all duration-300 shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            style={{
+              background: "linear-gradient(135deg, rgba(212,175,55,0.12), rgba(207,175,123,0.06))",
+              border: "1px solid rgba(212,175,55,0.2)",
+              color: "var(--text-primary)",
+              touchAction: "manipulation"
+            }}
           >
             📚 Jifunze kuhusu market predictions
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => <CardSkeleton key={i} />)}
         </div>
       </div>
@@ -75,17 +81,23 @@ export function FeedContainer() {
   }
 
   return (
-    <div className="px-4 py-5 md:px-6 lg:px-8">
-      <div className="mb-6">
+    <div className="py-6">
+      <div className="mb-8 relative z-10">
         <button
           type="button"
           onClick={() => setShowTutorial(true)}
-          className="w-full rounded-2xl bg-gradient-to-r from-[rgba(212,175,55,0.15)] to-[rgba(212,175,55,0.05)] border border-[rgba(212,175,55,0.3)] px-5 py-3.5 text-sm font-bold text-white hover:from-[rgba(212,175,55,0.25)] hover:to-[rgba(212,175,55,0.1)] transition-all duration-300 shadow-lg"
+          className="w-full rounded-2xl px-6 py-4 text-sm font-bold transition-all duration-300 shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+          style={{
+            background: "linear-gradient(135deg, rgba(212,175,55,0.12), rgba(207,175,123,0.06))",
+            border: "1px solid rgba(212,175,55,0.2)",
+            color: "var(--text-primary)",
+            touchAction: "manipulation"
+          }}
         >
           📚 Jifunze kuhusu market predictions
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card) => (
           <div key={card.id}>{renderCard(card)}</div>
         ))}
@@ -93,8 +105,8 @@ export function FeedContainer() {
       {hasMore && (
         <button
           onClick={() => loadMore()}
-          className="w-full py-3 text-sm font-medium rounded-2xl mt-4"
-          style={{ color: "var(--brand-primary)", background: "rgba(212,175,55,0.06)" }}
+          className="w-full py-4 text-sm font-medium rounded-2xl mt-8 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+          style={{ color: "var(--brand-primary)", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)" }}
         >
           Pakia Zaidi
         </button>

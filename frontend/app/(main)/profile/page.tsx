@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { updateAvatar, completeProfile } from "@/lib/api/auth";
 import { getAIPerformanceStats } from "@/lib/api/predictions";
+import { ShareProfileModal } from "@/components/profile/ShareProfileModal";
+import { QRCodeModal } from "@/components/profile/QRCodeModal";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [aiPerformance, setAiPerformance] = useState<any>(null);
   const [loadingAI, setLoadingAI] = useState(true);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
 
   useEffect(() => {
     fetchAIPerformance();
@@ -155,10 +159,7 @@ export default function ProfilePage() {
             <Edit2 size={18} />
           </motion.button>
           <motion.button
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
-              alert("Link copied!");
-            }}
+            onClick={() => setShareModalOpen(true)}
             whileTap={{ scale: 0.9 }}
             className="w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
           >
@@ -326,7 +327,7 @@ export default function ProfilePage() {
             style={{ background: "#111111" }}
           >
             <Calendar size={18} style={{ color: "var(--brand-accent)" }} />
-            <span className="text-sm font-bold text-white">Prediction History</span>
+            <span className="text-sm font-bold text-white">Video Zangu</span>
           </button>
         </motion.div>
 
@@ -448,6 +449,21 @@ export default function ProfilePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Share Profile Modal */}
+      <ShareProfileModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        username={user?.username || ""}
+        onOpenQR={() => setQrModalOpen(true)}
+      />
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={qrModalOpen}
+        onClose={() => setQrModalOpen(false)}
+        username={user?.username || ""}
+      />
     </div>
   );
 }

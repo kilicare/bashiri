@@ -8,12 +8,17 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import AnonRateThrottle
 
 from core.cache_utils import cache_response
 
 from .models import ActiveDerby, Match, SavedMatch
 from .serializers import ActiveDerbySerializer, MatchListSerializer, SavedMatchSerializer
 from .services import UnknownTeamError, build_prediction_dashboard, build_match_analysis, head_to_head, team_form
+
+
+class NoThrottle(AnonRateThrottle):
+    rate = '10000/hour'  # effectively unlimited for search endpoints
 
 
 class FixturesView(APIView):
@@ -345,6 +350,7 @@ class ActiveDerbyView(APIView):
 class MatchAnalysisView(APIView):
     """GET /matches/{id}/analysis/ — 'Bashiri Track Record' ya mechi moja, baada ya FT."""
     permission_classes = [AllowAny]
+    throttle_classes = []  # Disable throttling for match analysis
 
     def get(self, request, match_id):
         match = get_object_or_404(
@@ -375,6 +381,7 @@ class MatchAnalysisView(APIView):
 class AITrackRecordView(APIView):
     """GET /ai-track-record/?league=EPL — utendaji wa AI kwa ujumla (snapshot ya siku)."""
     permission_classes = [AllowAny]
+    throttle_classes = [NoThrottle]
 
     def get(self, request):
         from .models import AITrackRecordSnapshot
@@ -505,3 +512,31 @@ class AIPerformanceStatsView(APIView):
 
         cache.set(cache_key, data, timeout=300)  # 5 minutes cache
         return Response(data)
+
+
+class CommandSearchView(APIView):
+    """GET /api/predictions/command-search/?q=... — Command Palette (⌘K): matches+teams+leagues kwa pamoja."""
+    permission_classes = [AllowAny]
+    throttle_classes = [NoThrottle]
+
+    def get(self, request):
+        from .models import League, Team
+        from .serializers import LeagueSerializer, TeamSerializer
+
+        query = request.query_params.get("q", "").strip()
+        if len(query) < 2:
+            return Response({"matches": [], "teams": [], "leagues": []})
+
+        matches = (
+            Match.objects.filter(Q(home_team__name__icontains=query) | Q(away_team__name__icontains=query))
+            .select_related("league", "home_team", "away_team")
+            .order_by("-kickoff_at")[:5]
+        )
+        teams = Team.objects.filter(name__icontains=query).select_related("league")[:5]
+        leagues = League.objects.filter(name__icontains=query, is_active=True)[:3]
+
+        return Response({
+            "matches": MatchListSerializer(matches, many=True).data,
+            "teams": TeamSerializer(teams, many=True).data,
+            "leagues": LeagueSerializer(leagues, many=True).data,
+        })

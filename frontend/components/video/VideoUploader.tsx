@@ -135,7 +135,7 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
 
       {/* Preview Card */}
       <div className="px-4 sm:px-6 pb-4">
-        <div className="rounded-3xl overflow-hidden bg-black aspect-video relative max-w-4xl mx-auto">
+        <div className="rounded-3xl overflow-hidden bg-black relative max-w-4xl mx-auto" style={{ minHeight: '200px' }}>
           {previewUrl ? (
             <>
               <video 
@@ -159,9 +159,9 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
               <Upload size={30} className="text-white/50" />
             </div>
-            <p className="text-white/70 text-sm sm:text-base font-medium mb-2 text-center">Tap to select video</p>
-            <p className="text-white/40 text-xs sm:text-sm mb-6 text-center">MP4, MOV, WebM, M4V</p>
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs text-white/30">
+            <p className="text-white/70 text-base sm:text-lg font-medium mb-3 text-center">Tap to select video</p>
+            <p className="text-white/40 text-sm sm:text-base mb-8 text-center">MP4, MOV, WebM, M4V</p>
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-sm text-white/30">
               <span>Max {MAX_FILE_SIZE_MB}MB</span>
               <span className="hidden sm:inline">•</span>
               <span>{MIN_DURATION_SECONDS}-{MAX_DURATION_SECONDS}s</span>
@@ -190,7 +190,7 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
       )}
 
       {/* Bottom Actions */}
-      <div className="px-4 sm:px-6 py-4 pb-20 space-y-3 max-w-4xl mx-auto w-full">
+      <div className="px-4 sm:px-6 py-8 pb-28 space-y-5 max-w-4xl mx-auto w-full">
         <input
           ref={fileInputRef}
           type="file"
@@ -239,7 +239,7 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
           </div>
         )}
 
-        <p className="text-xs text-center text-white/30">
+        <p className="text-sm text-center text-white/30">
           Max {MAX_FILE_SIZE_MB}MB • {MIN_DURATION_SECONDS}-{MAX_DURATION_SECONDS}s • MP4, MOV, WebM, M4V
         </p>
       </div>

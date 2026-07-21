@@ -31,4 +31,5 @@ urlpatterns = [
     path("api/mic/", include("mic.urls")),
     path("api/support/", include("support.urls")),
     path("api/hero/", include("herocarousel.urls")),
+    path("api/pulse/", include("pulse.urls")),
 ]
