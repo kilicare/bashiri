@@ -36,7 +36,6 @@ class FixturesView(APIView):
             try:
                 target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
                 # Get all matches for the specific date (start of day to end of day)
-                from django.utils import timezone
                 start_of_day = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
                 end_of_day = timezone.make_aware(datetime.combine(target_date, datetime.max.time()))
                 
