@@ -7,6 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div
       className="min-h-dvh flex flex-col justify-center relative overflow-hidden"
       style={{
+        backgroundColor: "#0A0A0A",
         backgroundImage: `url(/login_background.png)`,
         backgroundSize: "cover",
         backgroundPosition: "center",

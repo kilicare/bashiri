@@ -1,25 +1,19 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, RotateCcw, ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { useState } from "react";
 
 interface MessageToolbarProps {
-  onCopy?: () => void;
-  onRegenerate?: () => void;
   onHelpful?: () => void;
   onNotHelpful?: () => void;
-  onShare?: () => void;
   show?: boolean;
   isMobile?: boolean;
 }
 
 export function MessageToolbar({
-  onCopy,
-  onRegenerate,
   onHelpful,
   onNotHelpful,
-  onShare,
   show = false,
   isMobile = false
 }: MessageToolbarProps) {
@@ -38,18 +32,6 @@ export function MessageToolbar({
 
   const toolbarActions = [
     {
-      icon: <Copy size={14} />,
-      label: "Copy",
-      onClick: onCopy,
-      show: !!onCopy,
-    },
-    {
-      icon: <RotateCcw size={14} />,
-      label: "Regenerate",
-      onClick: onRegenerate,
-      show: !!onRegenerate,
-    },
-    {
       icon: <ThumbsUp size={14} />,
       label: "Helpful",
       onClick: () => handleFeedback("helpful"),
@@ -62,12 +44,6 @@ export function MessageToolbar({
       onClick: () => handleFeedback("not-helpful"),
       show: !!onNotHelpful && feedbackGiven !== "not-helpful",
       active: feedbackGiven === "not-helpful",
-    },
-    {
-      icon: <Share2 size={14} />,
-      label: "Share",
-      onClick: onShare,
-      show: !!onShare,
     },
   ].filter((action) => action.show);
 

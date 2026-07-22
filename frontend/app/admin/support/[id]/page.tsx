@@ -75,7 +75,7 @@ export default function AdminSupportTicketPage() {
         )}
       </div>
 
-      <div className="rounded-2xl p-5 mb-4 space-y-3" style={{ background: "#0A0A0A", border: "1px solid rgba(255,255,255,0.06)", maxHeight: 400, overflowY: "auto" }}>
+      <div className="rounded-2xl p-5 mb-4 space-y-3" style={{ background: "var(--background)", border: "1px solid rgba(255,255,255,0.06)", maxHeight: 400, overflowY: "auto" }}>
         {ticket.messages.map((m: any) => (
           <div key={m.id} className={`flex ${m.sender_type === "ADMIN" ? "justify-end" : "justify-start"}`}>
             <div

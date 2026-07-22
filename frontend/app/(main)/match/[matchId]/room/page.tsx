@@ -172,7 +172,7 @@ export default function MatchRoomPage() {
   return (
     <DerbyThemeProvider matchId={matchId}>
       <div className="mx-auto flex h-dvh max-w-2xl flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(175,206,24,0.12),transparent_45%)]">
-        <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0A0A0A]/95 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 border-b border-white/10 bg-[var(--background)]/95 backdrop-blur-xl">
           <div className="px-4 pb-3 pt-4 sm:px-5 sm:pt-5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -260,13 +260,13 @@ export default function MatchRoomPage() {
               setShowNewMessages(false);
               scrollToBottom(true);
             }}
-            className="absolute bottom-24 left-1/2 -translate-x-1/2 rounded-full border border-[#AFCE18]/30 bg-[#0A0A0A]/95 px-3.5 py-2 text-[11px] font-semibold text-[#AFCE18] shadow-lg"
+            className="absolute bottom-24 left-1/2 -translate-x-1/2 rounded-full border border-[#AFCE18]/30 bg-[var(--background)]/95 px-3.5 py-2 text-[11px] font-semibold text-[#AFCE18] shadow-lg"
           >
             New messages ↓
           </button>
         )}
 
-        <div className="shrink-0 border-t border-white/10 bg-[#0A0A0A]/95 px-4 py-3 pb-safe sm:px-5">
+        <div className="shrink-0 border-t border-white/10 bg-[var(--background)]/95 px-4 py-3 pb-safe sm:px-5">
           <div className="mx-auto flex max-w-2xl items-center gap-2 rounded-[24px] border border-white/10 bg-[#131313] p-2 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
             <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70" aria-label="Emoji">
               <Smile size={18} />

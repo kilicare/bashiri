@@ -96,7 +96,7 @@ export default function FavoriteTeamsPage() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 px-5 pb-safe pb-4 pt-3" style={{ background: "linear-gradient(180deg, transparent, #0A0A0A 30%)" }}>
+      <div className="fixed bottom-0 left-0 right-0 px-5 pb-safe pb-4 pt-3" style={{ background: "linear-gradient(180deg, transparent, var(--background) 30%)" }}>
         <BashiriButton className="w-full" size="lg" loading={saving} onClick={handleSave}>
           {saved ? "Imehifadhiwa ✓" : "Hifadhi"}
         </BashiriButton>

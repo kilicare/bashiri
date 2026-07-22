@@ -36,7 +36,7 @@ function DerbyHubContent() {
   if (!derby) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
 
   return (
-    <div className="max-w-4xl mx-auto min-h-dvh" style={{ background: `linear-gradient(180deg, ${derby.theme_accent_color}15, #0A0A0A 40%)` }}>
+    <div className="max-w-4xl mx-auto min-h-dvh" style={{ background: `linear-gradient(180deg, ${derby.theme_accent_color}15, var(--background) 40%)` }}>
       <div className="px-5 pt-safe pt-6 pb-6 text-center">
         <p className="text-sm font-black uppercase tracking-widest mb-2" style={{ color: derby.theme_accent_color }}>
           🔥 {derby.derby_name} 🔥

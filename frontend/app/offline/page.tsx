@@ -63,7 +63,7 @@ export default function OfflinePage() {
     <div 
       className="min-h-dvh flex flex-col items-center justify-center px-6 relative overflow-hidden"
       style={{ 
-        background: "#09090B",
+        background: "var(--background)",
         backgroundImage: "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 50%)"
       }}
     >

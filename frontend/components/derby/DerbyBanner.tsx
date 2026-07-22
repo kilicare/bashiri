@@ -23,7 +23,7 @@ function DerbyCard({ derby, index, countdown }: { derby: ActiveDerby; index: num
       className="w-full mx-4 mb-4 rounded-3xl p-5 text-left"
       aria-label={`Nenda kwenye derby: ${derby.home_team_detail?.name} vs ${derby.away_team_detail?.name}`}
       style={{
-        background: `linear-gradient(135deg, ${derby.theme_accent_color}22, #0A0A0A)`,
+        background: `linear-gradient(135deg, ${derby.theme_accent_color}22, var(--background))`,
         border: `1px solid ${derby.theme_accent_color}55`,
         width: "calc(100% - 32px)",
       }}

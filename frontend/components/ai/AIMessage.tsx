@@ -2,9 +2,20 @@
 
 import { MessageBubble } from "./MessageBubble";
 import { MessageActions } from "./MessageActions";
+import { MessageToolbar } from "./MessageToolbar";
 import { AIResponseContainer } from "./AIResponseContainer";
+import { StreamingText } from "./StreamingText";
+import { PredictionCard } from "./PredictionCard";
+import { TeamCard } from "./TeamCard";
+import { FormCard } from "./FormCard";
+import { MomentumIndicator } from "./MomentumIndicator";
+import { TeamComparisonCard } from "./TeamComparisonCard";
+import { ProbabilityVisualization } from "./ProbabilityVisualization";
+import { ConfidenceIndicator } from "./ConfidenceIndicator";
+import { FollowUpActions } from "./FollowUpActions";
 import { ReactNode, useState, memo } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 type MessageState = "thinking" | "generating" | "complete";
 
@@ -19,16 +30,193 @@ interface AIMessageProps {
   content: string | ResponseSection[];
   timestamp?: string;
   state?: MessageState;
+  toolResult?: {
+    tool_name: string;
+    data: any;
+  };
+  messageId?: number;
+  onHelpful?: (messageId: number) => void;
+  onNotHelpful?: (messageId: number) => void;
 }
 
-export const AIMessage = memo(function AIMessage({ content, timestamp, state = "complete" }: AIMessageProps) {
+export const AIMessage = memo(function AIMessage({ content, timestamp, state = "complete", toolResult, messageId, onHelpful, onNotHelpful }: AIMessageProps) {
   const [showActions, setShowActions] = useState(false);
+  const router = useRouter();
 
   const handleCopy = () => {
     const textContent = Array.isArray(content) 
       ? content.map(s => `${s.title}: ${typeof s.content === 'string' ? s.content : ''}`).join('\n')
       : content;
-    navigator.clipboard.writeText(textContent);
+    if (typeof textContent === 'string') {
+      navigator.clipboard.writeText(textContent);
+    }
+  };
+
+  const handleHelpful = () => {
+    if (messageId && onHelpful) {
+      onHelpful(messageId);
+    }
+  };
+
+  const handleNotHelpful = () => {
+    if (messageId && onNotHelpful) {
+      onNotHelpful(messageId);
+    }
+  };
+
+  const renderToolCard = () => {
+    if (!toolResult || !toolResult.data || !toolResult.data.success) return null;
+
+    const { tool_name, data } = toolResult;
+
+    switch (tool_name) {
+      case "predict_fixture":
+        return (
+          <div className="mt-4 space-y-3">
+            <PredictionCard
+              prediction={data.data.prediction || "TBD"}
+              confidence={data.data.confidence || 50}
+              teams={{
+                home: data.data.home_team,
+                away: data.data.away_team,
+              }}
+            />
+            {data.data.probabilities && (
+              <ProbabilityVisualization
+                probabilities={data.data.probabilities}
+                title="Match Probability"
+              />
+            )}
+            <FollowUpActions
+              actions={[
+                {
+                  id: "dashboard",
+                  label: "Ona Dashboard Kamili",
+                  icon: null,
+                  onClick: () => router.push(`/create/${data.data.match_id}/predict`),
+                },
+              ]}
+            />
+          </div>
+        );
+
+      case "team_form":
+        return (
+          <div className="mt-4 space-y-3">
+            <TeamCard
+              teamName={data.data.team_name}
+              attack={data.data.attack || 50}
+              defense={data.data.defense || 50}
+              form={data.data.form || 50}
+              recentResults={data.data.sequence?.split('') || []}
+            />
+            {data.data.sequence && (
+              <FormCard
+                teamName={data.data.team_name}
+                results={data.data.sequence.split('') as ("W" | "D" | "L")[]}
+              />
+            )}
+            <MomentumIndicator
+              team={data.data.team_name}
+              direction={data.data.momentum || "neutral"}
+              intensity={data.data.momentum_intensity || 5}
+            />
+          </div>
+        );
+
+      case "head_to_head":
+        return (
+          <div className="mt-4">
+            <TeamComparisonCard
+              homeTeam={data.data.team1_name}
+              awayTeam={data.data.team2_name}
+              homeStats={{
+                attack: data.data.home_stats?.attack || 3,
+                defense: data.data.home_stats?.defense || 3,
+                form: data.data.home_stats?.form || 3,
+              }}
+              awayStats={{
+                attack: data.data.away_stats?.attack || 3,
+                defense: data.data.away_stats?.defense || 3,
+                form: data.data.away_stats?.form || 3,
+              }}
+            />
+          </div>
+        );
+
+      case "ai_track_record":
+        return (
+          <div className="mt-4 p-4 rounded-2xl border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            <h3 className="font-bold text-sm mb-3" style={{ color: "var(--text-primary)" }}>AI Track Record</h3>
+            <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              Overall Accuracy: <span className="font-bold" style={{ color: "var(--brand-primary)" }}>{data.data.overall_accuracy}%</span>
+            </div>
+            {data.data.created_at && (
+              <div className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+                Updated: {new Date(data.data.created_at).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+        );
+
+      case "active_derby":
+        if (!data.data.active) {
+          return (
+            <div className="mt-4 p-4 rounded-2xl border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+              <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                Hakuna Derby inayoendelea sasa.
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="mt-4 space-y-3">
+            {data.data.derbies.map((derby: any) => (
+              <div
+                key={derby.id}
+                className="p-4 rounded-2xl border cursor-pointer transition-all hover:border-opacity-50"
+                style={{ background: "var(--surface)", borderColor: derby.theme_accent_color || "var(--border)" }}
+                onClick={() => router.push(`/create/${derby.match_id}/predict`)}
+              >
+                <h3 className="font-bold text-sm mb-2" style={{ color: "var(--text-primary)" }}>{derby.derby_name}</h3>
+                <div className="flex items-center justify-between text-sm">
+                  <span style={{ color: "var(--text-secondary)" }}>{derby.home_team} vs {derby.away_team}</span>
+                  <span className="font-bold" style={{ color: "var(--brand-primary)" }}>→</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+
+      case "search_matches":
+        return (
+          <div className="mt-4 space-y-3">
+            {data.data.matches.map((match: any) => (
+              <div
+                key={match.id}
+                className="p-4 rounded-2xl border cursor-pointer transition-all"
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+                onClick={() => router.push(`/create/${match.id}/predict`)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                    {match.home_team} vs {match.away_team}
+                  </div>
+                  <div className="text-xs px-2 py-1 rounded-lg" style={{ background: "var(--glass-bg)", color: "var(--text-secondary)" }}>
+                    {match.status}
+                  </div>
+                </div>
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {new Date(match.kickoff_at).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   const getStateMessage = () => {
@@ -100,7 +288,12 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
             {!stateMessage && Array.isArray(content) ? (
               <AIResponseContainer sections={content} />
             ) : (
-              !stateMessage && <div>{content as string}</div>
+              !stateMessage && (
+                <>
+                  <StreamingText text={content as string} speed={10} />
+                  {renderToolCard()}
+                </>
+              )
             )}
             
             {timestamp && state === "complete" && (
@@ -113,6 +306,11 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
             )}
           </div>
           <MessageActions show={showActions && state === "complete"} onCopy={handleCopy} />
+          <MessageToolbar 
+            show={showActions && state === "complete"} 
+            onHelpful={handleHelpful}
+            onNotHelpful={handleNotHelpful}
+          />
         </div>
       </div>
     </MessageBubble>

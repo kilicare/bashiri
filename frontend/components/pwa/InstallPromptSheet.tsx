@@ -46,7 +46,7 @@ export function InstallPromptSheet() {
           <motion.div
             className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] overflow-hidden pb-safe"
             style={{
-              background: "linear-gradient(180deg, #0F1F16 0%, #0A0A0A 55%)",
+              background: "linear-gradient(180deg, #0F1F16 0%, var(--background) 55%)",
               border: "1px solid rgba(0,255,135,0.25)",
               borderBottom: "none",
               maxHeight: "82dvh",

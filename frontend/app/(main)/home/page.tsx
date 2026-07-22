@@ -7,7 +7,7 @@ import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { PulseIndicatorButton } from "@/components/pulse/PulseIndicatorButton";
 import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
-import { Bell } from "lucide-react";
+import { Bell, Target } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
@@ -37,7 +37,7 @@ export default function HomePage() {
   }, [user]);
 
   return (
-    <div className="min-h-dvh pb-safe" style={{ background: "var(--background)" }}>
+    <div className="min-h-dvh pb-safe">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-5 md:px-6 lg:px-8">
         <div className="flex items-center justify-between pt-safe pt-8 pb-6">
           <button
@@ -49,14 +49,23 @@ export default function HomePage() {
           >
             <Bell size={24} style={{ color: "var(--brand-primary)" }} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] rounded-full flex items-center justify-center px-1.5 text-xs font-bold transition-all duration-300 hover:scale-110"
-                style={{ background: "var(--danger)", color: "var(--text-primary)", boxShadow: "0 0 16px var(--danger)" }}>
+              <span className="absolute -top-1 -right-1 min-w-[24px] h-[24px] rounded-full flex items-center justify-center px-1.5 text-[11px] font-bold transition-all duration-300 hover:scale-110"
+                style={{ background: "var(--danger)", color: "var(--text-primary)", boxShadow: "0 0 12px var(--danger)" }}>
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--brand-accent)", letterSpacing: "-0.02em" }}>BASHIRI</h1>
-          <PulseIndicatorButton />
+          <button
+            type="button"
+            aria-label="Go to Pulse"
+            onClick={() => router.push("/pulse")}
+            className="relative grid place-items-center rounded-2xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            style={{ background: "linear-gradient(135deg, rgba(0,200,120,0.15), rgba(0,200,120,0.05))", border: "1.5px solid rgba(0,200,120,0.3)" }}
+          >
+            <Target size={24} style={{ color: "#00C878" }} />
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: "#00C878", boxShadow: "0 0 6px rgba(0,200,120,0.8)" }} />
+          </button>
         </div>
         <div className="pb-8">
           <HeroCarousel />
