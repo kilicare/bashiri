@@ -11,7 +11,7 @@
  * chini ya faili hii pia (background messages).
  */
 
-const CACHE_VERSION = "bashiri-v2";
+const CACHE_VERSION = "bashiri-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
@@ -21,7 +21,14 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
   );
-  self.skipWaiting();
+  // Don't skipWaiting immediately - wait for user to trigger update
+});
+
+// Handle SKIP_WAITING message from client
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {
