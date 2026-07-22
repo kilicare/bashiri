@@ -61,7 +61,7 @@ export function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-30 pb-safe"
-      style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(22px)", borderTop: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 -10px 40px rgba(0,0,0,0.18)" }}
+      style={{ background: "rgba(10,10,10,0.8)", backdropFilter: "blur(22px)", borderTop: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 -10px 40px rgba(0,0,0,0.3)" }}
     >
       <div className="flex items-center justify-between px-3 py-2.5 relative max-w-4xl mx-auto">
         {LEFT_ITEMS.map((item) => <NavButton key={item.href} item={item} />)}
