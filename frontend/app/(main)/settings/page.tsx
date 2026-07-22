@@ -152,11 +152,11 @@ export default function SettingsPage() {
                         <item.icon size={17} className="text-[#F5A623]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs font-semibold text-white block truncate">{item.label}</span>
+                        <span className="text-sm font-semibold text-white block truncate">{item.label}</span>
                       </div>
                       <ChevronRight size={15} className="text-white/30 flex-shrink-0" />
                     </div>
-                    <span className="text-[10px] text-white/40 truncate pl-1">{item.description}</span>
+                    <span className="text-xs text-white/50 truncate pl-1">{item.description}</span>
                   </div>
                 </button>
               </GlassCard>
@@ -181,18 +181,18 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2 rounded-lg bg-white/5 border border-white/10">
-                <p className="text-[10px] text-white/40 mb-1 font-semibold">Phone</p>
-                <p className="text-xs font-bold text-white truncate">{user?.phone_number || 'N/A'}</p>
+                <p className="text-xs text-white/50 mb-1 font-semibold">Phone</p>
+                <p className="text-sm font-bold text-white truncate">{user?.phone_number || 'N/A'}</p>
               </div>
 
               <div className="p-2 rounded-lg bg-white/5 border border-white/10">
-                <p className="text-[10px] text-white/40 mb-1 font-semibold">Username</p>
-                <p className="text-xs font-bold text-white truncate">@{user?.username || 'User'}</p>
+                <p className="text-xs text-white/50 mb-1 font-semibold">Username</p>
+                <p className="text-sm font-bold text-white truncate">@{user?.username || 'User'}</p>
               </div>
 
               <div className="col-span-2 p-2 rounded-lg bg-green-500/10 border border-green-400/30">
-                <p className="text-[10px] text-white/40 mb-1 font-semibold">Status</p>
-                <p className="text-xs font-bold text-green-400">✓ Active</p>
+                <p className="text-xs text-white/50 mb-1 font-semibold">Status</p>
+                <p className="text-sm font-bold text-green-400">✓ Active</p>
               </div>
             </div>
           </GlassCard>
