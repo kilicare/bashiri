@@ -19,7 +19,7 @@ export default function DebatesArchivePage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 px-5 pt-safe pt-6 pb-4">
+      <div className="flex items-center gap-3 px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <button onClick={() => router.back()}><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
         <h1 className="text-xl font-black text-white">Debates</h1>
       </div>

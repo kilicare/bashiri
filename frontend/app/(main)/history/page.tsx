@@ -50,7 +50,7 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh px-5 pt-safe pt-10 pb-4 flex items-center justify-center">
+      <div className="min-h-dvh px-5 pt-safe pt-10 pb-4 flex items-center justify-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="text-center">
           <RefreshCw size={48} className="text-white/30 animate-spin mx-auto mb-4" />
           <p className="text-white/50">Inapakia video zako...</p>
@@ -60,7 +60,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-dvh px-5 pt-safe pt-10 pb-24">
+    <div className="min-h-dvh px-5 pt-safe pt-10 pb-24" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">

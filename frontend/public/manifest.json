@@ -4,7 +4,7 @@
   "description": "Prediction intelligence tool ya Tanzania — AI predictions, live scores, na jamii ya mpira, zote sehemu moja.",
   "start_url": "/home",
   "id": "/home",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#0A0A0A",
   "theme_color": "#0A0A0A",
   "orientation": "portrait",

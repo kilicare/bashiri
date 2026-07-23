@@ -33,7 +33,7 @@ export default function AITrackRecordPage() {
 
   return (
     <div>
-      <div className="px-5 pt-safe pt-6 pb-4">
+      <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <h1 className="text-2xl font-black text-white mb-1">Bashiri Track Record</h1>
         <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.5)" }}>
           Uwazi kamili — jinsi AI yetu ilivyofanya kwa mechi zote zilizopita.

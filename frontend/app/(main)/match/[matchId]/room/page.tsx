@@ -128,12 +128,12 @@ export default function MatchRoomPage() {
     setInput("");
   }
 
-  if (loading) return <div className="px-5 pt-safe pt-6"><CardSkeleton /></div>;
+  if (loading) return <div className="px-5 pt-safe pt-10" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}><CardSkeleton /></div>;
 
   if (roomState === "upcoming") {
     return (
       <DerbyThemeProvider matchId={matchId}>
-        <div className="max-w-2xl mx-auto min-h-dvh flex flex-col items-center justify-center px-6 text-center">
+        <div className="max-w-2xl mx-auto min-h-dvh flex flex-col items-center justify-center px-6 text-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
           <p className="text-lg font-black text-white mb-2">⏰ Inakuja Hivi Karibuni</p>
           <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
             Watch Party itafunguliwa masaa 10 kabla ya kickoff kwa majaribio ya sasa. Rudi hapa kwa wakati.

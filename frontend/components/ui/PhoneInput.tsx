@@ -57,10 +57,10 @@ export const PhoneInput = forwardRef<HTMLInputElement, Props>(
           </label>
         )}
         <div className="relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none z-10">
             <span className="text-lg">🇹🇿</span>
-            <span className="text-white font-medium">+255</span>
-            <span className="text-white/30">|</span>
+            <span className="text-white font-semibold text-base">+255</span>
+            <span className="text-white/40 font-light">|</span>
           </div>
           <input
             ref={ref}
@@ -68,7 +68,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, Props>(
             onChange={handleChange}
             placeholder="650745642"
             className={clsx(
-              "w-full rounded-2xl pl-28 pr-12 py-3.5 text-white text-base bg-[var(--glass-bg)] border border-[var(--color-gold)] outline-none",
+              "w-full rounded-2xl pl-32 pr-12 py-3.5 text-white text-base bg-[var(--glass-bg)] border border-[var(--color-gold)] outline-none",
               error ? "border-[var(--danger)]" : "border-[var(--color-gold)] focus:border-[var(--color-gold)]",
               className
             )}

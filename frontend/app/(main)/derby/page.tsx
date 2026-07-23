@@ -37,7 +37,7 @@ function DerbyHubContent() {
 
   return (
     <div className="max-w-4xl mx-auto min-h-dvh" style={{ background: `linear-gradient(180deg, ${derby.theme_accent_color}15, var(--background) 40%)` }}>
-      <div className="px-5 pt-safe pt-6 pb-6 text-center">
+      <div className="px-5 pt-safe pt-10 pb-6 text-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <p className="text-sm font-black uppercase tracking-widest mb-2" style={{ color: derby.theme_accent_color }}>
           🔥 {derby.derby_name} 🔥
         </p>

@@ -84,7 +84,7 @@ function SubscribeContent() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-5 pt-safe pt-6 bg-background">
+    <div className="min-h-dvh flex flex-col items-center justify-center px-5 pt-safe pt-10 bg-background" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
       {stage === "confirm" && (
         <motion.div className="w-full max-w-sm text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-black text-white mb-2">Thibitisha Malipo</h1>

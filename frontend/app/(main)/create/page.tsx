@@ -22,7 +22,7 @@ export default function CreatePredictionStep1() {
 
   return (
     <div>
-      <div className="px-5 pt-safe pt-6 pb-4">
+      <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <h1 className="text-2xl font-black text-white">Chagua Mechi</h1>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Anza prediction yako ya AI</p>
       </div>

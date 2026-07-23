@@ -52,7 +52,7 @@ export default function PredictDashboardPage() {
 
   return (
     <DerbyThemeProvider matchId={matchId}>
-      <div className="px-5 pt-safe pt-6 pb-4">
+      <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-xl font-black text-white">
             {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}

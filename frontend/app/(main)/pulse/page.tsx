@@ -27,7 +27,7 @@ export default function BashiriPulsePage() {
     <div className="min-h-dvh bg-[#0A0A0F]">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
-        <header className="flex items-center justify-between px-4 md:px-6 lg:px-8 pt-safe pt-8 pb-4">
+        <header className="flex items-center justify-between px-4 md:px-6 lg:px-8 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
           <motion.button 
             onClick={() => router.back()} 
             className="p-3 -ml-3 md:-ml-0 rounded-full"

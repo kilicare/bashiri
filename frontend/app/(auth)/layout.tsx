@@ -8,11 +8,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       className="min-h-dvh flex flex-col justify-center relative overflow-hidden"
       style={{
         backgroundColor: "#0A0A0A",
-        backgroundImage: `url(/login_background.png)`,
+        backgroundImage: `url(/bashiri_new.png)`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
+      {/* Old background code - commented out
+        backgroundImage: `url(/login_background.png)`,
+      */}
       <div className="px-5 pb-safe pb-8 max-w-md mx-auto w-full">
         <div className="text-center mb-8">
           <motion.div
@@ -24,9 +27,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               className="w-28 h-28 object-contain rounded-full"
               animate={{
                 boxShadow: [
-                  '0 0 20px rgba(245,166,35,0.5)',
-                  '0 0 40px rgba(245,166,35,0.8)',
-                  '0 0 20px rgba(245,166,35,0.5)',
+                  '0 0 20px rgba(59,130,246,0.5)',
+                  '0 0 40px rgba(59,130,246,0.8)',
+                  '0 0 20px rgba(59,130,246,0.5)',
                 ],
               }}
               transition={{ duration: 2.5, repeat: Infinity }}

@@ -58,7 +58,7 @@ export default function FavoriteTeamsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="px-5 pt-safe pt-6 pb-4 flex items-center gap-3">
+      <div className="px-5 pt-safe pt-10 pb-4 flex items-center gap-3" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <button onClick={() => router.back()} aria-label="Rudi nyuma"><ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} /></button>
         <h1 className="text-xl font-black text-white">Timu Ninazopenda</h1>
       </div>

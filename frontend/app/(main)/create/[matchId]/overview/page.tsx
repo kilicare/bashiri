@@ -29,7 +29,7 @@ export default function MatchOverviewPage() {
     <DerbyThemeProvider matchId={matchId}>
       <div className="min-h-dvh bg-[#050508] pb-8">
         {/* Header */}
-        <div className="max-w-2xl mx-auto px-4 sm:px-5 pt-safe pt-6 pb-6">
+        <div className="max-w-2xl mx-auto px-4 sm:px-5 pt-safe pt-10 pb-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             <Flag size={14} className="text-[#F5A623]" />
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: "rgba(255,255,255,0.5)" }}>

@@ -210,7 +210,7 @@ export default function NotificationsPage() {
           background: 'rgba(10,10,15,0.95)',
           backdropFilter: 'blur(20px)',
           borderColor: 'rgba(255,255,255,0.1)',
-          paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+          paddingTop: 'calc(32px + env(safe-area-inset-top, 0px))',
         }}
       >
         <div className="flex items-center gap-3">

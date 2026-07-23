@@ -36,7 +36,7 @@ export function AIComposer({
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      textarea.style.height = Math.min(textarea.scrollHeight, 150) + "px";
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px";
     }
   }, [value]);
 
@@ -69,7 +69,7 @@ export function AIComposer({
       }}
     >
       <div
-        className="flex items-end gap-3 rounded-2xl px-3 py-2.5 transition-all duration-300"
+        className="flex items-end gap-3 rounded-2xl px-3 py-2 transition-all duration-300"
         style={{
           background: "var(--surface)",
           border: `1px solid ${isFocused ? "rgba(212, 175, 55, 0.25)" : "var(--border)"}`,
@@ -90,12 +90,12 @@ export function AIComposer({
           placeholder="Ask about match predictions..."
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-transparent resize-none outline-none leading-relaxed py-2"
+          className="flex-1 bg-transparent resize-none outline-none leading-relaxed py-1.5"
           style={{
             color: "var(--text-primary)",
-            fontSize: "16px",
-            minHeight: "44px",
-            maxHeight: "150px",
+            fontSize: "15px",
+            minHeight: "36px",
+            maxHeight: "120px",
           }}
         />
 

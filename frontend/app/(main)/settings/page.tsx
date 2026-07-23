@@ -119,7 +119,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-dvh bg-[#050508] overflow-y-auto no-scrollbar">
       {/* Header */}
-      <div className="px-5 pt-safe pt-6 pb-4">
+      <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <h1 className="text-2xl font-black text-white tracking-tight">
           Settings
         </h1>

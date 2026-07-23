@@ -33,20 +33,20 @@ export default function MatchTrackRecordPage() {
 
   if (error) {
     return (
-      <div className="px-5 pt-safe pt-10 text-center">
+      <div className="px-5 pt-safe pt-10 text-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{error}</p>
       </div>
     );
   }
 
-  if (!analysis) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  if (!analysis) return <div className="px-4 pt-safe pt-10" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}><CardSkeleton /></div>;;
 
   const { ai_scorecard, actual_score, expected_goals, match } = analysis;
   const scoreColor = ai_scorecard.correct >= 6 ? "#00FF87" : ai_scorecard.correct >= 3 ? "#FFD600" : "#FF4757";
 
   return (
     <DerbyThemeProvider matchId={matchId}>
-      <div className="px-5 pt-safe pt-6 pb-4">
+      <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{match.league.name}</p>
         <h1 className="text-xl font-black text-white mb-1">
           {match.home_team.name} {actual_score.home} - {actual_score.away} {match.away_team.name}

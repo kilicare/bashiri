@@ -44,7 +44,7 @@ export default function MatchOverviewPage() {
   };
 
   return (
-    <div className="px-5 pt-safe pt-6 pb-6">
+    <div className="px-5 pt-safe pt-10 pb-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
       <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
         {match.league.name}
         {match.stage_display && ` • ${match.stage_display}`}

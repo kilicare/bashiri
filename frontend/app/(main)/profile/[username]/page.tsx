@@ -34,7 +34,7 @@ export default function PublicProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh px-5 pt-safe pt-10 pb-4 flex items-center justify-center">
+      <div className="min-h-dvh px-5 pt-safe pt-10 pb-4 flex items-center justify-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="text-center">
           <Loader2 size={48} className="text-white/30 animate-spin mx-auto mb-4" />
           <p className="text-white/50">Inapakia profaili...</p>
@@ -45,7 +45,7 @@ export default function PublicProfilePage() {
 
   if (error || !profileData) {
     return (
-      <div className="min-h-dvh px-5 pt-safe pt-10 pb-4 flex items-center justify-center">
+      <div className="min-h-dvh px-5 pt-safe pt-10 pb-4 flex items-center justify-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="text-center">
           <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
             <User size={40} className="text-white/30" />

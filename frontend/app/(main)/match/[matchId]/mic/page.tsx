@@ -105,13 +105,13 @@ export default function BashiriMicPage() {
     });
   }, [matchId, teamFilter]);
 
-  if (loading) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  if (loading) return <div className="px-4 pt-safe pt-10" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}><CardSkeleton /></div>;
 
   return (
     <DerbyThemeProvider matchId={matchId}>
       <div className={layoutMode === "full" ? "relative" : ""}>
         {layoutMode === "grid" && (
-          <div className="px-5 pt-safe pt-6 pb-4 flex items-center justify-between">
+          <div className="px-5 pt-safe pt-10 pb-4 flex items-center justify-between" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
             <h1 className="text-xl font-black text-white flex items-center gap-2">
               <Mic size={20} style={{ color: "var(--brand-accent)" }} /> Bashiri Mic
             </h1>
