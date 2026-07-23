@@ -91,24 +91,40 @@ export async function apiClient<T = any>(
   if (!res.ok) {
     let detail = `Error ${res.status}`;
     try {
-      const body = await res.json();
-      // Handle Django REST Framework error format: { "field": ["error message"] }
-      if (body.detail) {
-        detail = body.detail;
-      } else if (typeof body === 'object') {
-        // Extract first error message from any field
-        const firstKey = Object.keys(body)[0];
-        if (firstKey && Array.isArray(body[firstKey])) {
-          detail = body[firstKey][0];
-        } else if (firstKey && typeof body[firstKey] === 'string') {
-          detail = body[firstKey];
-        } else {
-          detail = JSON.stringify(body);
-        }
+      const text = await res.text();
+      // Check if response is HTML (Django error page)
+      if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+        console.error('[API Error HTML]', endpoint, res.status, 'Backend returned HTML error page');
+        detail = `Server error (${res.status}). Backend returned HTML error page instead of JSON. Check backend logs.`;
       } else {
-        detail = JSON.stringify(body);
+        try {
+          const body = JSON.parse(text);
+          console.error('[API Error]', endpoint, res.status, body);
+          // Handle Django REST Framework error format: { "field": ["error message"] }
+          if (body.detail) {
+            detail = body.detail;
+          } else if (typeof body === 'object') {
+            // Extract first error message from any field
+            const firstKey = Object.keys(body)[0];
+            if (firstKey && Array.isArray(body[firstKey])) {
+              detail = body[firstKey][0];
+            } else if (firstKey && typeof body[firstKey] === 'string') {
+              detail = body[firstKey];
+            } else {
+              detail = JSON.stringify(body);
+            }
+          } else {
+            detail = JSON.stringify(body);
+          }
+        } catch (jsonError) {
+          console.error('[API Parse Error]', jsonError);
+          detail = `Error ${res.status} - ${text.substring(0, 200)}`;
+        }
       }
-    } catch {}
+    } catch (e) {
+      console.error('[API Error Exception]', e);
+      detail = `Error ${res.status} - Server error occurred`;
+    }
     throw new Error(detail);
   }
 
