@@ -230,7 +230,7 @@ export function BashiriSplash() {
       </motion.div>
 
       {/* Progress line ya kisasa - gradient na glow */}
-      <div className="absolute bottom-16 left-0 right-0 flex justify-center pb-safe">
+      <div className="absolute bottom-24 left-0 right-0 flex justify-center pb-safe">
         <div
           className="w-40 rounded-full overflow-hidden relative"
           style={{ 
