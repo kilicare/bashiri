@@ -229,19 +229,42 @@ export function BashiriSplash() {
         </motion.p>
       </motion.div>
 
-      {/* Progress line nyembamba, ya kifahari */}
+      {/* Progress line ya kisasa - gradient na glow */}
       <div className="absolute bottom-16 left-0 right-0 flex justify-center pb-safe">
         <div
-          className="w-32 rounded-full overflow-hidden"
-          style={{ height: 4, background: "rgba(255,255,255,0.1)" }}
+          className="w-40 rounded-full overflow-hidden relative"
+          style={{ 
+            height: 3, 
+            background: "rgba(255,255,255,0.08)",
+            boxShadow: "0 0 20px rgba(212,175,55,0.1)"
+          }}
         >
           <motion.div
-            className="h-full rounded-full"
-            style={{ background: "#D4AF37" }}
+            className="h-full rounded-full relative"
+            style={{ 
+              background: "linear-gradient(90deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%)",
+              boxShadow: "0 0 10px rgba(212,175,55,0.6)"
+            }}
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
-            transition={{ duration: DISPLAY_MS / 1000, delay: 0.8, ease: [0.4, 0, 0.2, 1] }}
-          />
+            transition={{ duration: DISPLAY_MS / 1000, delay: 0.8, ease: "linear" }}
+          >
+            {/* Shimmer effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)"
+              }}
+              animate={{
+                x: ["-100%", "100%"]
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          </motion.div>
         </div>
       </div>
     </motion.div>
