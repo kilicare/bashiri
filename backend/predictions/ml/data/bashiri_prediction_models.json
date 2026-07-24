@@ -1,0 +1,608 @@
+{
+  "generated_at": "2026-07-19T04:41:56.049968+00:00",
+  "leagues": {
+    "EPL": {
+      "competition_code": "PL",
+      "home_advantage": 1.1736,
+      "league_avg_goals": 1.4939,
+      "teams": {
+        "Burnley FC": {
+          "attack": 0.9643,
+          "defense": 1.3393
+        },
+        "Manchester City FC": {
+          "attack": 1.91,
+          "defense": 0.6919
+        },
+        "Nottingham Forest FC": {
+          "attack": 1.2262,
+          "defense": 0.9774
+        },
+        "Arsenal FC": {
+          "attack": 1.7878,
+          "defense": 0.5484
+        },
+        "Crystal Palace FC": {
+          "attack": 1.1772,
+          "defense": 0.9518
+        },
+        "AFC Bournemouth": {
+          "attack": 1.3464,
+          "defense": 1.0
+        },
+        "Fulham FC": {
+          "attack": 1.2349,
+          "defense": 0.9897
+        },
+        "West Ham United FC": {
+          "attack": 1.2163,
+          "defense": 1.1975
+        },
+        "Brighton & Hove Albion FC": {
+          "attack": 1.3702,
+          "defense": 1.0009
+        },
+        "Luton Town FC": {
+          "attack": 1.2315,
+          "defense": 1.5088
+        },
+        "Everton FC": {
+          "attack": 1.0142,
+          "defense": 0.8571
+        },
+        "Sheffield United FC": {
+          "attack": 0.8423,
+          "defense": 1.8188
+        },
+        "Aston Villa FC": {
+          "attack": 1.5025,
+          "defense": 0.97
+        },
+        "Newcastle United FC": {
+          "attack": 1.6309,
+          "defense": 0.9931
+        },
+        "Tottenham Hotspur FC": {
+          "attack": 1.4809,
+          "defense": 1.1016
+        },
+        "Brentford FC": {
+          "attack": 1.4051,
+          "defense": 1.0443
+        },
+        "Liverpool FC": {
+          "attack": 1.8445,
+          "defense": 0.8244
+        },
+        "Chelsea FC": {
+          "attack": 1.5724,
+          "defense": 0.9545
+        },
+        "Wolverhampton Wanderers FC": {
+          "attack": 1.0481,
+          "defense": 1.1957
+        },
+        "Manchester United FC": {
+          "attack": 1.3443,
+          "defense": 0.97
+        },
+        "Ipswich Town FC": {
+          "attack": 0.8607,
+          "defense": 1.4781
+        },
+        "Southampton FC": {
+          "attack": 0.6235,
+          "defense": 1.536
+        },
+        "Leicester City FC": {
+          "attack": 0.7874,
+          "defense": 1.4379
+        },
+        "Sunderland AFC": {
+          "attack": 1.0392,
+          "defense": 0.8397
+        },
+        "Leeds United FC": {
+          "attack": 1.222,
+          "defense": 0.9865
+        }
+      }
+    },
+    "LaLiga": {
+      "competition_code": "PD",
+      "home_advantage": 1.3084,
+      "league_avg_goals": 1.3263,
+      "teams": {
+        "UD Almer\u00eda": {
+          "attack": 0.8144,
+          "defense": 1.8131
+        },
+        "Rayo Vallecano de Madrid": {
+          "attack": 0.6902,
+          "defense": 1.0873
+        },
+        "Sevilla FC": {
+          "attack": 0.8555,
+          "defense": 1.3536
+        },
+        "Valencia CF": {
+          "attack": 0.8134,
+          "defense": 1.2306
+        },
+        "Real Sociedad de F\u00fatbol": {
+          "attack": 0.9049,
+          "defense": 1.1726
+        },
+        "Girona FC": {
+          "attack": 1.0545,
+          "defense": 1.3039
+        },
+        "UD Las Palmas": {
+          "attack": 0.6799,
+          "defense": 1.2955
+        },
+        "RCD Mallorca": {
+          "attack": 0.7171,
+          "defense": 1.1525
+        },
+        "Athletic Club": {
+          "attack": 0.9788,
+          "defense": 1.0
+        },
+        "Real Madrid CF": {
+          "attack": 1.4878,
+          "defense": 0.8217
+        },
+        "RC Celta de Vigo": {
+          "attack": 0.9919,
+          "defense": 1.3074
+        },
+        "CA Osasuna": {
+          "attack": 0.8585,
+          "defense": 1.2657
+        },
+        "Villarreal CF": {
+          "attack": 1.3071,
+          "defense": 1.3309
+        },
+        "Real Betis Balompi\u00e9": {
+          "attack": 1.0228,
+          "defense": 1.1561
+        },
+        "FC Barcelona": {
+          "attack": 1.7098,
+          "defense": 1.0005
+        },
+        "Getafe CF": {
+          "attack": 0.6701,
+          "defense": 1.0386
+        },
+        "Deportivo Alav\u00e9s": {
+          "attack": 0.7371,
+          "defense": 1.1936
+        },
+        "C\u00e1diz CF": {
+          "attack": 0.4817,
+          "defense": 1.3053
+        },
+        "Granada CF": {
+          "attack": 0.7224,
+          "defense": 1.9
+        },
+        "Club Atl\u00e9tico de Madrid": {
+          "attack": 1.2367,
+          "defense": 0.9573
+        },
+        "CD Legan\u00e9s": {
+          "attack": 0.7324,
+          "defense": 1.3471
+        },
+        "Real Valladolid CF": {
+          "attack": 0.5056,
+          "defense": 2.1381
+        },
+        "RCD Espanyol de Barcelona": {
+          "attack": 0.7865,
+          "defense": 1.2634
+        },
+        "Real Oviedo": {
+          "attack": 0.502,
+          "defense": 1.3917
+        },
+        "Levante UD": {
+          "attack": 0.9097,
+          "defense": 1.4465
+        },
+        "Elche CF": {
+          "attack": 0.9445,
+          "defense": 1.3542
+        }
+      }
+    },
+    "Bundesliga": {
+      "competition_code": "BL1",
+      "home_advantage": 1.1949,
+      "league_avg_goals": 1.5987,
+      "teams": {
+        "SV Werder Bremen": {
+          "attack": 1.444,
+          "defense": 0.8985
+        },
+        "FC Bayern M\u00fcnchen": {
+          "attack": 3.214,
+          "defense": 0.6325
+        },
+        "Borussia M\u00f6nchengladbach": {
+          "attack": 1.5934,
+          "defense": 0.9349
+        },
+        "SC Freiburg": {
+          "attack": 1.5049,
+          "defense": 0.8846
+        },
+        "1. FC Heidenheim 1846": {
+          "attack": 1.3391,
+          "defense": 1.0
+        },
+        "VfL Bochum 1848": {
+          "attack": 1.1517,
+          "defense": 1.1116
+        },
+        "RB Leipzig": {
+          "attack": 2.0114,
+          "defense": 0.7182
+        },
+        "TSG 1899 Hoffenheim": {
+          "attack": 1.8506,
+          "defense": 0.9913
+        },
+        "VfL Wolfsburg": {
+          "attack": 1.4796,
+          "defense": 0.9417
+        },
+        "FC Augsburg": {
+          "attack": 1.3508,
+          "defense": 0.9009
+        },
+        "VfB Stuttgart": {
+          "attack": 2.1921,
+          "defense": 0.7606
+        },
+        "Bayer 04 Leverkusen": {
+          "attack": 2.3342,
+          "defense": 0.6181
+        },
+        "1. FC K\u00f6ln": {
+          "attack": 1.2094,
+          "defense": 0.9645
+        },
+        "Borussia Dortmund": {
+          "attack": 2.1406,
+          "defense": 0.6892
+        },
+        "1. FSV Mainz 05": {
+          "attack": 1.4213,
+          "defense": 0.7718
+        },
+        "1. FC Union Berlin": {
+          "attack": 1.177,
+          "defense": 0.8643
+        },
+        "Eintracht Frankfurt": {
+          "attack": 1.8649,
+          "defense": 0.8585
+        },
+        "SV Darmstadt 98": {
+          "attack": 0.94,
+          "defense": 1.3382
+        },
+        "Holstein Kiel": {
+          "attack": 1.555,
+          "defense": 1.2585
+        },
+        "FC St. Pauli 1910": {
+          "attack": 0.892,
+          "defense": 0.7795
+        },
+        "Hamburger SV": {
+          "attack": 1.2826,
+          "defense": 0.8478
+        }
+      }
+    },
+    "Ligue1": {
+      "competition_code": "FL1",
+      "home_advantage": 1.2032,
+      "league_avg_goals": 1.4181,
+      "teams": {
+        "OGC Nice": {
+          "attack": 1.231,
+          "defense": 0.9243
+        },
+        "Lille OSC": {
+          "attack": 1.3308,
+          "defense": 0.7644
+        },
+        "Olympique de Marseille": {
+          "attack": 1.6307,
+          "defense": 0.9637
+        },
+        "Stade de Reims": {
+          "attack": 0.9651,
+          "defense": 0.998
+        },
+        "Paris Saint-Germain FC": {
+          "attack": 2.1018,
+          "defense": 0.7191
+        },
+        "FC Lorient": {
+          "attack": 1.1983,
+          "defense": 1.2429
+        },
+        "Stade Brestois 29": {
+          "attack": 1.2836,
+          "defense": 1.0549
+        },
+        "Racing Club de Lens": {
+          "attack": 1.3073,
+          "defense": 0.792
+        },
+        "Montpellier HSC": {
+          "attack": 0.8895,
+          "defense": 1.3371
+        },
+        "Toulouse FC": {
+          "attack": 1.1587,
+          "defense": 0.9637
+        },
+        "AS Monaco FC": {
+          "attack": 1.6508,
+          "defense": 0.9937
+        },
+        "FC Nantes": {
+          "attack": 0.8619,
+          "defense": 1.1203
+        },
+        "Clermont Foot 63": {
+          "attack": 0.6757,
+          "defense": 1.2611
+        },
+        "Le Havre AC": {
+          "attack": 0.9229,
+          "defense": 1.1214
+        },
+        "Stade Rennais FC 1901": {
+          "attack": 1.4131,
+          "defense": 1.047
+        },
+        "FC Metz": {
+          "attack": 0.8905,
+          "defense": 1.4033
+        },
+        "Olympique Lyonnais": {
+          "attack": 1.4449,
+          "defense": 1.0127
+        },
+        "RC Strasbourg Alsace": {
+          "attack": 1.3147,
+          "defense": 1.0065
+        },
+        "AS Saint-\u00c9tienne": {
+          "attack": 1.0327,
+          "defense": 1.673
+        },
+        "AJ Auxerre": {
+          "attack": 1.0704,
+          "defense": 1.0
+        },
+        "Angers SCO": {
+          "attack": 0.7986,
+          "defense": 1.0499
+        },
+        "Paris FC": {
+          "attack": 1.2417,
+          "defense": 1.0502
+        }
+      }
+    },
+    "WorldCup": {
+      "competition_code": "WC",
+      "home_advantage": 1.0,
+      "league_avg_goals": 1.4563,
+      "teams": {
+        "Mexico": {
+          "attack": 2.3958,
+          "defense": 0.3621
+        },
+        "South Africa": {
+          "attack": 0.5579,
+          "defense": 0.6204
+        },
+        "South Korea": {
+          "attack": 0.7712,
+          "defense": 0.7276
+        },
+        "Czechia": {
+          "attack": 1.1695,
+          "defense": 1.6108
+        },
+        "Canada": {
+          "attack": 2.1106,
+          "defense": 0.8844
+        },
+        "Bosnia-Herzegovina": {
+          "attack": 1.1861,
+          "defense": 0.9348
+        },
+        "United States": {
+          "attack": 3.5918,
+          "defense": 1.0571
+        },
+        "Paraguay": {
+          "attack": 0.574,
+          "defense": 0.4533
+        },
+        "Qatar": {
+          "attack": 0.916,
+          "defense": 1.9096
+        },
+        "Switzerland": {
+          "attack": 1.9399,
+          "defense": 0.3642
+        },
+        "Brazil": {
+          "attack": 2.6882,
+          "defense": 0.4172
+        },
+        "Morocco": {
+          "attack": 2.184,
+          "defense": 0.4351
+        },
+        "Haiti": {
+          "attack": 1.3364,
+          "defense": 1.5108
+        },
+        "Scotland": {
+          "attack": 0.4232,
+          "defense": 0.6443
+        },
+        "Turkey": {
+          "attack": 1.6193,
+          "defense": 0.9724
+        },
+        "Australia": {
+          "attack": 0.9762,
+          "defense": 0.3422
+        },
+        "Cura\u00e7ao": {
+          "attack": 0.2765,
+          "defense": 2.2162
+        },
+        "Germany": {
+          "attack": 2.842,
+          "defense": 2.416
+        },
+        "Japan": {
+          "attack": 2.1472,
+          "defense": 0.5746
+        },
+        "Netherlands": {
+          "attack": 3.0261,
+          "defense": 0.6833
+        },
+        "Ecuador": {
+          "attack": 0.3592,
+          "defense": 0.6275
+        },
+        "Ivory Coast": {
+          "attack": 0.8599,
+          "defense": 0.5735
+        },
+        "Sweden": {
+          "attack": 2.0903,
+          "defense": 0.9732
+        },
+        "Tunisia": {
+          "attack": 0.8964,
+          "defense": 1.6521
+        },
+        "Cape Verde Islands": {
+          "attack": 2.1367,
+          "defense": 0.2416
+        },
+        "Spain": {
+          "attack": 4.1799,
+          "defense": 0.0511
+        },
+        "Egypt": {
+          "attack": 2.9812,
+          "defense": 0.5903
+        },
+        "Belgium": {
+          "attack": 3.2125,
+          "defense": 0.3598
+        },
+        "Uruguay": {
+          "attack": 3.8165,
+          "defense": 0.5312
+        },
+        "Saudi Arabia": {
+          "attack": 1.2139,
+          "defense": 0.4934
+        },
+        "New Zealand": {
+          "attack": 3.1462,
+          "defense": 1.3319
+        },
+        "Iran": {
+          "attack": 1.3146,
+          "defense": 0.3212
+        },
+        "Senegal": {
+          "attack": 4.2395,
+          "defense": 0.6952
+        },
+        "France": {
+          "attack": 4.2056,
+          "defense": 0.4389
+        },
+        "Norway": {
+          "attack": 3.4972,
+          "defense": 0.5552
+        },
+        "Iraq": {
+          "attack": 0.592,
+          "defense": 1.0048
+        },
+        "Argentina": {
+          "attack": 3.2083,
+          "defense": 0.3284
+        },
+        "Algeria": {
+          "attack": 1.9348,
+          "defense": 1.0
+        },
+        "Austria": {
+          "attack": 2.4687,
+          "defense": 0.8406
+        },
+        "Jordan": {
+          "attack": 1.3831,
+          "defense": 1.051
+        },
+        "Congo DR": {
+          "attack": 1.8346,
+          "defense": 0.4025
+        },
+        "Portugal": {
+          "attack": 2.5314,
+          "defense": 0.2045
+        },
+        "Croatia": {
+          "attack": 4.1881,
+          "defense": 0.7735
+        },
+        "England": {
+          "attack": 5.427,
+          "defense": 0.5876
+        },
+        "Panama": {
+          "attack": 0.0,
+          "defense": 0.3736
+        },
+        "Ghana": {
+          "attack": 1.0915,
+          "defense": 0.2669
+        },
+        "Uzbekistan": {
+          "attack": 2.8381,
+          "defense": 1.8355
+        },
+        "Colombia": {
+          "attack": 1.6268,
+          "defense": 0.0977
+        }
+      }
+    }
+  }
+}
