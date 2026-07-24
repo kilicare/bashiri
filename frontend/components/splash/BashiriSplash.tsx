@@ -60,7 +60,7 @@ export function BashiriSplash() {
     <motion.div
       className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, #0B1220 0%, #050816 100%)",
+        background: "#0A0A0A",
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: exiting ? 0 : 1 }}
