@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { cloudinaryUrl } from "@/lib/cloudinary";
 
 const SPLASH_SESSION_KEY = "bashiri_splash_shown";
-const DISPLAY_MS = 6000;
-const EXIT_MS = 700;
+const DISPLAY_MS = 4000;
+const EXIT_MS = 400;
 
 // Nafasi za "particles" zimewekwa TULIVU (si Math.random) ili kuepuka
 // hydration mismatch — kila moja ina left%, delay, na muda tofauti.
