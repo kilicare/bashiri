@@ -50,10 +50,11 @@ export function BashiriSplash() {
     return () => clearTimeout(exitTimer);
   }, [exiting, router]);
 
-  // Mtumiaji anayerudi ndani ya session hiyo hiyo — hakuna splash tena,
-  // tunaruka moja kwa moja (background nyeusi tu, imefifia haraka sana).
+  // Mtumiaji anayerudi ndani ya session hiyo hiyo — tunaruka splash screen
+  // na tunaelekea moja kwa moja kwenye home page
   if (alreadySeen) {
-    return <div className="fixed inset-0" style={{ background: "#0A0A0A" }} />;
+    router.replace("/home");
+    return null;
   }
 
   return (
@@ -232,14 +233,14 @@ export function BashiriSplash() {
       <div className="absolute bottom-16 left-0 right-0 flex justify-center pb-safe">
         <div
           className="w-32 rounded-full overflow-hidden"
-          style={{ height: 3, background: "rgba(255,255,255,0.1)" }}
+          style={{ height: 4, background: "rgba(255,255,255,0.1)" }}
         >
           <motion.div
             className="h-full rounded-full"
             style={{ background: "#D4AF37" }}
             initial={{ width: "0%" }}
-            animate={{ width: exiting ? "100%" : "100%" }}
-            transition={{ duration: DISPLAY_MS / 1000, delay: 0.8, ease: "easeInOut" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: DISPLAY_MS / 1000, delay: 0.8, ease: [0.4, 0, 0.2, 1] }}
           />
         </div>
       </div>

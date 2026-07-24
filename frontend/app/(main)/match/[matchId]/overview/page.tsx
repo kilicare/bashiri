@@ -73,12 +73,12 @@ export default function MatchOverviewPage() {
       </div>
 
       {/* Derby Tabs */}
-      <div className="flex gap-2 mb-5 overflow-x-auto pb-2">
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
         {DERBY_TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleTabChange(tab.key)}
-            className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all"
+            className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all snap-start"
             style={{
               background: activeTab === tab.key ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.06)",
               color: activeTab === tab.key ? "var(--brand-primary)" : "rgba(255,255,255,0.5)",
