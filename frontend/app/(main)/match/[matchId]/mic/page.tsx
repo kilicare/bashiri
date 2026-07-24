@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getMicReactions, getMoodSummary, canPost, getFanOfMatch, MicReaction } from "@/lib/api/mic";
 import { MicReactionPlayer } from "@/components/mic/MicReactionPlayer";
 import { MicReactionFullView } from "@/components/mic/MicReactionFullView";
@@ -24,6 +24,7 @@ const MOOD_LABELS: Record<string, { emoji: string; color: string }> = {
 export default function BashiriMicPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const matchId = Number(params.matchId);
   const { requireAuth } = useRequireAuth();
 
@@ -37,6 +38,22 @@ export default function BashiriMicPage() {
   const [visibleReactionId, setVisibleReactionId] = useState<number | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const visibleIdsRef = useRef<Set<number>>(new Set());
+
+  // Initialize layoutMode from URL param
+  useEffect(() => {
+    if (searchParams.get("mode") === "full") {
+      setLayoutMode("full");
+    }
+  }, [searchParams]);
+
+  // Update URL when switching layout modes
+  useEffect(() => {
+    if (layoutMode === "full") {
+      router.replace(`/match/${matchId}/mic?mode=full`);
+    } else {
+      router.replace(`/match/${matchId}/mic`);
+    }
+  }, [layoutMode, matchId, router]);
 
   function handlePostClick() {
     if (!requireAuth("Post video yako — kuwa nyota wa Bashiri Mic!")) return;

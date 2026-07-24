@@ -1,5 +1,5 @@
 "use client";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { AuthRequiredSheet } from "@/components/auth/AuthRequiredSheet";
 import { PWAInstallProvider } from "@/components/pwa/PWAInstallProvider";
@@ -8,13 +8,16 @@ import { CommandPaletteProvider } from "@/components/pulse/CommandPaletteProvide
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isAIPage = pathname === "/ai";
+  const isMicFullMode = pathname.includes("/mic") && searchParams.get("mode") === "full";
+  const shouldHideBottomNav = isAIPage || isMicFullMode;
   console.log('[TRACE] MainLayout called');
   return (
     <PWAInstallProvider>
-      <div className={`min-h-dvh bg-background ${isAIPage ? 'pb-0' : 'pb-20'}`}>
+      <div className={`min-h-dvh bg-background ${shouldHideBottomNav ? 'pb-0' : 'pb-20'}`}>
         {children}
-        {!isAIPage && <BottomNav />}
+        {!shouldHideBottomNav && <BottomNav />}
         <AuthRequiredSheet />
         <InstallPromptSheet />
         <CommandPaletteProvider />
