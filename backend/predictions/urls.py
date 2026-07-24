@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     ActiveDerbyView, AITrackRecordView, AIPerformanceStatsView, CommandSearchView, FixturesView, LeagueListView,
     LiveMatchesView, MatchAnalysisView, MatchDashboardView, MatchOverviewView,
-    SavedMatchesListView, SaveMatchView, SearchView, TeamListView, FinishedMatchesView,
+    SavedMatchesListView, SaveMatchView, SearchView, TeamListView, FinishedMatchesView, SyncHistoricalView,
 )
 
 urlpatterns = [
@@ -22,4 +22,5 @@ urlpatterns = [
     path("save/", SaveMatchView.as_view(), name="save-match"),
     path("saved/", SavedMatchesListView.as_view(), name="saved-matches"),
     path("finished/", FinishedMatchesView.as_view(), name="finished-matches"),
+    path("sync-historical/", SyncHistoricalView.as_view(), name="sync-historical"),
 ]

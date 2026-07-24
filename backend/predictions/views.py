@@ -21,6 +21,32 @@ class NoThrottle(AnonRateThrottle):
     rate = '10000/hour'  # effectively unlimited for search endpoints
 
 
+class SyncHistoricalView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = []  # No throttling for sync
+
+    def post(self, request):
+        from django.core.management import call_command
+        from io import StringIO
+        import sys
+        
+        seasons = request.data.get('seasons', [])
+        if not seasons:
+            return Response({'error': 'No seasons provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Convert seasons to string format
+        seasons_str = ' '.join(str(s) for s in seasons)
+        
+        # Capture output
+        output = StringIO()
+        try:
+            call_command('sync_historical', seasons_str, stdout=output, stderr=output)
+            output_str = output.getvalue()
+            return Response({'status': 'success', 'output': output_str})
+        except Exception as e:
+            return Response({'status': 'error', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class FixturesView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = []  # Disable throttling for fixtures
