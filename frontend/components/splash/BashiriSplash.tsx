@@ -50,11 +50,10 @@ export function BashiriSplash() {
     return () => clearTimeout(exitTimer);
   }, [exiting, router]);
 
-  // Mtumiaji anayerudi ndani ya session hiyo hiyo — tunaruka splash screen
-  // na tunaelekea moja kwa moja kwenye home page
+  // Mtumiaji anayerudi ndani ya session hiyo hiyo — hakuna splash tena,
+  // tunaruka moja kwa moja (background nyeusi tu, imefifia haraka sana).
   if (alreadySeen) {
-    router.replace("/home");
-    return null;
+    return <div className="fixed inset-0" style={{ background: "#0A0A0A" }} />;
   }
 
   return (
