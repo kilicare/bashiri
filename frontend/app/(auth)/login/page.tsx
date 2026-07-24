@@ -194,7 +194,7 @@ export default function LoginPage() {
             >
                   <PhoneInput label="Namba ya Simu" value={phone} onChange={setPhone} />
               <BashiriInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="mfano: lastmateru" />
-              <BashiriInput label="Tarehe ya Kuzaliwa" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              <BashiriInput label="Tarehe ya Kuzaliwa" type="date" value={dob} onChange={(e) => setDob(e.target.value)} showCalendarIcon />
               {error && <p className="text-xs text-bashiri-red">{error}</p>}
               <BashiriButton className="w-full" size="lg" onClick={handleNextStep}>
                 Endelea →
