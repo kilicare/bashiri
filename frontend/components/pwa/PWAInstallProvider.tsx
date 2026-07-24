@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { usePWAInstallStore } from "@/stores/pwaInstall.store";
 import { detectPlatform } from "@/lib/pwa-install-utils";
+import { supportsPWAInstall } from "@/lib/device-utils";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -28,12 +29,20 @@ export function PWAInstallProvider({ children }: { children: React.ReactNode }) 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setPlatform(detectPlatform());
+    const platform = detectPlatform();
+    setPlatform(platform);
+
+    // Only setup PWA install if the browser supports it
+    if (!supportsPWAInstall()) {
+      console.log("[PWA] Browser haisupporti PWA install prompt:", platform);
+      return;
+    }
 
     function handleBeforeInstallPrompt(e: Event) {
       const promptEvent = e as BeforeInstallPromptEvent;
       promptEvent.preventDefault();
       setDeferredPrompt(promptEvent);
+      console.log("[PWA] beforeinstallprompt event captured");
     }
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt as EventListener);
 

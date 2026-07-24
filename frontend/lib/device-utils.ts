@@ -13,6 +13,50 @@ export function detectDevicePlatform(): DevicePlatform {
   return "desktop";
 }
 
+export function detectBrowser(): string {
+  if (!hasWindow()) return "unknown";
+
+  const ua = window.navigator.userAgent || "";
+  
+  // Samsung Internet
+  if (/SamsungBrowser/i.test(ua)) return "samsung";
+  // Chrome (check before Edge since Edge UA also contains Chrome)
+  if (/Chrome/i.test(ua) && !/Edge|OPR|SamsungBrowser/i.test(ua)) return "chrome";
+  // Firefox
+  if (/Firefox/i.test(ua)) return "firefox";
+  // Safari
+  if (/Safari/i.test(ua) && !/Chrome|SamsungBrowser/i.test(ua)) return "safari";
+  // Edge
+  if (/Edge/i.test(ua)) return "edge";
+  // Opera
+  if (/OPR/i.test(ua)) return "opera";
+  // UC Browser
+  if (/UCBrowser/i.test(ua)) return "uc";
+  // Opera Mini
+  if (/Opera Mini/i.test(ua)) return "opera-mini";
+  
+  return "unknown";
+}
+
+export function supportsPWAInstall(): boolean {
+  if (!hasWindow()) return false;
+  
+  const platform = detectDevicePlatform();
+  const browser = detectBrowser();
+  
+  // Android: Chrome, Samsung Internet, Firefox, Edge support PWA install
+  if (platform === "android") {
+    return ["chrome", "samsung", "firefox", "edge"].includes(browser);
+  }
+  
+  // iOS: Safari supports PWA via Add to Home Screen
+  if (platform === "ios") {
+    return browser === "safari";
+  }
+  
+  return false;
+}
+
 export function getDisplayMode(): DisplayMode {
   if (!hasWindow()) return "unknown";
   if (window.matchMedia("(display-mode: standalone)").matches) return "standalone";

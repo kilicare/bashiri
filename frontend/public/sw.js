@@ -11,17 +11,25 @@
  * chini ya faili hii pia (background messages).
  */
 
-const CACHE_VERSION = "bashiri-v3";
+const CACHE_VERSION = "bashiri-v4";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
-const PRECACHE_URLS = ["/offline", "/manifest.json", "/icon.png"];
+const PRECACHE_URLS = [
+  "/offline",
+  "/manifest.json",
+  "/icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/apple-touch-icon.png"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
   );
-  // Don't skipWaiting immediately - wait for user to trigger update
+  // Force activate immediately for better PWA experience
+  self.skipWaiting();
 });
 
 // Handle SKIP_WAITING message from client
