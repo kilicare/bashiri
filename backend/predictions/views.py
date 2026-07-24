@@ -34,8 +34,8 @@ class SyncHistoricalView(APIView):
         if not seasons:
             return Response({'error': 'No seasons provided'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Convert seasons to list of strings for command
-        seasons_args = [str(s) for s in seasons]
+        # Convert seasons to list of strings for command with --seasons flag
+        seasons_args = ['--seasons'] + [str(s) for s in seasons]
         
         # Capture output
         output = StringIO()
