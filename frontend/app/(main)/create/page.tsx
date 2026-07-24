@@ -29,6 +29,14 @@ export default function CreatePredictionStep1() {
       <div className="px-4 md:px-6 lg:px-8 space-y-5">
         {loading ? (
           [1, 2].map((i) => <CardSkeleton key={i} />)
+        ) : matches.length === 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-dvh text-center pt-20">
+            <div className="text-6xl mb-4">🏟️</div>
+            <p className="text-xl font-bold text-white mb-2">Hakuna Mechi Leo</p>
+            <p className="text-sm text-white/60 max-w-xs">
+              Kwa sasa hakuna mechi zinazopatikana kwa prediction. Rudi baadaye uone mechi zinazovuma!
+            </p>
+          </div>
         ) : (
           Object.entries(grouped).map(([league, leagueMatches]) => (
             <div key={league}>

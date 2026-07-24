@@ -33,7 +33,15 @@ function DerbyHubContent() {
     });
   }, [searchParams]);
 
-  if (!derby) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  if (!derby) return (
+    <div className="px-4 pt-safe pt-6 flex flex-col items-center justify-center min-h-dvh text-center">
+      <div className="text-6xl mb-4">⚽</div>
+      <p className="text-xl font-bold text-white mb-2">Hakuna Derby Leo</p>
+      <p className="text-sm text-white/60 max-w-xs">
+        Kwa sasa hakuna mechi kubwa ya kirivu inayoendelea. Rudi baadaye uone derby inayovuma!
+      </p>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto min-h-dvh" style={{ background: `linear-gradient(180deg, ${derby.theme_accent_color}15, var(--background) 40%)` }}>
