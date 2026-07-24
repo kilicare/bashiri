@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, CalendarDays, Sparkles, User2, Plus } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useEffect, useState, useRef } from "react";
 
 const NAV_ITEMS = [
   { href: "/home", icon: Home, label: "Home" },
@@ -15,6 +16,62 @@ export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { requireAuth } = useRequireAuth();
+
+  // Premium hide/show behavior
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isScrolling = useRef(false);
+
+  useEffect(() => {
+    let lastKnownScrollY = window.scrollY;
+    const scrollThreshold = 10; // Minimum scroll distance to trigger
+    const scrollDelay = 100; // Delay to prevent rapid toggling
+
+    const handleScroll = () => {
+      if (isScrolling.current) return;
+      isScrolling.current = true;
+
+      requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const scrollDelta = Math.abs(currentScrollY - lastKnownScrollY);
+
+        // Only trigger if scroll exceeds threshold
+        if (scrollDelta > scrollThreshold) {
+          const isScrollingDown = currentScrollY > lastKnownScrollY;
+
+          if (isScrollingDown && isVisible) {
+            // Scrolling down - hide nav
+            setIsVisible(false);
+          } else if (!isScrollingDown && !isVisible) {
+            // Scrolling up - show nav
+            setIsVisible(true);
+          }
+
+          lastKnownScrollY = currentScrollY;
+        }
+
+        isScrolling.current = false;
+      });
+    };
+
+    // Debounced scroll handler to prevent rapid toggling
+    const debouncedScroll = () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(handleScroll, scrollDelay);
+    };
+
+    window.addEventListener("scroll", debouncedScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", debouncedScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [isVisible]);
 
   const vibrate = () => {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -65,7 +122,18 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-6 left-0 right-0 z-30 px-4">
+    <motion.nav
+      className="fixed bottom-6 left-0 right-0 z-30 px-4"
+      initial={{ y: 0 }}
+      animate={{ y: isVisible ? 0 : 100 }}
+      transition={{
+        duration: 0.25,
+        ease: [0.4, 0, 0.2, 1], // Smooth cubic-bezier easing
+      }}
+      style={{
+        willChange: "transform", // GPU acceleration hint
+      }}
+    >
       <div
         className="max-w-lg mx-auto rounded-[32px]"
         style={{
@@ -104,6 +172,6 @@ export function BottomNav() {
           ))}
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

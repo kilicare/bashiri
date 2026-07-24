@@ -145,7 +145,7 @@ export function AIChatPage() {
         className="flex-1 overflow-y-auto scroll-smooth"
         style={{
           paddingTop: '16px',
-          paddingBottom: isKeyboardOpen ? '220px' : '180px',
+          paddingBottom: isKeyboardOpen ? '140px' : '100px',
           paddingLeft: '16px',
           paddingRight: '16px',
         }}

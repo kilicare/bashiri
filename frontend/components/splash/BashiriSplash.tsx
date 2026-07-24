@@ -5,19 +5,23 @@ import { motion } from "framer-motion";
 import { cloudinaryUrl } from "@/lib/cloudinary";
 
 const SPLASH_SESSION_KEY = "bashiri_splash_shown";
-const DISPLAY_MS = 2000;
-const EXIT_MS = 450;
+const DISPLAY_MS = 6000;
+const EXIT_MS = 700;
 
 // Nafasi za "particles" zimewekwa TULIVU (si Math.random) ili kuepuka
 // hydration mismatch — kila moja ina left%, delay, na muda tofauti.
 const PARTICLES = [
-  { left: "12%", size: 3, delay: 0.2, duration: 6 },
-  { left: "24%", size: 2, delay: 1.1, duration: 7.5 },
-  { left: "38%", size: 4, delay: 0.6, duration: 5.5 },
-  { left: "52%", size: 2, delay: 1.8, duration: 8 },
-  { left: "66%", size: 3, delay: 0.3, duration: 6.5 },
-  { left: "78%", size: 2, delay: 1.4, duration: 7 },
-  { left: "88%", size: 3, delay: 0.9, duration: 6.8 },
+  { left: "8%", size: 4, delay: 0.1, duration: 5 },
+  { left: "15%", size: 2, delay: 0.8, duration: 7 },
+  { left: "22%", size: 3, delay: 0.3, duration: 6 },
+  { left: "32%", size: 5, delay: 0.5, duration: 5.5 },
+  { left: "42%", size: 2, delay: 1.2, duration: 8 },
+  { left: "52%", size: 4, delay: 0.7, duration: 6.5 },
+  { left: "62%", size: 3, delay: 0.2, duration: 7.5 },
+  { left: "72%", size: 2, delay: 1.5, duration: 8.5 },
+  { left: "82%", size: 4, delay: 0.4, duration: 6 },
+  { left: "90%", size: 3, delay: 1.0, duration: 7 },
+  { left: "95%", size: 2, delay: 0.6, duration: 5.5 },
 ];
 
 export function BashiriSplash() {
@@ -63,19 +67,41 @@ export function BashiriSplash() {
       transition={{ duration: exiting ? EXIT_MS / 1000 : 0.6, ease: "easeInOut" }}
     >
       {/* Texture ya "stadium atmosphere" — mwanga hafifu uliofichika, si uwanja halisi */}
-      <div
+      <motion.div
         className="absolute -top-32 left-1/2 -translate-x-1/2 w-[520px] h-[520px] rounded-full pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(212,175,55,0.10) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.8, 1, 0.8],
+        }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div
+      <motion.div
         className="absolute bottom-0 right-0 w-96 h-96 rounded-full pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)",
           filter: "blur(80px)",
         }}
+        animate={{
+          scale: [1, 1.15, 1],
+          opacity: [0.7, 1, 0.7],
+        }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+      />
+      <motion.div
+        className="absolute top-1/4 left-0 w-64 h-64 rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, rgba(207,175,123,0.08) 0%, transparent 70%)",
+          filter: "blur(50px)",
+        }}
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.5, 0.8, 0.5],
+        }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
       />
 
       {/* Noise/texture ya kina — grain ndogo isiyoonekana wazi */}
@@ -115,27 +141,42 @@ export function BashiriSplash() {
         />
       ))}
 
-      {/* Glow nyuma ya logo */}
+      {/* Glow nyuma ya logo - zaidi dramatic */}
       <motion.div
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 240,
-          height: 240,
-          background: "radial-gradient(circle, rgba(212,175,55,0.28) 0%, transparent 72%)",
-          filter: "blur(20px)",
+          width: 280,
+          height: 280,
+          background: "radial-gradient(circle, rgba(212,175,55,0.35) 0%, transparent 75%)",
+          filter: "blur(25px)",
         }}
-        initial={{ opacity: 0, scale: 0.64 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ 
+          opacity: [0, 1, 0.8, 1],
+          scale: [0.5, 1, 1.05, 1],
+        }}
+        transition={{ 
+          duration: 2, 
+          delay: 0.2, 
+          ease: "easeOut",
+          times: [0, 0.5, 0.75, 1],
+        }}
       />
 
       {/* Logo — twiga wa Bashiri, hero element */}
       <motion.img
-        src={cloudinaryUrl("bashiri/logo", "f_auto,q_auto,w_220")}
+        src="/icon.png"
         alt="Bashiri"
-        className="relative w-24 h-24 object-contain"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: [0.9, 1, 1.04, 1] }}
+        className="relative w-24 h-24 object-contain rounded-full"
+        animate={{
+          opacity: [0, 1],
+          scale: [0.9, 1, 1.04, 1],
+          boxShadow: [
+            '0 0 20px rgba(212,175,55,0.5)',
+            '0 0 40px rgba(212,175,55,0.8)',
+            '0 0 20px rgba(212,175,55,0.5)',
+          ],
+        }}
         transition={{
           opacity: { duration: 0.8, delay: 0.4, ease: "easeOut" },
           scale: {
@@ -144,28 +185,47 @@ export function BashiriSplash() {
             times: [0, 0.5, 0.75, 1],
             ease: "easeInOut",
           },
+          boxShadow: { duration: 2.5, repeat: Infinity },
         }}
       />
 
-      {/* Jina na tagline */}
+      {/* Jina na tagline - zaidi dramatic */}
       <motion.div
         className="relative mt-5 text-center"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
+        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
       >
-        <p
-          className="text-2xl font-black tracking-wide"
-          style={{ color: "#FFFFFF" }}
+        <motion.p
+          className="text-3xl font-black tracking-wide"
+          style={{ 
+            color: "#FFFFFF",
+            textShadow: "0 0 30px rgba(212,175,55,0.5), 0 0 60px rgba(212,175,55,0.3)",
+          }}
+          animate={{
+            textShadow: [
+              "0 0 30px rgba(212,175,55,0.5), 0 0 60px rgba(212,175,55,0.3)",
+              "0 0 40px rgba(212,175,55,0.7), 0 0 80px rgba(212,175,55,0.5)",
+              "0 0 30px rgba(212,175,55,0.5), 0 0 60px rgba(212,175,55,0.3)",
+            ],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           BASHIRI
-        </p>
-        <p
-          className="text-xs mt-1.5 font-medium"
-          style={{ color: "rgba(255,255,255,0.7)" }}
+        </motion.p>
+        <motion.p
+          className="text-xs mt-2 font-medium tracking-wider"
+          style={{ 
+            color: "rgba(255,255,255,0.8)",
+            textShadow: "0 0 20px rgba(212,175,55,0.3)",
+          }}
+          animate={{
+            opacity: [0.6, 1, 0.6],
+          }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         >
           AI Predictions • Live Scores • Insights
-        </p>
+        </motion.p>
       </motion.div>
 
       {/* Progress line nyembamba, ya kifahari */}

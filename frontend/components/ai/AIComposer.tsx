@@ -62,10 +62,8 @@ export function AIComposer({
       style={{
         paddingTop: '12px',
         paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
-        paddingLeft: '16px',
-        paddingRight: '16px',
-        background: "var(--background)",
-        borderTop: `1px solid var(--border)`,
+        paddingLeft: '20px',
+        paddingRight: '20px',
       }}
     >
       <div
@@ -77,6 +75,7 @@ export function AIComposer({
             ? "0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(212, 175, 55, 0.1)" 
             : "0 2px 8px rgba(0, 0, 0, 0.2)",
           backdropFilter: "blur(20px)",
+          marginBottom: "8px",
         }}
       >
         {/* Text Input */}
