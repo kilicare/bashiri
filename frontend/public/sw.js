@@ -11,25 +11,17 @@
  * chini ya faili hii pia (background messages).
  */
 
-const CACHE_VERSION = "bashiri-v4";
+const CACHE_VERSION = "bashiri-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const OFFLINE_URL = "/_offline";
+const OFFLINE_URL = "/offline";
 
-const PRECACHE_URLS = ["/_offline", "/manifest.json", "/icon.png", "/favicon.ico"];
+const PRECACHE_URLS = ["/offline", "/manifest.json", "/icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      console.log("[SW] Caching files:", PRECACHE_URLS);
-      return cache.addAll(PRECACHE_URLS).then(() => {
-        console.log("[SW] All files cached successfully");
-      }).catch((err) => {
-        console.error("[SW] Failed to cache files:", err);
-      });
-    })
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
   );
-  // Activate immediately to ensure offline page is cached
-  self.skipWaiting();
+  // Don't skipWaiting immediately - wait for user to trigger update
 });
 
 // Handle SKIP_WAITING message from client
@@ -64,49 +56,16 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/") || url.hostname !== self.location.hostname) {
     // (hostname !== self.location.hostname inashughulikia backend ikiwa domain tofauti,
     // na Cloudinary images/videos - hizo TAYARI zina caching yao ya CDN, hazihitaji SW cache)
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return new Response(JSON.stringify({ error: "Network error" }), {
-          status: 503,
-          statusText: "Service Unavailable",
-          headers: new Headers({ "Content-Type": "application/json" })
-        });
-      })
-    );
+    event.respondWith(fetch(event.request));
     return;
   }
 
   // Navigation (kufungua page mpya) -> NETWORK-FIRST, fallback offline page
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          // Network failed, serve offline page from cache
-          console.log("[SW] Network failed, serving offline page from cache");
-          return caches.match(OFFLINE_URL).then((cached) => {
-            if (cached) {
-              console.log("[SW] Offline page found in cache");
-              return cached;
-            }
-            // If not in cache, try to fetch it
-            console.log("[SW] Offline page not in cache, trying to fetch");
-            return fetch(OFFLINE_URL).then((response) => {
-              const clone = response.clone();
-              caches.open(STATIC_CACHE).then((cache) => {
-                cache.put(OFFLINE_URL, clone);
-              });
-              return response;
-            }).catch(() => {
-              // If everything fails, return basic offline response
-              console.log("[SW] Everything failed, returning basic response");
-              return new Response("Offline - No internet connection. Please check your connection.", {
-                status: 503,
-                statusText: "Service Unavailable",
-                headers: new Headers({ "Content-Type": "text/plain" })
-              });
-            });
-          });
-        })
+      fetch(event.request).catch(() =>
+        caches.match(OFFLINE_URL).then((res) => res || Response.error())
+      )
     );
     return;
   }
@@ -135,15 +94,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Default: network-only kwa kila kitu kingine
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return new Response("Network error", {
-        status: 503,
-        statusText: "Service Unavailable",
-        headers: new Headers({ "Content-Type": "text/plain" })
-      });
-    })
-  );
+  event.respondWith(fetch(event.request));
 });
 
 // ============================================================
