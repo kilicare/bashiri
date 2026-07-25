@@ -13,15 +13,23 @@
 
 const CACHE_VERSION = "bashiri-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const OFFLINE_URL = "/offline.html";
+const OFFLINE_URL = "/_offline";
 
-const PRECACHE_URLS = ["/offline.html", "/manifest.json", "/icon.png"];
+const PRECACHE_URLS = ["/_offline", "/manifest.json", "/icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(STATIC_CACHE).then((cache) => {
+      console.log("[SW] Caching files:", PRECACHE_URLS);
+      return cache.addAll(PRECACHE_URLS).then(() => {
+        console.log("[SW] All files cached successfully");
+      }).catch((err) => {
+        console.error("[SW] Failed to cache files:", err);
+      });
+    })
   );
-  // Don't skipWaiting immediately - wait for user to trigger update
+  // Activate immediately to ensure offline page is cached
+  self.skipWaiting();
 });
 
 // Handle SKIP_WAITING message from client
