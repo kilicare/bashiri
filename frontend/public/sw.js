@@ -11,11 +11,11 @@
  * chini ya faili hii pia (background messages).
  */
 
-const CACHE_VERSION = "bashiri-v3";
+const CACHE_VERSION = "bashiri-v4";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = "/_offline";
 
-const PRECACHE_URLS = ["/_offline", "/manifest.json", "/icon.png"];
+const PRECACHE_URLS = ["/_offline", "/manifest.json", "/icon.png", "/favicon.ico"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -82,15 +82,28 @@ self.addEventListener("fetch", (event) => {
       fetch(event.request)
         .catch(() => {
           // Network failed, serve offline page from cache
+          console.log("[SW] Network failed, serving offline page from cache");
           return caches.match(OFFLINE_URL).then((cached) => {
             if (cached) {
+              console.log("[SW] Offline page found in cache");
               return cached;
             }
-            // If not in cache, return basic offline response
-            return new Response("Offline - No internet connection. Please check your connection.", {
-              status: 503,
-              statusText: "Service Unavailable",
-              headers: new Headers({ "Content-Type": "text/plain" })
+            // If not in cache, try to fetch it
+            console.log("[SW] Offline page not in cache, trying to fetch");
+            return fetch(OFFLINE_URL).then((response) => {
+              const clone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => {
+                cache.put(OFFLINE_URL, clone);
+              });
+              return response;
+            }).catch(() => {
+              // If everything fails, return basic offline response
+              console.log("[SW] Everything failed, returning basic response");
+              return new Response("Offline - No internet connection. Please check your connection.", {
+                status: 503,
+                statusText: "Service Unavailable",
+                headers: new Headers({ "Content-Type": "text/plain" })
+              });
             });
           });
         })
