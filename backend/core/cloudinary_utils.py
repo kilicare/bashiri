@@ -24,7 +24,7 @@ def delete_video_from_cloudinary(public_id):
         bool: True if deletion succeeded, False otherwise
     """
     try:
-        result = cloudinary.api.delete_resource(
+        result = cloudinary.uploader.destroy(
             public_id,
             resource_type="video",
             invalidate=True

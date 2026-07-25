@@ -6,6 +6,7 @@ Phase 1: Cloudinary API-based metadata extraction with logging.
 """
 import logging
 import re
+import time
 from urllib.parse import urlparse
 
 import cloudinary.api
@@ -53,7 +54,7 @@ def extract_public_id_from_url(video_url):
 
 def extract_video_metadata(video_url):
     """
-    Extract video metadata using Cloudinary API.
+    Extract video metadata using Cloudinary API with retry logic.
     
     Args:
         video_url: Cloudinary video URL
@@ -76,35 +77,50 @@ def extract_video_metadata(video_url):
             logger.error(f"Failed to extract public_id from URL: {video_url}")
             return None
         
-        # Fetch video resource from Cloudinary
-        resource = cloudinary.api.resource(
-            public_id,
-            resource_type="video",
-            invalidate=True
-        )
+        # Retry logic to wait for Cloudinary to finish processing
+        max_retries = 5
+        retry_delay = 2  # seconds
         
-        if not resource or resource.get("resource_type") != "video":
-            logger.error(f"Resource not found or not a video: {public_id}")
-            return None
-        
-        metadata = {
-            "duration": resource.get("duration"),
-            "width": resource.get("width"),
-            "height": resource.get("height"),
-            "format": resource.get("format"),
-            "codec": resource.get("codec", "unknown"),  # Cloudinary may not always provide codec
-            "size": resource.get("bytes"),
-            "public_id": public_id
-        }
-        
-        logger.info(f"[VIDEO METADATA] URL: {video_url}")
-        logger.info(f"[VIDEO METADATA] Duration: {metadata['duration']}s")
-        logger.info(f"[VIDEO METADATA] Resolution: {metadata['width']}x{metadata['height']}")
-        logger.info(f"[VIDEO METADATA] Format: {metadata['format']}")
-        logger.info(f"[VIDEO METADATA] Codec: {metadata['codec']}")
-        logger.info(f"[VIDEO METADATA] Size: {metadata['size']} bytes")
-        
-        return metadata
+        for attempt in range(max_retries):
+            # Fetch video resource from Cloudinary
+            resource = cloudinary.api.resource(
+                public_id,
+                resource_type="video",
+                invalidate=True
+            )
+            
+            if not resource or resource.get("resource_type") != "video":
+                logger.error(f"Resource not found or not a video: {public_id}")
+                return None
+            
+            metadata = {
+                "duration": resource.get("duration"),
+                "width": resource.get("width"),
+                "height": resource.get("height"),
+                "format": resource.get("format"),
+                "codec": resource.get("codec", "unknown"),  # Cloudinary may not always provide codec
+                "size": resource.get("bytes"),
+                "public_id": public_id
+            }
+            
+            # Check if duration is available
+            if metadata["duration"] is not None:
+                logger.info(f"[VIDEO METADATA] URL: {video_url}")
+                logger.info(f"[VIDEO METADATA] Duration: {metadata['duration']}s")
+                logger.info(f"[VIDEO METADATA] Resolution: {metadata['width']}x{metadata['height']}")
+                logger.info(f"[VIDEO METADATA] Format: {metadata['format']}")
+                logger.info(f"[VIDEO METADATA] Codec: {metadata['codec']}")
+                logger.info(f"[VIDEO METADATA] Size: {metadata['size']} bytes")
+                logger.info(f"[VIDEO METADATA] Retrieved on attempt {attempt + 1}/{max_retries}")
+                return metadata
+            
+            # Duration not available yet, wait and retry
+            if attempt < max_retries - 1:
+                logger.warning(f"[VIDEO METADATA] Duration not available yet, Cloudinary may still be processing. Attempt {attempt + 1}/{max_retries}. Retrying in {retry_delay}s...")
+                time.sleep(retry_delay)
+            else:
+                logger.error(f"[VIDEO METADATA] Duration still not available after {max_retries} attempts: {public_id}")
+                return None
         
     except Exception as e:
         logger.error(f"Failed to extract video metadata from Cloudinary: {video_url}, error: {str(e)}")
