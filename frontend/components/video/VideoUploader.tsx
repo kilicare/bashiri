@@ -48,32 +48,54 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
       video.playsInline = true; // Add this for iOS
       video.crossOrigin = "anonymous"; // Add for CORS issues
       
-      let timeoutId: NodeJS.Timeout;
-      
-      // Add timeout for mobile
-      timeoutId = setTimeout(() => {
-        URL.revokeObjectURL(video.src);
-        reject(new Error("Imeshindwa kupata muda wa video. Jaribu video ndogo zaidi."));
-      }, 15000); // 15 second timeout
-      
+      const url = URL.createObjectURL(file);
+      video.src = url;
+
+      const cleanup = () => {
+        URL.revokeObjectURL(url);
+        video.remove();
+      };
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error("Muda wa video haukupatikana ndani ya muda uliopangwa. Jaribu video ndogo zaidi."));
+      }, 8000); // 8 second timeout (faster than 15s)
+
       video.onloadedmetadata = () => {
-        clearTimeout(timeoutId);
-        URL.revokeObjectURL(video.src);
-        const duration = Math.round(video.duration);
-        if (isNaN(duration) || duration === 0) {
-          reject(new Error("Imeshindwa kupata muda wa video."));
+        // Check for Infinity or NaN - common issue with mobile camera videos
+        if (video.duration === Infinity || isNaN(video.duration)) {
+          // "Seek hack" - some videos (especially mobile camera recordings) don't provide
+          // correct duration until we seek to the end first
+          video.currentTime = Number.MAX_SAFE_INTEGER;
+          video.ontimeupdate = () => {
+            video.ontimeupdate = null;
+            clearTimeout(timeout);
+            const duration = video.duration;
+            video.currentTime = 0;
+            cleanup();
+            if (!isFinite(duration) || duration <= 0) {
+              reject(new Error("Imeshindwa kupata muda wa video. Jaribu format nyingine (MP4 inapendekezwa zaidi)."));
+            } else {
+              resolve(Math.round(duration));
+            }
+          };
         } else {
-          resolve(duration);
+          clearTimeout(timeout);
+          cleanup();
+          const duration = Math.round(video.duration);
+          if (duration <= 0) {
+            reject(new Error("Imeshindwa kupata muda wa video."));
+          } else {
+            resolve(duration);
+          }
         }
       };
-      
+
       video.onerror = () => {
-        clearTimeout(timeoutId);
-        URL.revokeObjectURL(video.src);
-        reject(new Error("Imeshindwa kupata muda wa video."));
+        clearTimeout(timeout);
+        cleanup();
+        reject(new Error("Faili la video halikuweza kusomwa. Jaribu format nyingine (MP4 inapendekezwa zaidi)."));
       };
-      
-      video.src = URL.createObjectURL(file);
     });
   };
 

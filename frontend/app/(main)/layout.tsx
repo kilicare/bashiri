@@ -16,7 +16,7 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   console.log('[TRACE] MainLayout called');
   return (
     <PWAInstallProvider>
-      <div className={`min-h-dvh bg-background ${shouldHideBottomNav ? 'pb-0' : 'pb-20'}`}>
+      <div className={`min-h-dvh bg-background ${shouldHideBottomNav ? 'pb-0' : 'pb-24'}`}>
         {children}
         {!shouldHideBottomNav && <BottomNav />}
         <AuthRequiredSheet />
