@@ -4,7 +4,10 @@ mic/views.py
 Flow: 1) frontend inaomba signed upload signature 2) frontend inapakia
 video MOJA KWA MOJA Cloudinary (haipitii server yetu) 3) frontend inatuma
 video_url iliyopatikana kuunda MicReaction record.
+
+Phase 1: Backend metadata extraction and validation (observation mode).
 """
+import logging
 import time
 from datetime import timedelta
 
@@ -20,6 +23,10 @@ from rest_framework.throttling import AnonRateThrottle
 
 from .models import MicReaction, MicReactionVote
 from .serializers import MicReactionSerializer, MicReactionVoteSerializer
+from .services import extract_video_metadata, validate_video_duration, validate_video_codec
+from core.cloudinary_utils import delete_video_from_cloudinary
+
+logger = logging.getLogger(__name__)
 
 
 class NoThrottle(AnonRateThrottle):
@@ -83,14 +90,63 @@ class MicReactionCreateView(APIView):
         serializer = MicReactionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        max_duration = settings.BASHIRI["MIC_MAX_VIDEO_SECONDS"]
-        if serializer.validated_data["duration_seconds"] > max_duration:
+        video_url = serializer.validated_data["video_url"]
+        
+        # Phase 2: Extract backend metadata - this is the authoritative source
+        logger.info(f"[VIDEO VALIDATION] Starting metadata extraction for: {video_url}")
+        metadata = extract_video_metadata(video_url)
+        
+        if not metadata:
+            logger.error(f"[VIDEO VALIDATION] Failed to extract metadata from: {video_url}")
+            # Attempt to extract public_id for cleanup even if metadata extraction failed
+            public_id = None
+            try:
+                from .services import extract_public_id_from_url
+                public_id = extract_public_id_from_url(video_url)
+                if public_id:
+                    delete_video_from_cloudinary(public_id)
+            except Exception as e:
+                logger.error(f"[VIDEO VALIDATION] Failed to cleanup video after metadata extraction failure: {str(e)}")
             return Response(
-                {"detail": f"Video haiwezi kuzidi sekunde {max_duration}."},
+                {"detail": "Faili la video halikuweza kuchambuliwa."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
+        # Log extracted metadata
+        logger.info(f"[VIDEO VALIDATION] URL: {video_url}")
+        logger.info(f"[VIDEO VALIDATION] Duration: {metadata['duration']}s")
+        logger.info(f"[VIDEO VALIDATION] Codec: {metadata['codec']}")
+        logger.info(f"[VIDEO VALIDATION] Resolution: {metadata['width']}x{metadata['height']}")
+        logger.info(f"[VIDEO VALIDATION] Format: {metadata['format']}")
+        logger.info(f"[VIDEO VALIDATION] File size: {metadata['size']} bytes")
+        
+        # Phase 2: Use backend duration for validation (ignore frontend duration)
+        backend_duration = metadata["duration"]
+        
+        # Validate duration using backend value
+        is_valid, error_msg = validate_video_duration(backend_duration)
+        if not is_valid:
+            logger.error(f"[VIDEO VALIDATION] Duration validation failed: {error_msg}")
+            # Clean up uploaded video from Cloudinary
+            if metadata.get("public_id"):
+                delete_video_from_cloudinary(metadata["public_id"])
+            return Response(
+                {"detail": error_msg},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Phase 2: Always use backend duration, overwrite frontend if provided
+        serializer.validated_data["duration_seconds"] = round(backend_duration)
+        logger.info(f"[VIDEO VALIDATION] Using backend duration: {round(backend_duration)}s")
+        
+        # Validate codec (Phase 2: still observation only, log for monitoring)
+        codec_supported, codec_name = validate_video_codec(metadata["codec"])
+        
+        # Phase 2: Log validation result
+        logger.info(f"[VIDEO VALIDATION] Validation result: PASS")
 
         reaction = serializer.save(user=request.user)
+        logger.info(f"[VIDEO VALIDATION] MicReaction created successfully: {reaction.id}")
         return Response(MicReactionSerializer(reaction).data, status=status.HTTP_201_CREATED)
 
 

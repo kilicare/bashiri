@@ -10,6 +10,9 @@ class MicReactionSerializer(serializers.ModelSerializer):
     user_voted = serializers.SerializerMethodField()
     user_vote_emoji = serializers.SerializerMethodField()
     vote_breakdown = serializers.SerializerMethodField()
+    
+    # Phase 1: Make duration_seconds optional to support future frontend
+    duration_seconds = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = MicReaction

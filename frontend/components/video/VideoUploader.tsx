@@ -4,14 +4,13 @@ import { Upload, Film, X, Check } from "lucide-react";
 
 const MAX_DURATION_SECONDS = 60;
 const MIN_DURATION_SECONDS = 1;
-const ALLOWED_FORMATS = ["video/mp4", "video/quicktime", "video/webm", "video/x-m4v"];
 
 // Mobile detection
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const MAX_FILE_SIZE_MB = isMobile ? 20 : 50;
 
 interface VideoUploaderProps {
-  onVideoSelected: (file: File, duration: number) => void;
+  onVideoSelected: (file: File) => void;
   onShowTrimmer?: () => void;
   onPost?: () => void;
 }
@@ -33,181 +32,12 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
       return `File ni kubwa sana. Maksimum ni ${MAX_FILE_SIZE_MB}MB.`;
     }
 
-    if (!ALLOWED_FORMATS.includes(file.type)) {
-      return "Format hii ya video haikubaliki. Tumia MP4, MOV, WebM, au M4V.";
+    // Phase 2: Only check if it's a video file, not specific formats
+    if (!file.type.startsWith("video/")) {
+      return "Tafadhali chagua faili la video.";
     }
 
     return null;
-  };
-
-  const extractDuration = (file: File): Promise<number> => {
-    return new Promise((resolve, reject) => {
-      console.log("[extractDuration] Starting extraction", {
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size,
-        fileSizeMB: (file.size / (1024 * 1024)).toFixed(2)
-      });
-
-      const video = document.createElement("video");
-      video.preload = "metadata";
-      video.muted = true; // Add this for mobile compatibility
-      video.playsInline = true; // Add this for iOS
-      video.crossOrigin = "anonymous"; // Add for CORS issues
-      
-      const url = URL.createObjectURL(file);
-      video.src = url;
-      video.load(); // Explicitly trigger metadata loading
-
-      console.log("[extractDuration] Video element created", {
-        src: url,
-        preload: video.preload,
-        muted: video.muted,
-        playsInline: video.playsInline,
-        crossOrigin: video.crossOrigin
-      });
-
-      const cleanup = () => {
-        URL.revokeObjectURL(url);
-        video.remove();
-      };
-
-      const timeout = setTimeout(() => {
-        console.log("[extractDuration] TIMEOUT REACHED", {
-          duration: video.duration,
-          readyState: video.readyState,
-          networkState: video.networkState,
-          error: video.error ? {
-            code: video.error.code,
-            message: video.error.message
-          } : null
-        });
-        cleanup();
-        reject(new Error("Video metadata failed to load within timeout. The video codec may not be supported by your browser. Try converting to MP4 with H.264 codec."));
-      }, 8000); // 8 second timeout (faster than 15s)
-
-      video.onloadedmetadata = () => {
-        console.log("[extractDuration] onloadedmetadata fired", {
-          duration: video.duration,
-          readyState: video.readyState,
-          networkState: video.networkState,
-          videoWidth: video.videoWidth,
-          videoHeight: video.videoHeight
-        });
-
-        // Check for Infinity or NaN - common issue with mobile camera videos
-        if (video.duration === Infinity || isNaN(video.duration)) {
-          console.log("[extractDuration] Duration is Infinity/NaN, using seek hack");
-          // "Seek hack" - some videos (especially mobile camera recordings) don't provide
-          // correct duration until we seek to the end first
-          video.currentTime = Number.MAX_SAFE_INTEGER;
-          video.ontimeupdate = () => {
-            video.ontimeupdate = null;
-            clearTimeout(timeout);
-            const duration = video.duration;
-            console.log("[extractDuration] Seek hack completed", {
-              duration: duration,
-              isFinite: isFinite(duration)
-            });
-            video.currentTime = 0;
-            cleanup();
-            if (!isFinite(duration) || duration <= 0) {
-              console.log("[extractDuration] Seek hack failed - duration still invalid");
-              reject(new Error("Video duration could not be determined. The file may be corrupted or use an unsupported codec. Try converting to MP4 with H.264 codec."));
-            } else {
-              console.log("[extractDuration] Seek hack succeeded");
-              resolve(Math.round(duration));
-            }
-          };
-        } else {
-          clearTimeout(timeout);
-          cleanup();
-          const duration = Math.round(video.duration);
-          console.log("[extractDuration] Duration extracted normally", { duration });
-          if (duration <= 0) {
-            console.log("[extractDuration] Duration is <= 0");
-            reject(new Error("Video has invalid duration (0 seconds). The file may be corrupted. Try a different video file."));
-          } else {
-            resolve(duration);
-          }
-        }
-      };
-
-      video.onerror = () => {
-        console.log("[extractDuration] onerror fired", {
-          error: video.error ? {
-            code: video.error.code,
-            message: video.error.message
-          } : null,
-          readyState: video.readyState,
-          networkState: video.networkState,
-          duration: video.duration
-        });
-
-        // Try alternative: check if we can get duration from oncanplay
-        if (video.duration && video.duration > 0 && isFinite(video.duration)) {
-          clearTimeout(timeout);
-          cleanup();
-          console.log("[extractDuration] Using duration from error state", { duration: video.duration });
-          resolve(Math.round(video.duration));
-          return;
-        }
-
-        // Try alternative: use oncanplay as fallback
-        video.oncanplay = () => {
-          video.oncanplay = null;
-          clearTimeout(timeout);
-          if (video.duration && video.duration > 0 && isFinite(video.duration)) {
-            cleanup();
-            console.log("[extractDuration] Using duration from oncanplay fallback", { duration: video.duration });
-            resolve(Math.round(video.duration));
-          } else {
-            cleanup();
-            // Provide specific error message based on error code
-            let errorMessage = "Faili la video halikuweza kusomwa. Jaribu format nyingine (MP4 inapendekezwa zaidi).";
-            if (video.error) {
-              switch (video.error.code) {
-                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                  errorMessage = "Video codec not supported by your browser. Try converting to MP4 with H.264 codec.";
-                  break;
-                case MediaError.MEDIA_ERR_DECODE:
-                  errorMessage = "Video file is corrupted or uses an unsupported codec. Try a different video file.";
-                  break;
-                case MediaError.MEDIA_ERR_NETWORK:
-                  errorMessage = "Network error loading video. Try again.";
-                  break;
-              }
-            }
-            reject(new Error(errorMessage));
-          }
-        };
-
-        // If oncanplay doesn't fire within 2 seconds, reject
-        setTimeout(() => {
-          if (video.oncanplay) {
-            video.oncanplay = null;
-            clearTimeout(timeout);
-            cleanup();
-            // Provide specific error message based on error code
-            let errorMessage = "Faili la video halikuweza kusomwa. Jaribu format nyingine (MP4 inapendekezwa zaidi).";
-            if (video.error) {
-              switch (video.error.code) {
-                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                  errorMessage = "Video codec not supported by your browser. Try converting to MP4 with H.264 codec.";
-                  break;
-                case MediaError.MEDIA_ERR_DECODE:
-                  errorMessage = "Video file is corrupted or uses an unsupported codec. Try a different video file.";
-                  break;
-                case MediaError.MEDIA_ERR_NETWORK:
-                  errorMessage = "Network error loading video. Try again.";
-                  break;
-              }
-            }
-            reject(new Error(errorMessage));
-          }
-        }, 2000);
-      };
-    });
   };
 
   async function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
@@ -222,39 +52,20 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
       return;
     }
 
-    try {
-      const videoDuration = await extractDuration(file);
-      
-      if (videoDuration < MIN_DURATION_SECONDS) {
-        setError(`Video ni fupi sana. Inahitajika angalau sekunde ${MIN_DURATION_SECONDS}.`);
-        return;
-      }
-      
-      if (videoDuration > MAX_DURATION_SECONDS) {
-        // Video is too long, will trigger trimmer after selection
-      }
-
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-      }
-
-      setSelectedFile(file);
-      setDuration(videoDuration);
-      const newObjectUrl = URL.createObjectURL(file);
-      objectUrlRef.current = newObjectUrl;
-      setPreviewUrl(newObjectUrl);
-      
-      // If video is within limits, proceed normally
-      if (videoDuration <= MAX_DURATION_SECONDS) {
-        onVideoSelected(file, videoDuration);
-      } else {
-        // Video is too long, trigger trimmer
-        onVideoSelected(file, videoDuration);
-        onShowTrimmer?.();
-      }
-    } catch (e: any) {
-      setError(e.message || "Imeshindika kusoma video.");
+    // Phase 2: No browser-based duration extraction
+    // Backend will handle duration validation after upload
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
     }
+
+    setSelectedFile(file);
+    setDuration(0); // Will be set by backend response
+    const newObjectUrl = URL.createObjectURL(file);
+    objectUrlRef.current = newObjectUrl;
+    setPreviewUrl(newObjectUrl);
+    
+    // Phase 2: Pass file without duration, backend will extract it
+    onVideoSelected(file);
   }
 
   function handleReplaceVideo() {
@@ -272,8 +83,8 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
   }
 
   function handleUseVideo() {
-    if (selectedFile && duration <= MAX_DURATION_SECONDS) {
-      onVideoSelected(selectedFile, duration);
+    if (selectedFile) {
+      onVideoSelected(selectedFile);
     }
   }
 
@@ -316,7 +127,7 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
               <Upload size={30} className="text-white/50" />
             </div>
             <p className="text-white/70 text-base sm:text-lg font-medium mb-3 text-center">Tap to select video</p>
-            <p className="text-white/40 text-sm sm:text-base mb-8 text-center">MP4, MOV, WebM, M4V</p>
+            <p className="text-white/40 text-sm sm:text-base mb-8 text-center">Supported video formats</p>
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-sm text-white/30">
               <span>Max {MAX_FILE_SIZE_MB}MB</span>
               <span className="hidden sm:inline">•</span>
@@ -350,7 +161,7 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
         <input
           ref={fileInputRef}
           type="file"
-          accept="video/mp4,video/quicktime,video/webm,video/x-m4v"
+          accept="video/*"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -396,7 +207,7 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
         )}
 
         <p className="text-sm text-center text-white/30">
-          Max {MAX_FILE_SIZE_MB}MB • {MIN_DURATION_SECONDS}-{MAX_DURATION_SECONDS}s • MP4, MOV, WebM, M4V
+          Max {MAX_FILE_SIZE_MB}MB • {MIN_DURATION_SECONDS}-{MAX_DURATION_SECONDS}s • Supported video formats
         </p>
       </div>
     </div>

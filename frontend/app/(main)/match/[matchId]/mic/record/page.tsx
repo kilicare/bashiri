@@ -39,9 +39,9 @@ export default function MicRecordPage() {
   const [uploadError, setUploadError] = useState("");
   const [trimError, setTrimError] = useState("");
 
-  const handleVideoSelected = (file: File, fileDuration: number) => {
+  const handleVideoSelected = (file: File) => {
     setSelectedFile(file);
-    setDuration(fileDuration);
+    setDuration(0); // Will be set by backend after upload
     
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
