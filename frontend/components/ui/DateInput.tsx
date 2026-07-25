@@ -69,7 +69,7 @@ export const BashiriDateInput = ({ label, value, onChange, error, className }: P
           border: 1px solid var(--color-gold) !important;
           border-radius: 12px !important;
           backdrop-filter: blur(20px) !important;
-          z-index: 9999 !important;
+          z-index: 99999 !important;
           padding: 16px !important;
         }
         .bashiri-calendar .react-datepicker__header {
