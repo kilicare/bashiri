@@ -1,40 +1,68 @@
-# ==== Python / Django (backend) ====
-backend/__pycache__/
-backend/**/__pycache__/
-backend/*.py[cod]
-backend/*.so
-backend/venv/
-backend/.venv/
-backend/*.egg-info/
-backend/*.log
-backend/db.sqlite3
-backend/media/
-backend/staticfiles/
-backend/local_settings.py
-backend/predictions/ml/data/*.json
-backend/predictions/ml/data/*.pkl
-!backend/predictions/ml/data/.gitkeep
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+ENV/
+.venv
 
-# ==== Node / Next.js (frontend) ====
-frontend/node_modules/
-frontend/.next/
-frontend/.pnpm-store/
-frontend/out/
-frontend/build/
-frontend/*.tsbuildinfo
-frontend/next-env.d.ts
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
 
-# ==== Env files (zote mbili) ====
+# Environment variables
 .env
 .env.local
 .env.production
-backend/.env
-backend/.env.local
-backend/.env.production
-backend/.env.backup
-frontend/.env.local
+.env.backup
+*.env
 
-# ==== IDE / OS ==== 
+# Node
+node_modules/
+.pnpm-store/
+.next/
+out/
+build/
+.vercel/
+.turbo/
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Misc
+*.bak
+*.backup
+
+# Audit reports (optional - remove if you want to track them)
+# *.md

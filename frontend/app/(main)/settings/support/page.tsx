@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { getMyTickets, SupportTicket } from "@/lib/api/support";
 import { ArrowLeft, Plus } from "lucide-react";
@@ -14,7 +14,7 @@ const TYPE_LABELS: Record<string, string> = {
   FEEDBACK: "Maoni", OTHER: "Nyingine",
 };
 
-export default function SupportListPage() {
+function SupportListContent() {
   const router = useRouter();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,5 +67,13 @@ export default function SupportListPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SupportListPage() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto px-5 pt-safe pt-6 pb-4"><CardSkeleton /></div>}>
+      <SupportListContent />
+    </Suspense>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BashiriButton } from "@/components/ui/Button";
 import { BashiriInput } from "@/components/ui/Input";
+import { BashiriDateInput } from "@/components/ui/DateInput";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { register, login } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth.store";
@@ -194,7 +195,7 @@ export default function LoginPage() {
             >
                   <PhoneInput label="Namba ya Simu" value={phone} onChange={setPhone} />
               <BashiriInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="mfano: lastmateru" />
-              <BashiriInput label="Tarehe ya Kuzaliwa" type="date" value={dob} onChange={(e) => setDob(e.target.value)} showCalendarIcon />
+              <BashiriDateInput label="Tarehe ya Kuzaliwa" value={dob} onChange={setDob} />
               {error && <p className="text-xs text-bashiri-red">{error}</p>}
               <BashiriButton className="w-full" size="lg" onClick={handleNextStep}>
                 Endelea →

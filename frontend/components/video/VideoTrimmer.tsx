@@ -2,7 +2,10 @@
 import { useState, useRef, useEffect } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import { Film, Scissors, Loader2 } from "lucide-react";
+import { Film, Scissors, Loader2, AlertCircle } from "lucide-react";
+
+// Mobile detection
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 interface VideoTrimmerProps {
   videoFile: File;
@@ -38,7 +41,13 @@ export function VideoTrimmer({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    loadFFmpeg();
+    // Don't load FFmpeg on mobile devices
+    if (!isMobile) {
+      loadFFmpeg();
+    } else {
+      // On mobile, immediately show error
+      onLoadError?.("Video editing haifanyi kazi kwenye simu. Tumia video fupi zaidi (chini ya sekunde 60) au kompyuta.");
+    }
     return () => {
       if (ffmpegRef.current) {
         ffmpegRef.current.terminate();
@@ -351,15 +360,23 @@ export function VideoTrimmer({
         {/* FFmpeg Load Error */}
         {!ffmpegLoaded && !loadingFfmpeg && (
           <div className="mb-4 p-4 rounded-xl bg-[var(--danger)]/20 border border-[var(--danger)]/30">
-            <p className="text-xs text-[var(--danger)] text-center mb-3">
-              Imeshindika kupakia video editor. Tumia video fupi zaidi (chini ya sekunde 20).
-            </p>
-            <button
-              onClick={loadFFmpeg}
-              className="w-full py-2 rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] text-xs font-medium hover:bg-[var(--danger)]/30 transition-colors"
-            >
-              Jaribu Tena
-            </button>
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <AlertCircle size={16} className="text-[var(--danger)]" />
+              <p className="text-xs text-[var(--danger)] text-center">
+                {isMobile 
+                  ? "Video editing haifanyi kazi kwenye simu. Tumia video fupi zaidi (chini ya sekunde 60) au kompyuta."
+                  : "Imeshindika kupakia video editor. Tumia video fupi zaidi (chini ya sekunde 20)."
+                }
+              </p>
+            </div>
+            {!isMobile && (
+              <button
+                onClick={loadFFmpeg}
+                className="w-full py-2 rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] text-xs font-medium hover:bg-[var(--danger)]/30 transition-colors"
+              >
+                Jaribu Tena
+              </button>
+            )}
           </div>
         )}
 

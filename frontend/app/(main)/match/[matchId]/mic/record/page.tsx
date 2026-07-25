@@ -12,7 +12,10 @@ import { UploadProgress } from "@/components/video/UploadProgress";
 
 const MAX_DURATION_SECONDS = 60;
 const MIN_DURATION_SECONDS = 1;
-const MAX_FILE_SIZE_MB = 50;
+
+// Mobile detection
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const MAX_FILE_SIZE_MB = isMobile ? 20 : 50;
 
 export default function MicRecordPage() {
   console.log('[TRACE] MicRecordPage component called', { matchId: useParams().matchId });

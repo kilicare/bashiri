@@ -4,8 +4,11 @@ import { Upload, Film, X, Check } from "lucide-react";
 
 const MAX_DURATION_SECONDS = 60;
 const MIN_DURATION_SECONDS = 1;
-const MAX_FILE_SIZE_MB = 50;
 const ALLOWED_FORMATS = ["video/mp4", "video/quicktime", "video/webm", "video/x-m4v"];
+
+// Mobile detection
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const MAX_FILE_SIZE_MB = isMobile ? 20 : 50;
 
 interface VideoUploaderProps {
   onVideoSelected: (file: File, duration: number) => void;
@@ -24,6 +27,9 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
   const validateFile = (file: File): string | null => {
     const fileSizeMB = file.size / (1024 * 1024);
     if (fileSizeMB > MAX_FILE_SIZE_MB) {
+      if (isMobile) {
+        return `File ni kubwa sana kwa simu. Maksimum ni ${MAX_FILE_SIZE_MB}MB. Tumia video ndogo zaidi au kompyuta.`;
+      }
       return `File ni kubwa sana. Maksimum ni ${MAX_FILE_SIZE_MB}MB.`;
     }
 
@@ -38,14 +44,31 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
     return new Promise((resolve, reject) => {
       const video = document.createElement("video");
       video.preload = "metadata";
+      video.muted = true; // Add this for mobile compatibility
+      video.playsInline = true; // Add this for iOS
+      video.crossOrigin = "anonymous"; // Add for CORS issues
+      
+      let timeoutId: NodeJS.Timeout;
+      
+      // Add timeout for mobile
+      timeoutId = setTimeout(() => {
+        URL.revokeObjectURL(video.src);
+        reject(new Error("Imeshindwa kupata muda wa video. Jaribu video ndogo zaidi."));
+      }, 15000); // 15 second timeout
       
       video.onloadedmetadata = () => {
+        clearTimeout(timeoutId);
         URL.revokeObjectURL(video.src);
         const duration = Math.round(video.duration);
-        resolve(duration);
+        if (isNaN(duration) || duration === 0) {
+          reject(new Error("Imeshindwa kupata muda wa video."));
+        } else {
+          resolve(duration);
+        }
       };
       
       video.onerror = () => {
+        clearTimeout(timeoutId);
         URL.revokeObjectURL(video.src);
         reject(new Error("Imeshindwa kupata muda wa video."));
       };
