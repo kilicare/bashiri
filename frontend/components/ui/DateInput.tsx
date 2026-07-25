@@ -69,21 +69,45 @@ export const BashiriDateInput = ({ label, value, onChange, error, className }: P
           border: 1px solid var(--color-gold) !important;
           border-radius: 12px !important;
           backdrop-filter: blur(20px) !important;
+          z-index: 9999 !important;
+          padding: 16px !important;
         }
         .bashiri-calendar .react-datepicker__header {
           background: rgba(40, 40, 40, 0.9) !important;
           border-bottom: 1px solid var(--color-gold) !important;
           border-radius: 12px 12px 0 0 !important;
+          padding: 12px !important;
         }
         .bashiri-calendar .react-datepicker__current-month {
           color: var(--color-gold) !important;
           font-weight: bold !important;
+          text-align: center !important;
+          padding: 8px 0 !important;
+        }
+        .bashiri-calendar .react-datepicker__day-names {
+          display: grid !important;
+          grid-template-columns: repeat(7, 1fr) !important;
+          gap: 4px !important;
+          margin-top: 8px !important;
         }
         .bashiri-calendar .react-datepicker__day-name {
           color: rgba(255, 255, 255, 0.7) !important;
+          text-align: center !important;
+          font-size: 12px !important;
+          padding: 4px !important;
+        }
+        .bashiri-calendar .react-datepicker__month {
+          padding: 8px 0 !important;
+        }
+        .bashiri-calendar .react-datepicker__week {
+          display: grid !important;
+          grid-template-columns: repeat(7, 1fr) !important;
+          gap: 4px !important;
         }
         .bashiri-calendar .react-datepicker__day {
           color: white !important;
+          text-align: center !important;
+          padding: 8px !important;
         }
         .bashiri-calendar .react-datepicker__day:hover {
           background: var(--color-gold) !important;
@@ -103,6 +127,7 @@ export const BashiriDateInput = ({ label, value, onChange, error, className }: P
           border-radius: 8px !important;
           max-height: 200px !important;
           overflow-y: auto !important;
+          z-index: 10000 !important;
         }
         .bashiri-calendar .react-datepicker__year-option {
           color: white !important;
@@ -118,6 +143,7 @@ export const BashiriDateInput = ({ label, value, onChange, error, className }: P
         }
         .bashiri-calendar .react-datepicker__navigation {
           color: var(--color-gold) !important;
+          top: 16px !important;
         }
         .bashiri-calendar .react-datepicker__navigation:hover {
           background: rgba(212, 175, 55, 0.2) !important;

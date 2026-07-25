@@ -91,62 +91,76 @@ class MicReactionCreateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         video_url = serializer.validated_data["video_url"]
+        frontend_duration = serializer.validated_data.get("duration_seconds")
         
-        # Phase 2: Extract backend metadata - this is the authoritative source
-        logger.info(f"[VIDEO VALIDATION] Starting metadata extraction for: {video_url}")
-        metadata = extract_video_metadata(video_url)
-        
-        if not metadata:
-            logger.error(f"[VIDEO VALIDATION] Failed to extract metadata from: {video_url}")
-            # Attempt to extract public_id for cleanup even if metadata extraction failed
-            public_id = None
-            try:
-                from .services import extract_public_id_from_url
-                public_id = extract_public_id_from_url(video_url)
-                if public_id:
-                    delete_video_from_cloudinary(public_id)
-            except Exception as e:
-                logger.error(f"[VIDEO VALIDATION] Failed to cleanup video after metadata extraction failure: {str(e)}")
-            return Response(
-                {"detail": "Faili la video halikuweza kuchambuliwa."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        
-        # Log extracted metadata
-        logger.info(f"[VIDEO VALIDATION] URL: {video_url}")
-        logger.info(f"[VIDEO VALIDATION] Duration: {metadata['duration']}s")
-        logger.info(f"[VIDEO VALIDATION] Codec: {metadata['codec']}")
-        logger.info(f"[VIDEO VALIDATION] Resolution: {metadata['width']}x{metadata['height']}")
-        logger.info(f"[VIDEO VALIDATION] Format: {metadata['format']}")
-        logger.info(f"[VIDEO VALIDATION] File size: {metadata['size']} bytes")
-        
-        # Phase 2: Use backend duration for validation (ignore frontend duration)
-        backend_duration = metadata["duration"]
-        
-        # Validate duration using backend value
-        is_valid, error_msg = validate_video_duration(backend_duration)
-        if not is_valid:
-            logger.error(f"[VIDEO VALIDATION] Duration validation failed: {error_msg}")
-            # Clean up uploaded video from Cloudinary
-            if metadata.get("public_id"):
-                delete_video_from_cloudinary(metadata["public_id"])
-            return Response(
-                {"detail": error_msg},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        
-        # Phase 2: Always use backend duration, overwrite frontend if provided
-        serializer.validated_data["duration_seconds"] = round(backend_duration)
-        logger.info(f"[VIDEO VALIDATION] Using backend duration: {round(backend_duration)}s")
-        
-        # Validate codec (Phase 2: still observation only, log for monitoring)
-        codec_supported, codec_name = validate_video_codec(metadata["codec"])
-        
-        # Phase 2: Log validation result
-        logger.info(f"[VIDEO VALIDATION] Validation result: PASS")
+        # Phase 2.5: Use Cloudinary duration from upload response (provided by frontend)
+        # This is faster than waiting for Cloudinary API metadata extraction
+        if frontend_duration and frontend_duration > 0:
+            # Validate duration using Cloudinary-provided value
+            is_valid, error_msg = validate_video_duration(frontend_duration)
+            if not is_valid:
+                logger.error(f"[VIDEO VALIDATION] Duration validation failed: {error_msg}")
+                # Clean up uploaded video from Cloudinary
+                try:
+                    from .services import extract_public_id_from_url
+                    public_id = extract_public_id_from_url(video_url)
+                    if public_id:
+                        delete_video_from_cloudinary(public_id)
+                except Exception as e:
+                    logger.error(f"[VIDEO VALIDATION] Failed to cleanup video: {str(e)}")
+                return Response(
+                    {"detail": error_msg},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            logger.info(f"[VIDEO VALIDATION] Using Cloudinary duration: {frontend_duration}s")
+            serializer.validated_data["duration_seconds"] = frontend_duration
+        else:
+            # Fallback: No duration provided, set to 0 and will be updated later
+            logger.warning(f"[VIDEO VALIDATION] No duration provided, setting to 0")
+            serializer.validated_data["duration_seconds"] = 0
 
+        # Create MicReaction immediately (non-blocking)
         reaction = serializer.save(user=request.user)
         logger.info(f"[VIDEO VALIDATION] MicReaction created successfully: {reaction.id}")
+        
+        # Fire-and-forget: Extract metadata asynchronously for logging/verification
+        # This doesn't block the response
+        try:
+            import threading
+            def extract_metadata_async():
+                try:
+                    metadata = extract_video_metadata(video_url)
+                    if metadata:
+                        logger.info(f"[VIDEO METADATA (ASYNC)] URL: {video_url}")
+                        logger.info(f"[VIDEO METADATA (ASYNC)] Duration: {metadata['duration']}s")
+                        logger.info(f"[VIDEO METADATA (ASYNC)] Codec: {metadata['codec']}")
+                        logger.info(f"[VIDEO METADATA (ASYNC)] Resolution: {metadata['width']}x{metadata['height']}")
+                        
+                        # Compare with Cloudinary duration
+                        if frontend_duration:
+                            backend_duration = metadata["duration"]
+                            duration_diff = abs(frontend_duration - backend_duration)
+                            if duration_diff > 2:
+                                logger.warning(f"[VIDEO METADATA (ASYNC)] Duration mismatch: Cloudinary={frontend_duration}s, Backend={backend_duration}s, Diff={duration_diff}s")
+                            else:
+                                logger.info(f"[VIDEO METADATA (ASYNC)] Duration match: Cloudinary={frontend_duration}s, Backend={backend_duration}s")
+                        
+                        # Update duration if backend has it and frontend didn't
+                        if frontend_duration == 0 and backend_duration:
+                            reaction.duration_seconds = round(backend_duration)
+                            reaction.save()
+                            logger.info(f"[VIDEO METADATA (ASYNC)] Updated duration to {round(backend_duration)}s")
+                except Exception as e:
+                    logger.error(f"[VIDEO METADATA (ASYNC)] Failed to extract metadata: {str(e)}")
+            
+            # Start async metadata extraction
+            thread = threading.Thread(target=extract_metadata_async)
+            thread.daemon = True
+            thread.start()
+        except Exception as e:
+            logger.error(f"[VIDEO VALIDATION] Failed to start async metadata extraction: {str(e)}")
+        
         return Response(MicReactionSerializer(reaction).data, status=status.HTTP_201_CREATED)
 
 

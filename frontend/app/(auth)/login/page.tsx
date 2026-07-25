@@ -99,7 +99,12 @@ export default function LoginPage() {
       setSession(data.access, data.refresh, data.user);
       router.push(consumeReturnTo() || "/onboarding");
     } catch (e: any) {
-      setError(e.message || "Hitilafu wakati wa kusajili");
+      const errorMessage = e.message || "Hitilafu wakati wa kusajili";
+      // If error is about username, go back to step 1
+      if (errorMessage.toLowerCase().includes("username") || errorMessage.toLowerCase().includes("inatumika")) {
+        setRegisterStep(1);
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
