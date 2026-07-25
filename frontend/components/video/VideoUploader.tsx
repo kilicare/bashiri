@@ -42,6 +42,13 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
 
   const extractDuration = (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
+      console.log("[extractDuration] Starting extraction", {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        fileSizeMB: (file.size / (1024 * 1024)).toFixed(2)
+      });
+
       const video = document.createElement("video");
       video.preload = "metadata";
       video.muted = true; // Add this for mobile compatibility
@@ -50,6 +57,15 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
       
       const url = URL.createObjectURL(file);
       video.src = url;
+      video.load(); // Explicitly trigger metadata loading
+
+      console.log("[extractDuration] Video element created", {
+        src: url,
+        preload: video.preload,
+        muted: video.muted,
+        playsInline: video.playsInline,
+        crossOrigin: video.crossOrigin
+      });
 
       const cleanup = () => {
         URL.revokeObjectURL(url);
@@ -57,13 +73,31 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
       };
 
       const timeout = setTimeout(() => {
+        console.log("[extractDuration] TIMEOUT REACHED", {
+          duration: video.duration,
+          readyState: video.readyState,
+          networkState: video.networkState,
+          error: video.error ? {
+            code: video.error.code,
+            message: video.error.message
+          } : null
+        });
         cleanup();
-        reject(new Error("Muda wa video haukupatikana ndani ya muda uliopangwa. Jaribu video ndogo zaidi."));
+        reject(new Error("Video metadata failed to load within timeout. The video codec may not be supported by your browser. Try converting to MP4 with H.264 codec."));
       }, 8000); // 8 second timeout (faster than 15s)
 
       video.onloadedmetadata = () => {
+        console.log("[extractDuration] onloadedmetadata fired", {
+          duration: video.duration,
+          readyState: video.readyState,
+          networkState: video.networkState,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight
+        });
+
         // Check for Infinity or NaN - common issue with mobile camera videos
         if (video.duration === Infinity || isNaN(video.duration)) {
+          console.log("[extractDuration] Duration is Infinity/NaN, using seek hack");
           // "Seek hack" - some videos (especially mobile camera recordings) don't provide
           // correct duration until we seek to the end first
           video.currentTime = Number.MAX_SAFE_INTEGER;
@@ -71,11 +105,17 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
             video.ontimeupdate = null;
             clearTimeout(timeout);
             const duration = video.duration;
+            console.log("[extractDuration] Seek hack completed", {
+              duration: duration,
+              isFinite: isFinite(duration)
+            });
             video.currentTime = 0;
             cleanup();
             if (!isFinite(duration) || duration <= 0) {
-              reject(new Error("Imeshindwa kupata muda wa video. Jaribu format nyingine (MP4 inapendekezwa zaidi)."));
+              console.log("[extractDuration] Seek hack failed - duration still invalid");
+              reject(new Error("Video duration could not be determined. The file may be corrupted or use an unsupported codec. Try converting to MP4 with H.264 codec."));
             } else {
+              console.log("[extractDuration] Seek hack succeeded");
               resolve(Math.round(duration));
             }
           };
@@ -83,8 +123,10 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
           clearTimeout(timeout);
           cleanup();
           const duration = Math.round(video.duration);
+          console.log("[extractDuration] Duration extracted normally", { duration });
           if (duration <= 0) {
-            reject(new Error("Imeshindwa kupata muda wa video."));
+            console.log("[extractDuration] Duration is <= 0");
+            reject(new Error("Video has invalid duration (0 seconds). The file may be corrupted. Try a different video file."));
           } else {
             resolve(duration);
           }
@@ -92,9 +134,78 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
       };
 
       video.onerror = () => {
-        clearTimeout(timeout);
-        cleanup();
-        reject(new Error("Faili la video halikuweza kusomwa. Jaribu format nyingine (MP4 inapendekezwa zaidi)."));
+        console.log("[extractDuration] onerror fired", {
+          error: video.error ? {
+            code: video.error.code,
+            message: video.error.message
+          } : null,
+          readyState: video.readyState,
+          networkState: video.networkState,
+          duration: video.duration
+        });
+
+        // Try alternative: check if we can get duration from oncanplay
+        if (video.duration && video.duration > 0 && isFinite(video.duration)) {
+          clearTimeout(timeout);
+          cleanup();
+          console.log("[extractDuration] Using duration from error state", { duration: video.duration });
+          resolve(Math.round(video.duration));
+          return;
+        }
+
+        // Try alternative: use oncanplay as fallback
+        video.oncanplay = () => {
+          video.oncanplay = null;
+          clearTimeout(timeout);
+          if (video.duration && video.duration > 0 && isFinite(video.duration)) {
+            cleanup();
+            console.log("[extractDuration] Using duration from oncanplay fallback", { duration: video.duration });
+            resolve(Math.round(video.duration));
+          } else {
+            cleanup();
+            // Provide specific error message based on error code
+            let errorMessage = "Faili la video halikuweza kusomwa. Jaribu format nyingine (MP4 inapendekezwa zaidi).";
+            if (video.error) {
+              switch (video.error.code) {
+                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                  errorMessage = "Video codec not supported by your browser. Try converting to MP4 with H.264 codec.";
+                  break;
+                case MediaError.MEDIA_ERR_DECODE:
+                  errorMessage = "Video file is corrupted or uses an unsupported codec. Try a different video file.";
+                  break;
+                case MediaError.MEDIA_ERR_NETWORK:
+                  errorMessage = "Network error loading video. Try again.";
+                  break;
+              }
+            }
+            reject(new Error(errorMessage));
+          }
+        };
+
+        // If oncanplay doesn't fire within 2 seconds, reject
+        setTimeout(() => {
+          if (video.oncanplay) {
+            video.oncanplay = null;
+            clearTimeout(timeout);
+            cleanup();
+            // Provide specific error message based on error code
+            let errorMessage = "Faili la video halikuweza kusomwa. Jaribu format nyingine (MP4 inapendekezwa zaidi).";
+            if (video.error) {
+              switch (video.error.code) {
+                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                  errorMessage = "Video codec not supported by your browser. Try converting to MP4 with H.264 codec.";
+                  break;
+                case MediaError.MEDIA_ERR_DECODE:
+                  errorMessage = "Video file is corrupted or uses an unsupported codec. Try a different video file.";
+                  break;
+                case MediaError.MEDIA_ERR_NETWORK:
+                  errorMessage = "Network error loading video. Try again.";
+                  break;
+              }
+            }
+            reject(new Error(errorMessage));
+          }
+        }, 2000);
       };
     });
   };
