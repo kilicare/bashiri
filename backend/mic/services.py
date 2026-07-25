@@ -78,7 +78,7 @@ def extract_video_metadata(video_url):
             return None
         
         # Retry logic to wait for Cloudinary to finish processing
-        max_retries = 5
+        max_retries = 15
         retry_delay = 2  # seconds
         
         for attempt in range(max_retries):
