@@ -23,6 +23,17 @@ export function ServiceWorkerRegister() {
           // Check for updates immediately
           registration.update();
 
+          // Prefetch offline page to ensure it's cached
+          fetch("/offline")
+            .then((response) => {
+              if (response.ok) {
+                console.log("[SW] Offline page prefetched successfully");
+              }
+            })
+            .catch((err) => {
+              console.warn("[SW] Failed to prefetch offline page:", err);
+            });
+
           // Wakati toleo jipya la sw.js linapopatikana
           registration.addEventListener("updatefound", () => {
             const newWorker = registration.installing;

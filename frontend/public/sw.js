@@ -56,7 +56,15 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/") || url.hostname !== self.location.hostname) {
     // (hostname !== self.location.hostname inashughulikia backend ikiwa domain tofauti,
     // na Cloudinary images/videos - hizo TAYARI zina caching yao ya CDN, hazihitaji SW cache)
-    event.respondWith(fetch(event.request));
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return new Response(JSON.stringify({ error: "Network error" }), {
+          status: 503,
+          statusText: "Service Unavailable",
+          headers: new Headers({ "Content-Type": "application/json" })
+        });
+      })
+    );
     return;
   }
 
@@ -111,7 +119,15 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Default: network-only kwa kila kitu kingine
-  event.respondWith(fetch(event.request));
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return new Response("Network error", {
+        status: 503,
+        statusText: "Service Unavailable",
+        headers: new Headers({ "Content-Type": "text/plain" })
+      });
+    })
+  );
 });
 
 // ============================================================
