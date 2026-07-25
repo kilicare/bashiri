@@ -115,9 +115,15 @@ export default function BashiriMicPage() {
       getMoodSummary(matchId),
       canPost(matchId),
     ]).then(([reactionsData, moodData, postData]) => {
-      setReactions(reactionsData);
-      setMoodSummary(moodData);
-      setCanPostNow(postData.can_post);
+      setReactions(reactionsData || []);
+      setMoodSummary(moodData || null);
+      setCanPostNow(postData?.can_post || false);
+      setLoading(false);
+    }).catch((error) => {
+      console.error("Failed to load mic data:", error);
+      setReactions([]);
+      setMoodSummary(null);
+      setCanPostNow(false);
       setLoading(false);
     });
   }, [matchId, teamFilter]);

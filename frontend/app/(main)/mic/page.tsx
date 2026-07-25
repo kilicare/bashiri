@@ -11,7 +11,16 @@ export default function MicHubPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getActiveMicMatches().then((data) => { setItems(data); setLoading(false); });
+    getActiveMicMatches()
+      .then((data) => { 
+        setItems(data || []); 
+        setLoading(false); 
+      })
+      .catch((error) => {
+        console.error("Failed to load mic matches:", error);
+        setItems([]);
+        setLoading(false);
+      });
   }, []);
 
   return (
