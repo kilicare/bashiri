@@ -15,7 +15,7 @@ const CACHE_VERSION = "bashiri-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
-const PRECACHE_URLS = ["/offline", "/manifest.json", "/icon.png"];
+const PRECACHE_URLS = ["/manifest.json", "/icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -63,9 +63,26 @@ self.addEventListener("fetch", (event) => {
   // Navigation (kufungua page mpya) -> NETWORK-FIRST, fallback offline page
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(() =>
-        caches.match(OFFLINE_URL).then((res) => res || Response.error())
-      )
+      fetch(event.request)
+        .catch(() => {
+          // Network failed, try to serve offline page from cache
+          return caches.match(OFFLINE_URL).then((cached) => {
+            if (cached) return cached;
+            // If not in cache, try to fetch and cache it
+            return fetch(OFFLINE_URL).then((response) => {
+              const clone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => cache.put(OFFLINE_URL, clone));
+              return response;
+            }).catch(() => {
+              // If everything fails, return basic offline response
+              return new Response("Offline - No internet connection", {
+                status: 503,
+                statusText: "Service Unavailable",
+                headers: new Headers({ "Content-Type": "text/plain" })
+              });
+            });
+          });
+        })
     );
     return;
   }
