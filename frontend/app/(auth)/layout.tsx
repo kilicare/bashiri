@@ -1,8 +1,14 @@
 'use client'
 
 import { motion } from "framer-motion";
+import { House } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [showTooltip, setShowTooltip] = useState(false);
+
   return (
     <div
       className="min-h-dvh flex flex-col justify-center relative overflow-hidden"
@@ -13,6 +19,46 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         backgroundPosition: "center",
       }}
     >
+      {/* Floating Home Button */}
+      <motion.button
+        onClick={() => router.push("/")}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        aria-label="Go to Home"
+        className="fixed top-6 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center outline-none focus:ring-2 focus:ring-white/50"
+        style={{
+          background: "rgba(255, 255, 255, 0.08)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+        }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        whileHover={{ scale: 1.05, boxShadow: "0 6px 25px rgba(0, 0, 0, 0.4)" }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <House size={20} className="text-white/70" strokeWidth={1.5} />
+      </motion.button>
+
+      {/* Desktop Tooltip */}
+      {showTooltip && (
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          className="fixed top-6 left-20 z-50 px-3 py-1.5 rounded-lg text-xs font-medium hidden md:block"
+          style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            color: "rgba(255, 255, 255, 0.8)",
+          }}
+        >
+          Home / Continue as Guest
+        </motion.div>
+      )}
+
       {/* Old background code - commented out
         backgroundImage: `url(/login_background.png)`,
       */}
