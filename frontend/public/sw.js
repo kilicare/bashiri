@@ -73,21 +73,16 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .catch(() => {
-          // Network failed, try to serve offline page from cache
+          // Network failed, serve offline page from cache
           return caches.match(OFFLINE_URL).then((cached) => {
-            if (cached) return cached;
-            // If not in cache, try to fetch and cache it
-            return fetch(OFFLINE_URL).then((response) => {
-              const clone = response.clone();
-              caches.open(STATIC_CACHE).then((cache) => cache.put(OFFLINE_URL, clone));
-              return response;
-            }).catch(() => {
-              // If everything fails, return basic offline response
-              return new Response("Offline - No internet connection", {
-                status: 503,
-                statusText: "Service Unavailable",
-                headers: new Headers({ "Content-Type": "text/plain" })
-              });
+            if (cached) {
+              return cached;
+            }
+            // If not in cache, return basic offline response
+            return new Response("Offline - No internet connection. Please check your connection.", {
+              status: 503,
+              statusText: "Service Unavailable",
+              headers: new Headers({ "Content-Type": "text/plain" })
             });
           });
         })
