@@ -13,9 +13,9 @@
 
 const CACHE_VERSION = "bashiri-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const OFFLINE_URL = "/offline";
+const OFFLINE_URL = "/offline.html";
 
-const PRECACHE_URLS = ["/manifest.json", "/icon.png"];
+const PRECACHE_URLS = ["/offline.html", "/manifest.json", "/icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

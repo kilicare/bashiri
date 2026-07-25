@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
+import { UrlTracker } from "@/components/pwa/UrlTracker";
 
 export const metadata: Metadata = {
   title: "Bashiri — AI Sports Predictions",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="safe-area-shell">
         {children}
         <ServiceWorkerRegister />
+        <UrlTracker />
       </body>
     </html>
   );
