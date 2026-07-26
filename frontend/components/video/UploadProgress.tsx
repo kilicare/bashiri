@@ -101,6 +101,22 @@ export function UploadProgress({ progress, status, error }: UploadProgressProps)
             Video yako imeshapakiwa kikamilifu!
           </p>
         )}
+
+        {status === "error" && (
+          <p className="text-xs text-center text-white/40">
+            Tafadhali jaribu tena. Hakikisha video yako haizidi sekunde 60 na ukubwa wa 20MB.
+          </p>
+        )}
+
+        {/* Close Button for Error Status */}
+        {status === "error" && (
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full py-3 rounded-2xl font-bold bg-white/10 text-white hover:bg-white/20 transition-colors"
+          >
+            Funga
+          </button>
+        )}
       </div>
     </div>
   );
