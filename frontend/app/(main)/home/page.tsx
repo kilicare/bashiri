@@ -8,6 +8,7 @@ import { PulseIndicatorButton } from "@/components/pulse/PulseIndicatorButton";
 import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
 import { Bell, Target } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
   const router = useRouter();
@@ -39,12 +40,12 @@ export default function HomePage() {
   return (
     <div className="min-h-dvh pb-safe">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-5 md:px-6 lg:px-8">
-        <div className="flex items-center justify-between pt-safe pt-12 pb-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+        <div className="flex items-center justify-between pt-safe pt-12 pb-6 gap-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
           <button
             type="button"
             aria-label="Open notifications"
             onClick={() => router.push("/notifications")}
-            className="relative grid place-items-center rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            className="relative grid place-items-center rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] flex-shrink-0"
             style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.1)" }}
           >
             <Bell size={20} style={{ color: "var(--brand-primary)" }} />
@@ -55,17 +56,71 @@ export default function HomePage() {
               </span>
             )}
           </button>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--brand-accent)", letterSpacing: "-0.02em" }}>BASHIRI</h1>
-          <button
+          <h1 className="text-2xl font-bold tracking-tight flex-1 text-center" style={{ color: "var(--brand-accent)", letterSpacing: "-0.02em" }}>BASHIRI</h1>
+          <motion.button
             type="button"
             aria-label="Go to Pulse"
             onClick={() => router.push("/pulse")}
-            className="relative grid place-items-center rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
-            style={{ background: "linear-gradient(135deg, rgba(0,200,120,0.15), rgba(0,200,120,0.05))", border: "1.5px solid rgba(0,200,120,0.3)" }}
+            className="relative grid place-items-center rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)] flex-shrink-0"
+            style={{
+              background: "linear-gradient(135deg, rgba(0,200,120,0.2), rgba(0,200,120,0.08))",
+              border: "1.5px solid rgba(0,200,120,0.4)",
+              boxShadow: "0 4px 20px rgba(0,200,120,0.3), 0 0 0 1px rgba(0,200,120,0.1)",
+            }}
+            whileHover={{ scale: 1.08, boxShadow: "0 6px 30px rgba(0,200,120,0.5), 0 0 0 1px rgba(0,200,120,0.2)" }}
+            whileTap={{ scale: 0.95 }}
+            animate={{
+              boxShadow: [
+                "0 4px 20px rgba(0,200,120,0.3), 0 0 0 1px rgba(0,200,120,0.1)",
+                "0 4px 30px rgba(0,200,120,0.5), 0 0 0 1px rgba(0,200,120,0.2)",
+                "0 4px 20px rgba(0,200,120,0.3), 0 0 0 1px rgba(0,200,120,0.1)",
+              ],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
           >
+            {/* Pulse Glow Effect */}
+            <motion.div
+              className="absolute inset-0 rounded-xl"
+              style={{
+                background: "radial-gradient(circle, rgba(0,200,120,0.3) 0%, transparent 70%)",
+              }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.5, 0.8, 0.5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
             <Target size={20} style={{ color: "#00C878" }} />
-            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: "#00C878", boxShadow: "0 0 6px rgba(0,200,120,0.8)" }} />
-          </button>
+
+            {/* LIVE Badge */}
+            <motion.div
+              className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full"
+              style={{
+                background: "rgba(0,200,120,0.9)",
+                border: "1px solid rgba(0,200,120,0.3)",
+                boxShadow: "0 0 10px rgba(0,200,120,0.6)",
+              }}
+              animate={{
+                opacity: [1, 0.6, 1],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <span className="text-[8px] font-bold text-white tracking-wider">LIVE</span>
+            </motion.div>
+          </motion.button>
         </div>
         <div className="pb-8">
           <HeroCarousel />
