@@ -23,7 +23,7 @@ from rest_framework.throttling import AnonRateThrottle
 
 from .models import MicReaction, MicReactionVote
 from .serializers import MicReactionSerializer, MicReactionVoteSerializer
-from .services import extract_video_metadata, validate_video_duration, validate_video_codec
+from .services import extract_video_metadata, validate_video_duration
 from core.cloudinary_utils import delete_video_from_cloudinary
 
 logger = logging.getLogger(__name__)
