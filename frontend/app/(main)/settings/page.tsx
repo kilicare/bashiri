@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Star, Bell, Globe, Heart, MessageSquare, HelpCircle, LogOut, Shield, Settings as SettingsIcon, ShieldAlert } from "lucide-react";
+import { ChevronRight, Star, Bell, Globe, Heart, MessageSquare, HelpCircle, LogOut, Shield, Settings as SettingsIcon, ShieldAlert, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/stores/auth.store";
 import { PremiumButton } from "@/components/ui/Button";
@@ -31,6 +31,12 @@ const SETTINGS_ITEMS = [
     href: "/settings/language",
     icon: Globe,
     description: "Change app language"
+  },
+  { 
+    label: "Wasiliana Nasi", 
+    href: "/contact",
+    icon: Phone,
+    description: "Contact Bashiri team"
   },
   { 
     label: "Msaada na Maoni", 

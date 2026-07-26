@@ -6,6 +6,7 @@ import { AuthRequiredSheet } from "@/components/auth/AuthRequiredSheet";
 import { PWAInstallProvider } from "@/components/pwa/PWAInstallProvider";
 import { InstallPromptSheet } from "@/components/pwa/InstallPromptSheet";
 import { CommandPaletteProvider } from "@/components/pulse/CommandPaletteProvider";
+import { FloatingWhatsAppButton } from "@/components/contact/FloatingWhatsAppButton";
 
 function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -22,6 +23,7 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
         <AuthRequiredSheet />
         <InstallPromptSheet />
         <CommandPaletteProvider />
+        <FloatingWhatsAppButton />
       </div>
     </PWAInstallProvider>
   );
