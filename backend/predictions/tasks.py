@@ -28,6 +28,16 @@ def sync_daily_task():
 
 
 @shared_task
+def sync_historical_task():
+    """
+    Celery task for historical sync (seasons 2023, 2024, 2025, 2026).
+    This should be run ONCE then disabled from Celery Beat.
+    """
+    call_command("sync_historical", "--seasons", "2023", "2024", "2025", "2026")
+    return "sync_historical imekamilika kwa seasons 2023, 2024, 2025, 2026"
+
+
+@shared_task
 def generate_daily_picks():
     from feed.models import Card
 

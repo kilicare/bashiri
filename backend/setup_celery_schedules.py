@@ -45,6 +45,10 @@ def make_interval_task_seconds(name, task, every_seconds):
 # Sync KAMILI — mara moja kwa siku (fixtures mpya + backup ya matokeo)
 make_task("Sync Football Data", "predictions.tasks.sync_daily_task", {"minute": "0", "hour": "3"})
 
+# Historical Sync — mara moja tu kwa import data ya 2023, 2024, 2025, 2026 (ENABLED for now)
+# DISABLE after completion by commenting out this line
+make_task("Historical Sync 2023-2026", "predictions.tasks.sync_historical_task", {"minute": "0", "hour": "2"})
+
 # Sync NDOGO — mpya, kila sekunde 15 (status/score za mechi za sasa) - production safe
 make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 15)
 
