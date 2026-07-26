@@ -34,6 +34,14 @@ def run_http_server():
 
 def run_celery_beat():
     """Run Celery beat."""
+    print("⏰ Setting up Celery Beat schedules...")
+    try:
+        subprocess.run(['python', 'setup_celery_schedules.py'], check=True)
+        print("✅ Celery Beat schedules setup completed")
+    except Exception as e:
+        print(f"⚠️ Warning: Failed to setup schedules: {e}")
+        print("Continuing with Celery beat startup...")
+    
     print("🚀 Starting Celery beat...")
     cmd = [
         'celery', '-A', 'config', 'beat',
