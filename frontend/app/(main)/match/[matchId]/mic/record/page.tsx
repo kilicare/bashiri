@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BashiriButton } from "@/components/ui/Button";
-import { getUploadSignature, uploadVideoToCloudinary, createMicReaction } from "@/lib/api/mic";
+import { getUploadSignature, uploadVideoResilient, createMicReaction } from "@/lib/api/mic";
 import { Upload, X } from "lucide-react";
 import { MoodSelector } from "@/components/mic/MoodSelector";
 import { VideoUploader } from "@/components/video/VideoUploader";
@@ -72,31 +72,23 @@ export default function MicRecordPage() {
 
   async function handlePost() {
     if (!selectedFile) return;
-    
+
     setUploadStatus("uploading");
     setUploadProgress(0);
     setUploadError("");
-    
-    try {
-      // Simulate upload progress from 0 to 100
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            return 100;
-          }
-          return prev + 5;
-        });
-      }, 200);
 
+    try {
       const sig = await getUploadSignature();
-      
-      const { secure_url, duration: uploadedDuration } = await uploadVideoToCloudinary(selectedFile, sig);
-      
-      clearInterval(progressInterval);
+
+      const { secure_url, duration: uploadedDuration, bytes } = await uploadVideoResilient(
+        selectedFile,
+        sig,
+        (percent) => setUploadProgress(percent)
+      );
+
       setUploadProgress(100);
       setUploadStatus("processing");
-      
+
       await createMicReaction({
         match: matchId,
         video_url: secure_url,
@@ -104,10 +96,11 @@ export default function MicRecordPage() {
         duration_seconds: uploadedDuration || duration,
         mood,
         team_side: teamSide,
+        bytes,
       });
-      
+
       setUploadStatus("completed");
-      
+
       setTimeout(() => {
         router.push(`/match/${matchId}/mic`);
       }, 1500);
@@ -202,11 +195,26 @@ export default function MicRecordPage() {
       </AnimatePresence>
 
       {uploadStatus !== "idle" && (
-        <UploadProgress
-          progress={uploadProgress}
-          status={uploadStatus}
-          error={uploadError}
-        />
+        <>
+          {uploadStatus === "uploading" && (
+            <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 pb-8 pt-4 bg-gradient-to-t from-black via-black/90 to-transparent">
+              <div className="max-w-4xl mx-auto w-full">
+                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%`, background: "#D4AF37" }}
+                  />
+                </div>
+                <p className="text-xs text-white/50 text-center mt-2">{uploadProgress}%</p>
+              </div>
+            </div>
+          )}
+          <UploadProgress
+            progress={uploadProgress}
+            status={uploadStatus}
+            error={uploadError}
+          />
+        </>
       )}
     </>
   );

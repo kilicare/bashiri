@@ -32,31 +32,8 @@ export function getUploadSignature() {
   return apiClient<UploadSignature>("/mic/upload-signature/");
 }
 
-export async function uploadVideoToCloudinary(file: File | Blob, sig: UploadSignature, retries = 2): Promise<{ secure_url: string; duration: number }> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", sig.api_key);
-      formData.append("timestamp", String(sig.timestamp));
-      formData.append("signature", sig.signature);
-      formData.append("folder", sig.folder);
-
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloud_name}/video/upload`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-      return { secure_url: data.secure_url, duration: Math.round(data.duration || 0) };
-    } catch (e) {
-      if (attempt === retries) throw new Error("Imeshindwa kupakia video baada ya majaribio kadhaa. Angalia mtandao wako.");
-      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
-    }
-  }
-  throw new Error("Upload failed");
-}
+export { uploadVideoResilient } from "@/lib/cloudinary-upload";
+export type { CloudinaryUploadResult } from "@/lib/cloudinary-upload";
 
 export function createMicReaction(payload: {
   match: number;
@@ -65,6 +42,7 @@ export function createMicReaction(payload: {
   duration_seconds: number;
   mood: string;
   team_side: string;
+  bytes?: number;
 }) {
   return apiClient<MicReaction>("/mic/", { method: "POST", body: JSON.stringify(payload) });
 }

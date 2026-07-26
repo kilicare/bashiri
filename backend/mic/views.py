@@ -120,6 +120,24 @@ class MicReactionCreateView(APIView):
             logger.warning(f"[VIDEO VALIDATION] No duration provided, setting to 0")
             serializer.validated_data["duration_seconds"] = 0
 
+        # Validate file size
+        max_bytes = settings.BASHIRI["MIC_MAX_FILE_SIZE_MB"] * 1024 * 1024
+        reported_bytes = request.data.get("bytes")
+        if reported_bytes and int(reported_bytes) > max_bytes:
+            logger.error(f"[VIDEO VALIDATION] File size validation failed: {reported_bytes} bytes exceeds {max_bytes} bytes")
+            # Clean up uploaded video from Cloudinary
+            try:
+                from .services import extract_public_id_from_url
+                public_id = extract_public_id_from_url(video_url)
+                if public_id:
+                    delete_video_from_cloudinary(public_id)
+            except Exception as e:
+                logger.error(f"[VIDEO VALIDATION] Failed to cleanup video: {str(e)}")
+            return Response(
+                {"detail": f"Video ni kubwa mno — max {settings.BASHIRI['MIC_MAX_FILE_SIZE_MB']}MB."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # Create MicReaction immediately (non-blocking)
         reaction = serializer.save(user=request.user)
         logger.info(f"[VIDEO VALIDATION] MicReaction created successfully: {reaction.id}")

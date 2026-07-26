@@ -21,6 +21,8 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
   const [duration, setDuration] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [previewReady, setPreviewReady] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const objectUrlRef = useRef<string | null>(null);
 
   const validateFile = (file: File): string | null => {
@@ -60,6 +62,8 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
 
     setSelectedFile(file);
     setDuration(0); // Will be set by backend response
+    setPreviewReady(false);
+    setPreviewError(false);
     const newObjectUrl = URL.createObjectURL(file);
     objectUrlRef.current = newObjectUrl;
     setPreviewUrl(newObjectUrl);
@@ -72,6 +76,8 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
     setSelectedFile(null);
     setDuration(0);
     setError("");
+    setPreviewReady(false);
+    setPreviewError(false);
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = null;
@@ -105,11 +111,21 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
         <div className="rounded-3xl overflow-hidden bg-black relative max-w-4xl mx-auto" style={{ minHeight: '200px' }}>
           {previewUrl ? (
             <>
-              <video 
-                src={previewUrl} 
-                controls 
+              <video
+                src={previewUrl}
+                muted
+                playsInline
+                preload="auto"
+                controls
                 className="w-full h-full object-cover"
+                onLoadedData={() => setPreviewReady(true)}
+                onError={() => setPreviewError(true)}
               />
+              {!previewReady && !previewError && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-white/30 border-t-white/50 rounded-full animate-spin" />
+                </div>
+              )}
               <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-sm z-10">
                 <span className="text-xs font-bold text-white">
                   {duration}s / {MAX_DURATION_SECONDS}s
@@ -186,13 +202,15 @@ export function VideoUploader({ onVideoSelected, onShowTrimmer, onPost }: VideoU
               </button>
             ) : (
               onPost && (
-                <button
-                  onClick={onPost}
-                  className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-bold bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] text-black hover:opacity-90 transition-opacity"
-                >
-                  <Check size={18} />
-                  <span>Post →</span>
-                </button>
+                <>
+                  <button
+                    onClick={onPost}
+                    className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-bold bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] text-black hover:opacity-90 transition-opacity"
+                  >
+                    <Check size={18} />
+                    <span>Post →</span>
+                  </button>
+                </>
               )
             )}
             
