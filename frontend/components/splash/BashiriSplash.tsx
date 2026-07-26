@@ -53,14 +53,14 @@ export function BashiriSplash() {
   // Mtumiaji anayerudi ndani ya session hiyo hiyo — hakuna splash tena,
   // tunaruka moja kwa moja (background nyeusi tu, imefifia haraka sana).
   if (alreadySeen) {
-    return <div className="fixed inset-0" style={{ background: "#0A0A0A" }} />;
+    return <div className="fixed inset-0" style={{ background: "#000000" }} />;
   }
 
   return (
     <motion.div
       className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden"
       style={{
-        background: "#0A0A0A",
+        background: "#000000",
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: exiting ? 0 : 1 }}
@@ -170,11 +170,11 @@ export function BashiriSplash() {
         className="relative w-24 h-24 object-contain rounded-full"
         animate={{
           opacity: [0, 1],
-          scale: [0.9, 1, 1.04, 1],
+          scale: [0.9, 1, 1.02, 1],
           boxShadow: [
-            '0 0 20px rgba(212,175,55,0.5)',
-            '0 0 40px rgba(212,175,55,0.8)',
-            '0 0 20px rgba(212,175,55,0.5)',
+            '0 0 15px rgba(212,175,55,0.4)',
+            '0 0 25px rgba(212,175,55,0.6)',
+            '0 0 15px rgba(212,175,55,0.4)',
           ],
         }}
         transition={{
@@ -185,7 +185,7 @@ export function BashiriSplash() {
             times: [0, 0.5, 0.75, 1],
             ease: "easeInOut",
           },
-          boxShadow: { duration: 2.5, repeat: Infinity },
+          boxShadow: { duration: 3, repeat: Infinity },
         }}
       />
 
