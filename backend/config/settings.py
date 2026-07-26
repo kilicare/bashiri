@@ -228,6 +228,10 @@ BASHIRI = {
     "FREE_AI_CHAT_DAILY": 8,
     "SUBSCRIBER_AI_CHAT_DAILY": 50,
 
+    # Football Data Sync Configuration (SofaScore-like timeframe)
+    "DAILY_SYNC_DAYS_BACK": 30,  # 30 days back (recent finished matches)
+    "DAILY_SYNC_DAYS_FORWARD": 30,  # 30 days forward (upcoming fixtures)
+
     # Masoko 9 kwa jumla: 3 bure + 6 locked
     "FREE_MARKETS": ["1X2", "OVER_UNDER_2_5", "BTTS"],
     "LOCKED_MARKETS": [
