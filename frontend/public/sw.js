@@ -11,11 +11,11 @@
  * chini ya faili hii pia (background messages).
  */
 
-const CACHE_VERSION = "bashiri-v3";
+const CACHE_VERSION = "bashiri-v4";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const OFFLINE_URL = "/offline";
+const OFFLINE_URL = "/offline.html";
 
-const PRECACHE_URLS = ["/offline", "/manifest.json", "/icon.png"];
+const PRECACHE_URLS = ["/offline.html", "/icon-192.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
