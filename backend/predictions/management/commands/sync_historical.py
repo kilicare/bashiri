@@ -119,8 +119,13 @@ class Command(BaseCommand):
             try:
                 # For historical data, we sync the entire season
                 # Season typically runs from August to May of following year
-                date_from = f"{season}-08-01"
-                date_to = f"{season + 1}-06-30"
+                # Special case for 2025: extend to December 2026 to capture World Cup 2026
+                if season == 2025:
+                    date_from = f"{season}-08-01"
+                    date_to = "2026-12-31"
+                else:
+                    date_from = f"{season}-08-01"
+                    date_to = f"{season + 1}-06-30"
 
                 results = sync_all_leagues(date_from, date_to)
 
