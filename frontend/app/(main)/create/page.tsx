@@ -46,8 +46,16 @@ export default function CreatePredictionStep1() {
                   <button
                     key={m.id}
                     onClick={() => router.push(`/create/${m.id}/overview`)}
-                    className="w-full rounded-2xl p-4 flex flex-col items-start gap-2"
-                    style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}
+                    className="w-full rounded-2xl p-4 flex flex-col items-start gap-2 relative overflow-hidden"
+                    style={{
+                      background: "#111111",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      backgroundImage: `
+                        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
+                        linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)
+                      `,
+                      backgroundSize: "16px 16px, 100% 100%",
+                    }}
                   >
                     <div className="w-full flex items-center justify-between">
                       <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>

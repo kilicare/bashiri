@@ -37,7 +37,19 @@ export default function PaymentHistoryPage() {
             ) : (
               <div className="space-y-2">
                 {data.subscriptions.map((s: any) => (
-                  <div key={s.id} className="rounded-2xl p-4" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div
+                    key={s.id}
+                    className="rounded-2xl p-4 relative overflow-hidden"
+                    style={{
+                      background: "#111111",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      backgroundImage: `
+                        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
+                        linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)
+                      `,
+                      backgroundSize: "16px 16px, 100% 100%",
+                    }}
+                  >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <Crown size={14} style={{ color: s.is_active ? "#FFD600" : "rgba(255,255,255,0.3)" }} />
@@ -64,7 +76,19 @@ export default function PaymentHistoryPage() {
             ) : (
               <div className="space-y-2">
                 {data.transactions.map((t: any) => (
-                  <div key={t.id} className="rounded-2xl p-4 flex items-center justify-between" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div
+                    key={t.id}
+                    className="rounded-2xl p-4 flex items-center justify-between relative overflow-hidden"
+                    style={{
+                      background: "#111111",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      backgroundImage: `
+                        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
+                        linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)
+                      `,
+                      backgroundSize: "16px 16px, 100% 100%",
+                    }}
+                  >
                     <div>
                       <p className="text-sm font-bold text-white">{t.plan === "weekly" ? "Wiki 1" : "Mwezi 1"}</p>
                       <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>{new Date(t.created_at).toLocaleString("sw-TZ")}</p>

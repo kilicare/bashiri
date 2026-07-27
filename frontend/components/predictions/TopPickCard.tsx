@@ -11,7 +11,14 @@ export function TopPickCard({ topPick, onLockedClick }: { topPick: TopPick; onLo
     <motion.button
       onClick={topPick.is_locked ? onLockedClick : undefined}
       className="w-full text-left rounded-3xl p-5 mb-4 relative overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${tier.color}1A, #111111)`, border: `1px solid ${tier.color}44` }}
+      style={{
+        background: `
+          radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
+          linear-gradient(135deg, ${tier.color}1A, #111111)
+        `,
+        backgroundSize: "16px 16px, 100% 100%",
+        border: `1px solid ${tier.color}44`
+      }}
       whileTap={{ scale: 0.98 }}
     >
       <div className="flex items-center gap-2 mb-2">

@@ -64,7 +64,7 @@ export default function MatchOverviewPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-5 pb-6">
           {/* Form Guide */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <PremiumCard variant="gradient" hover className="mb-5">
+            <PremiumCard variant="gradient" hover texture className="mb-5">
               <div className="flex items-center gap-2 mb-4">
                 <Trophy size={16} className="text-[#00FF87]" />
                 <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
@@ -127,7 +127,7 @@ export default function MatchOverviewPage() {
 
           {/* Head to Head */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <PremiumCard variant="gold" hover className="mb-6">
+            <PremiumCard variant="gold" hover texture className="mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp size={16} className="text-[#FFD600]" />
                 <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Head to Head</p>

@@ -5,9 +5,13 @@ import { Lightbulb } from "lucide-react";
 export function DidYouKnowCard({ data }: { data: any }) {
   return (
     <motion.div
-      className="rounded-3xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-      style={{ 
-        background: "linear-gradient(135deg, rgba(212,175,55,0.08), rgba(207,175,123,0.04))", 
+      className="rounded-3xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden"
+      style={{
+        background: `
+          radial-gradient(circle, rgba(212,175,55,0.06) 1px, transparent 1px),
+          linear-gradient(135deg, rgba(212,175,55,0.08), rgba(207,175,123,0.04))
+        `,
+        backgroundSize: "16px 16px, 100% 100%",
         border: "1px solid rgba(212,175,55,0.15)",
         boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 1px rgba(212,175,55,0.1)"
       }}
