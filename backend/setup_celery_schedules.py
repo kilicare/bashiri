@@ -49,8 +49,8 @@ make_task("Sync Football Data", "predictions.tasks.sync_daily_task", {"minute": 
 # DISABLE after completion by commenting out this line
 make_task("Historical Sync 2023-2026", "predictions.tasks.sync_historical_task", {"minute": "45", "hour": "18"})
 
-# Sync NDOGO — mpya, kila sekunde 15 (status/score za mechi za sasa) - production safe
-make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 15)
+# Sync NDOGO — mpya, kila sekunde 30 (status/score za mechi za sasa) - production safe
+make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 30)
 
 # Sync mechi zilizoisha hivi karibuni — kila dakika 30
 make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_recently_finished_matches", 30)
@@ -62,7 +62,7 @@ make_task("Generate Daily Picks", "predictions.tasks.generate_daily_picks", {"mi
 make_task("Generate Result Recaps", "feed.tasks.generate_result_recaps", {"minute": "*/30", "hour": "*"})
 make_task("Generate Stat Cards", "feed.tasks.generate_stat_cards", {"minute": "0", "hour": "5"})
 make_task("Generate Poll Cards", "feed.tasks.generate_poll_cards", {"minute": "0", "hour": "5"})
-make_interval_task_seconds("Update Live Match Cards", "feed.tasks.update_live_match_cards", 15)
+make_interval_task_seconds("Update Live Match Cards", "feed.tasks.update_live_match_cards", 30)
 make_task("Generate Weekly Report", "feed.tasks.generate_weekly_report", {"minute": "0", "hour": "20", "day_of_week": "0"})
 make_task("Generate Did You Know Cards", "feed.tasks.generate_did_you_know_cards", {"minute": "30", "hour": "5"})
 make_task("Close Expired Debates", "feed.tasks.close_expired_debates", {"minute": "0", "hour": "*"})

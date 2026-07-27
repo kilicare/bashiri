@@ -9,6 +9,7 @@ import { PhoneInput } from "@/components/ui/PhoneInput";
 import { register, login } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth.store";
 import { consumeReturnTo } from "@/lib/return-to";
+import { isNetworkError, showNetworkErrorToast } from "@/lib/toast-utils";
 
 type Tab = "login" | "register";
 
@@ -48,6 +49,7 @@ export default function LoginPage() {
       router.push(consumeReturnTo() || "/home");
     } catch (e: any) {
       setError(e.message || "Hitilafu wakati wa kuingia");
+      if (isNetworkError(e)) showNetworkErrorToast();
     } finally {
       setLoading(false);
     }
@@ -105,6 +107,7 @@ export default function LoginPage() {
         setRegisterStep(1);
       }
       setError(errorMessage);
+      if (isNetworkError(e)) showNetworkErrorToast();
     } finally {
       setLoading(false);
     }

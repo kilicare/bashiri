@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 
 from .models import Subscription, Transaction
 from .mpesa import stk_push
-from .serializers import TransactionSerializer
+from .serializers import SubscriptionSerializer, TransactionSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -152,3 +152,17 @@ def _activate_subscription(txn: Transaction):
     user.save(update_fields=["is_subscriber", "subscription_expires_at"])
 
     logger.info(f"Subscription imeamshwa kwa {user}: {txn.plan} hadi {ends_at}")
+
+
+class MyPaymentHistoryView(APIView):
+    """GET /api/payments/my-history/ — historia ya malipo/subscriptions za mtumiaji mwenyewe."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        transactions = Transaction.objects.filter(user=request.user).order_by("-created_at")[:50]
+        subscriptions = Subscription.objects.filter(user=request.user).order_by("-created_at")[:50]
+
+        return Response({
+            "transactions": TransactionSerializer(transactions, many=True).data,
+            "subscriptions": SubscriptionSerializer(subscriptions, many=True).data,
+        })

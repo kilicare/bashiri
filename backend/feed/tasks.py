@@ -31,22 +31,28 @@ def generate_result_recaps():
     high_conf_predictions = 0
     high_conf_correct = 0
 
-    for match in finished_today:
+    for match in finished_recent:
         # Deactivate LIVE_MATCH card for this match if it exists and is still active
         Card.objects.filter(
             type="LIVE_MATCH", match_id=match.id, is_active=True
         ).update(is_active=False)
 
-        ai_pick_card = Card.objects.filter(type="AI_PICK", match_id=match.id).first()
+        ai_pick_card = Card.objects.filter(
+            type__in=["AI_PICK", "BIG_MATCH"], match_id=match.id
+        ).first()
         if not ai_pick_card:
             continue
         if Card.objects.filter(type="RESULT_RECAP", match_id=match.id).exists():
             continue
 
         ai_pick = ai_pick_card.data.get("ai_pick", {})
-        selection_key = ai_pick.get("selection", "").lower().replace(" ", "_")
+        # MUHIMU: sasa tunatumia market_key/option_key HALISI kutoka
+        # data ya card (si "1X2" iliyofungwa) — ai_pick inaweza kuwa
+        # soko lolote kati ya 3 za bure (1X2, O/U 2.5, BTTS).
+        market_key = ai_pick.get("market_key", "1X2")
+        option_key = ai_pick.get("option_key", "")
         confidence = ai_pick.get("confidence", 0)
-        was_correct = is_prediction_correct("1X2", selection_key, match.home_score, match.away_score)
+        was_correct = is_prediction_correct(market_key, option_key, match.home_score, match.away_score)
 
         Card.objects.create(
             type="RESULT_RECAP", match_id=match.id,
@@ -55,13 +61,14 @@ def generate_result_recaps():
                     "home_team": match.home_team.name, "away_team": match.away_team.name,
                     "home_score": match.home_score, "away_score": match.away_score,
                 },
-                "ai_predicted": ai_pick.get("selection"),
+                "ai_predicted": ai_pick.get("option_label", ai_pick.get("selection")),
+                "ai_market": ai_pick.get("market_label"),
                 "ai_confidence": confidence,
                 "was_correct": was_correct,
             },
         )
         created_count += 1
-        
+
         # Track AI performance
         total_predictions += 1
         if was_correct:

@@ -39,7 +39,15 @@ def sync_historical_task():
 
 @shared_task
 def generate_daily_picks():
+    """
+    Kwa kila mechi ya LEO, tengeneza AI_PICK Card ikitumia soko BORA
+    ZAIDI KATI YA MASOKO 3 YA BURE PEKEE (1X2, O/U 2.5, BTTS) — Feed
+    ni content tuli (haiwezi kubadilika kwa kila mtazamaji kama
+    Dashboard inavyoweza), kwa hiyo hatuwezi kuonyesha 'tease' ya soko
+    lililofungwa hapa bila muktadha wa subscription ya mtu binafsi.
+    """
     from feed.models import Card
+    from .services import MARKET_DEFINITIONS
 
     today = timezone.localdate()
     end_date = today + timedelta(days=2)  # Generate picks for today + 2 days ahead (3 days total)
@@ -47,30 +55,57 @@ def generate_daily_picks():
         kickoff_at__date__range=[today, end_date], status="SCHEDULED"
     ).select_related("league", "home_team", "away_team")
 
-    created_count = skipped_count = 0
+    free_market_keys = settings.BASHIRI["FREE_MARKETS"]
+    created_count = 0
+    skipped_count = 0
 
     for match in upcoming_matches:
-        if Card.objects.filter(type="AI_PICK", match_id=match.id).exists():
+        already_exists = Card.objects.filter(type="AI_PICK", match_id=match.id).exists()
+        if already_exists:
             continue
+
         try:
-            prediction = predict_fixture(match.league.poisson_key, match.home_team.name, match.away_team.name)
+            prediction = predict_fixture(
+                match.league.poisson_key, match.home_team.name, match.away_team.name
+            )
         except ValueError as exc:
             logger.warning(f"Skipping AI pick kwa {match}: {exc}")
             skipped_count += 1
             continue
 
+        # Chagua BORA kati ya masoko 3 ya bure PEKEE
+        best_free = None
+        for market_key in free_market_keys:
+            definition = MARKET_DEFINITIONS[market_key]
+            source_data = prediction[definition["source_key"]]
+            for opt in definition["options"]:
+                confidence = source_data[opt["key"]]
+                if best_free is None or confidence > best_free["confidence"]:
+                    best_free = {
+                        "market_key": market_key,
+                        "market_label": definition["label"],
+                        "option_key": opt["key"],
+                        "option_label": opt["label"],
+                        "confidence": round(confidence, 1),
+                    }
+
+        card_type = "BIG_MATCH" if match.is_big_match else "AI_PICK"
+
         Card.objects.create(
-            type="AI_PICK", match_id=match.id,
+            type=card_type,
+            match_id=match.id,
             data={
                 "match": {
-                    "home_team": match.home_team.name, "away_team": match.away_team.name,
-                    "league": match.league.name, "kickoff_at": match.kickoff_at.isoformat(),
+                    "home_team": match.home_team.name,
+                    "away_team": match.away_team.name,
+                    "league": match.league.name,
+                    "kickoff_at": match.kickoff_at.isoformat(),
                     "is_big_match": match.is_big_match,
                 },
-                "ai_pick": prediction["ai_pick"],
+                "ai_pick": best_free,
                 "expected_goals": prediction["expected_goals"],
                 "reasons": [
-                    f"AI confidence: {prediction['ai_pick']['confidence']}%",
+                    f"AI confidence: {best_free['confidence']}% ({best_free['market_label']})",
                     f"Expected goals: {prediction['expected_goals']['home_xg']} - {prediction['expected_goals']['away_xg']}",
                     f"BTTS: {prediction['btts']['yes']}%",
                 ],

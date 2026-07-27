@@ -331,18 +331,33 @@ export default function ProfilePage() {
           </button>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.32 }}
         >
-          <button 
+          <button
             onClick={() => router.push("/track-record")}
             className="w-full rounded-2xl p-4 flex items-center gap-3 text-left"
             style={{ background: "#111111" }}
           >
             <BarChart3 size={18} style={{ color: "var(--brand-accent)" }} />
             <span className="text-sm font-bold text-white">📊 Bashiri Track Record</span>
+          </button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.33 }}
+        >
+          <button
+            onClick={() => router.push("/profile/payment-history")}
+            className="w-full rounded-2xl p-4 flex items-center gap-3 text-left"
+            style={{ background: "#111111" }}
+          >
+            <Crown size={18} style={{ color: "#FFD600" }} />
+            <span className="text-sm font-bold text-white">💳 Historia ya Malipo</span>
           </button>
         </motion.div>
 

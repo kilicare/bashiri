@@ -48,7 +48,38 @@ class UnknownTeamError(Exception):
     pass
 
 
+def compute_global_top_pick(prediction: dict) -> dict:
+    """
+    Inatafuta chaguo LENYE UHAKIKA MKUBWA ZAIDI KATI YA MASOKO YOTE 9
+    (si 1X2 pekee) — hii ndiyo 'AI Pick ya kweli', tofauti na
+    prediction['ai_pick'] (poisson_model.py) ambayo imefungwa 1X2 kwa
+    matumizi ya ndani ya model pekee.
+    """
+    best = None
+    for market_key, definition in MARKET_DEFINITIONS.items():
+        source_data = prediction[definition["source_key"]]
+        for opt in definition["options"]:
+            confidence = source_data[opt["key"]]
+            if best is None or confidence > best["confidence"]:
+                best = {
+                    "market_key": market_key,
+                    "market_label": definition["label"],
+                    "option_key": opt["key"],
+                    "option_label": opt["label"],
+                    "confidence": round(confidence, 1),
+                }
+    return best
+
+
 def build_prediction_dashboard(match, viewer_is_subscriber: bool):
+    """
+    AI Prediction Dashboard — masoko 9, kila moja likiwa na 'ai_pick'
+    YAKE MWENYEWE (per-market, si 1X2 pekee tena), PAMOJA na 'top_pick'
+    — recommendation MOJA kuu kati ya masoko YOTE 9 (global-best),
+    ambayo ikiwa ndani ya soko lililofungwa kwa non-subscriber,
+    inaonyesha TU asilimia yake (curiosity tease) bila kufichua soko
+    wala chaguo lenyewe.
+    """
     try:
         prediction = predict_fixture(match.league.poisson_key, match.home_team.name, match.away_team.name)
     except ValueError as exc:
@@ -64,30 +95,62 @@ def build_prediction_dashboard(match, viewer_is_subscriber: bool):
         source_data = prediction[definition["source_key"]]
         is_locked = market_key in locked_markets and not viewer_is_subscriber
 
-        options, max_prob = [], 0.0
+        options = []
+        max_prob = 0.0
+        best_option_key = None
+        best_option_prob = -1
+
         for opt in definition["options"]:
             prob_pct = source_data[opt["key"]]
             max_prob = max(max_prob, prob_pct)
-            options.append({"key": opt["key"], "label": opt["label"], "prob": None if is_locked else round(prob_pct / 100, 4)})
-
-        ai_pick_key = None
-        if definition["source_key"] == "match_result":
-            selection_map = {"Home Win": "home_win", "Draw": "draw", "Away Win": "away_win"}
-            ai_pick_key = selection_map.get(prediction["ai_pick"]["selection"])
+            if prob_pct > best_option_prob:
+                best_option_prob = prob_pct
+                best_option_key = opt["key"]
+            options.append({
+                "key": opt["key"],
+                "label": opt["label"],
+                "prob": None if is_locked else round(prob_pct / 100, 4),
+            })
 
         markets.append({
-            "key": market_key, "label": definition["label"], "is_locked": is_locked,
+            "key": market_key,
+            "label": definition["label"],
+            "is_locked": is_locked,
             "is_free": market_key in free_markets,
             "confidence": None if is_locked else round(max_prob, 1),
-            "ai_pick": ai_pick_key if (market_key == "1X2" and not is_locked) else None,
+            # MUHIMU: ai_pick sasa inahesabiwa kwa KILA soko (si 1X2 pekee),
+            # ikiwa imefichwa kwa masoko ya locked (sawa na options zenyewe).
+            "ai_pick": best_option_key if not is_locked else None,
             "options": options,
         })
 
     markets.sort(key=lambda m: (m["confidence"] is None, -(m["confidence"] or 0)))
 
+    # === TOP PICK — Recommendation MOJA kuu kati ya masoko YOTE 9 ===
+    global_best = compute_global_top_pick(prediction)
+    is_top_pick_locked = global_best["market_key"] in locked_markets
+
+    if is_top_pick_locked and not viewer_is_subscriber:
+        top_pick = {
+            "is_locked": True,
+            "confidence": global_best["confidence"],
+            "market_label": None,
+            "option_label": None,
+        }
+    else:
+        top_pick = {
+            "is_locked": False,
+            "confidence": global_best["confidence"],
+            "market_label": global_best["market_label"],
+            "option_label": global_best["option_label"],
+        }
+
     return {
-        "match_id": match.id, "model_version": MODEL_VERSION,
-        "expected_goals": prediction["expected_goals"], "markets": markets,
+        "match_id": match.id,
+        "model_version": MODEL_VERSION,
+        "expected_goals": prediction["expected_goals"],
+        "top_pick": top_pick,
+        "markets": markets,
     }
 
 

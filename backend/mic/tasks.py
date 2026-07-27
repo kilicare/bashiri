@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @shared_task
 def compute_fan_of_match():
     """
-    Masaa 24 baada ya FT, hesabu MicReaction yenye votes nyingi zaidi kwa
+    Siku 7 baada ya FT, hesabu MicReaction yenye votes nyingi zaidi kwa
     kila mechi, weka is_fan_of_match=True, tuma Notification kwa mshindi.
     """
     from predictions.models import Match

@@ -70,10 +70,19 @@ export interface Market {
   ai_pick: string | null;
   options: MarketOption[];
 }
+
+export interface TopPick {
+  is_locked: boolean;
+  confidence: number;
+  market_label: string | null;
+  option_label: string | null;
+}
+
 export interface Dashboard {
   match_id: number;
   model_version: string;
   expected_goals: { home_xg: number; away_xg: number };
+  top_pick: TopPick;
   markets: Market[];
   match: Match;
 }

@@ -6,6 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 import { BashiriButton } from "@/components/ui/Button";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { requestPasswordReset } from "@/lib/api/auth";
+import { isNetworkError, showNetworkErrorToast } from "@/lib/toast-utils";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function ForgotPasswordPage() {
       setSubmitted(true);
     } catch (e: any) {
       setError(e.message);
+      if (isNetworkError(e)) showNetworkErrorToast();
     } finally {
       setLoading(false);
     }

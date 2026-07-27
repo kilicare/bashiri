@@ -22,3 +22,16 @@ export function initiateSubscription(plan: "weekly" | "monthly") {
 export function getTransactionStatus(checkoutRequestId: string) {
   return apiClient<Transaction>(`/payments/status/${checkoutRequestId}/`);
 }
+
+export interface SubscriptionRecord {
+  id: number;
+  plan: "weekly" | "monthly";
+  amount_tzs: number;
+  starts_at: string;
+  ends_at: string;
+  is_active: boolean;
+}
+
+export function getMyPaymentHistory() {
+  return apiClient<{ transactions: Transaction[]; subscriptions: SubscriptionRecord[] }>("/payments/my-history/");
+}

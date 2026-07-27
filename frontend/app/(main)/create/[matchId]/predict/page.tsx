@@ -4,6 +4,8 @@ import { useParams } from "next/navigation";
 import { getMatchDashboard, saveMatch, Dashboard } from "@/lib/api/predictions";
 import { useAuthStore } from "@/stores/auth.store";
 import { MarketRow } from "@/components/predictions/MarketRow";
+import { TopPickCard } from "@/components/predictions/TopPickCard";
+import { ConfidenceLegend } from "@/components/predictions/ConfidenceLegend";
 import { SubscriptionSheet } from "@/components/predictions/SubscriptionSheet";
 import { Spinner } from "@/components/ui/Spinner";
 import { CardSkeleton } from "@/components/ui/Skeleton";
@@ -70,10 +72,16 @@ export default function PredictDashboardPage() {
       <MatchHubTabs matchId={matchId} active="predict" isFinished={isFinished} />
 
       <div className="px-5 pb-8">
+        <TopPickCard topPick={dashboard.top_pick} onLockedClick={() => setShowSub(true)} />
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {dashboard.markets.map((market) => (
             <MarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />
           ))}
+        </div>
+
+        <div className="mt-5">
+          <ConfidenceLegend />
         </div>
 
         <p className="text-center text-xs mt-5" style={{ color: "rgba(255,255,255,0.2)" }}>

@@ -3,8 +3,7 @@ import { motion } from "framer-motion";
 import { Lock, Check, X } from "lucide-react";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { MarketAnalysis } from "@/lib/api/predictions";
-
-const COLORS = ["var(--success)", "var(--warning)", "var(--danger)"];
+import { getConfidenceColor } from "@/lib/confidence-tiers";
 
 export function AnalysisMarketRow({ market, onLockedClick }: { market: MarketAnalysis; onLockedClick: () => void }) {
   return (
@@ -40,30 +39,33 @@ export function AnalysisMarketRow({ market, onLockedClick }: { market: MarketAna
       </div>
 
       <div className="p-4 space-y-2">
-        {market.options.map((opt, idx) => (
-          <div key={opt.key} className="flex items-center gap-3">
-            {market.is_locked ? (
-              <>
-                <span className="text-xs w-24 truncate" style={{ color: "rgba(255,255,255,0.3)", filter: "blur(3px)" }}>{opt.label}</span>
-                <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", filter: "blur(2px)" }} />
-                <span className="text-xs font-bold w-10 text-right" style={{ color: "rgba(255,255,255,0.2)", filter: "blur(3px)" }}>??%</span>
-              </>
-            ) : (
-              <>
-                <span
-                  className="text-xs w-24 truncate flex items-center gap-1"
-                  style={{ color: opt.was_actual_outcome ? "var(--success)" : "rgba(255,255,255,0.55)", fontWeight: opt.was_actual_outcome ? 700 : 400 }}
-                >
-                  {opt.was_actual_outcome && "✅"} {opt.label}
-                </span>
-                <div className="flex-1"><ProgressBar value={opt.prob || 0} color={COLORS[idx % COLORS.length]} height={5} /></div>
-                <span className="text-xs font-bold w-10 text-right" style={{ color: COLORS[idx % COLORS.length] }}>
-                  {Math.round((opt.prob || 0) * 100)}%
-                </span>
-              </>
-            )}
-          </div>
-        ))}
+        {market.options.map((opt) => {
+          const colorForOption = getConfidenceColor((opt.prob || 0) * 100);
+          return (
+            <div key={opt.key} className="flex items-center gap-3">
+              {market.is_locked ? (
+                <>
+                  <span className="text-xs w-24 truncate" style={{ color: "rgba(255,255,255,0.3)", filter: "blur(3px)" }}>{opt.label}</span>
+                  <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", filter: "blur(2px)" }} />
+                  <span className="text-xs font-bold w-10 text-right" style={{ color: "rgba(255,255,255,0.2)", filter: "blur(3px)" }}>??%</span>
+                </>
+              ) : (
+                <>
+                  <span
+                    className="text-xs w-24 truncate flex items-center gap-1"
+                    style={{ color: opt.was_actual_outcome ? "var(--success)" : "rgba(255,255,255,0.55)", fontWeight: opt.was_actual_outcome ? 700 : 400 }}
+                  >
+                    {opt.was_actual_outcome && "✅"} {opt.label}
+                  </span>
+                  <div className="flex-1"><ProgressBar value={opt.prob || 0} color={colorForOption} height={5} /></div>
+                  <span className="text-xs font-bold w-10 text-right" style={{ color: colorForOption }}>
+                    {Math.round((opt.prob || 0) * 100)}%
+                  </span>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </motion.div>
   );
