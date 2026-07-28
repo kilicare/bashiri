@@ -45,6 +45,7 @@ node_modules/
 out/
 .vercel/
 .turbo/
+pnpm-lock.yaml
 
 # IDE
 .vscode/
