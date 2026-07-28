@@ -25,7 +25,7 @@ export async function GET() {
  * chini ya faili hii pia (background messages).
  */
 
-const CACHE_VERSION = "bashiri-v4";
+const CACHE_VERSION = "bashiri-v5";
 const STATIC_CACHE = \`\${CACHE_VERSION}-static\`;
 const OFFLINE_URL = "/offline.html";
 
