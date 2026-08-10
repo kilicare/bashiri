@@ -34,6 +34,14 @@ def run_http_server():
 
 def run_celery_beat():
     """Run Celery beat."""
+    print("📦 Running database migrations...")
+    try:
+        subprocess.run(['python', 'manage.py', 'migrate', '--noinput'], check=True)
+        print("✅ Database migrations completed")
+    except Exception as e:
+        print(f"⚠️ Warning: Failed to run migrations: {e}")
+        print("Continuing with Celery beat startup...")
+    
     print("⏰ Setting up Celery Beat schedules...")
     try:
         subprocess.run(['python', 'setup_celery_schedules.py'], check=True)
