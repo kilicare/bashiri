@@ -54,10 +54,17 @@ class FixturesView(APIView):
 
     def get(self, request):
         from django.core.cache import cache
-        from datetime import datetime
+        from datetime import datetime, timedelta
 
         # Get date parameter (format: YYYY-MM-DD)
         date_str = request.query_params.get("date")
+        
+        # Get range filter (today, tomorrow, this_week, next_week, this_month)
+        range_filter = request.query_params.get("range", "this_week")
+        
+        # Get pagination parameters
+        offset = int(request.query_params.get("offset", 0))
+        limit = int(request.query_params.get("limit", 50))
         
         if date_str:
             try:
@@ -66,7 +73,7 @@ class FixturesView(APIView):
                 start_of_day = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
                 end_of_day = timezone.make_aware(datetime.combine(target_date, datetime.max.time()))
                 
-                cache_key = f"fixtures_list_{date_str}"
+                cache_key = f"fixtures_list_{date_str}_{offset}_{limit}"
                 cached_data = cache.get(cache_key)
                 
                 if cached_data is not None:
@@ -78,7 +85,7 @@ class FixturesView(APIView):
                         kickoff_at__lte=end_of_day
                     )
                     .select_related("league", "home_team", "away_team")
-                    .order_by("kickoff_at")[:100]
+                    .order_by("kickoff_at")[offset:offset + limit]
                 )
                 data = MatchListSerializer(matches, many=True).data
                 cache.set(cache_key, data, timeout=300)  # 5 minutes cache for specific date
@@ -87,16 +94,45 @@ class FixturesView(APIView):
             except ValueError:
                 return Response({"detail": "Invalid date format. Use YYYY-MM-DD"}, status=400)
         
-        # Default: Show fixtures from now onwards (original behavior)
-        cache_key = "fixtures_list"
+        # Calculate date range based on filter
+        now = timezone.now()
+        start_date = None
+        end_date = None
+        
+        if range_filter == "today":
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif range_filter == "tomorrow":
+            tomorrow = now + timedelta(days=1)
+            start_date = tomorrow.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = tomorrow.replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif range_filter == "this_week":
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = now + timedelta(days=7)
+        elif range_filter == "next_week":
+            start_date = (now + timedelta(days=7)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = (now + timedelta(days=14)).replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif range_filter == "this_month":
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = now + timedelta(days=30)
+        else:  # Default to this_week
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = now + timedelta(days=7)
+        
+        cache_key = f"fixtures_list_{range_filter}_{offset}_{limit}"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
             return Response(cached_data)
 
         matches = (
-            Match.objects.filter(status="SCHEDULED", kickoff_at__gte=timezone.now())
-            .select_related("league", "home_team", "away_team").order_by("kickoff_at")[:100]
+            Match.objects.filter(
+                status="SCHEDULED",
+                kickoff_at__gte=start_date,
+                kickoff_at__lte=end_date
+            )
+            .select_related("league", "home_team", "away_team")
+            .order_by("kickoff_at")[offset:offset + limit]
         )
         data = MatchListSerializer(matches, many=True).data
         cache.set(cache_key, data, timeout=120)  # 2 minutes cache

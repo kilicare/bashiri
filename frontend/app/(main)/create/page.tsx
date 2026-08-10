@@ -3,15 +3,49 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getFixtures, Match } from "@/lib/api/predictions";
 import { CardSkeleton } from "@/components/ui/Skeleton";
+import { Calendar } from "lucide-react";
 
 export default function CreatePredictionStep1() {
   const router = useRouter();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState("this_week");
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const filters = [
+    { id: "today", label: "Leo" },
+    { id: "tomorrow", label: "Kesho" },
+    { id: "this_week", label: "Wiki Hii" },
+    { id: "next_week", label: "Wiki Ijayo" },
+    { id: "this_month", label: "Mwezi Huu" },
+  ];
+
+  const loadMatches = async (filter: string, newOffset = 0) => {
+    setLoading(true);
+    try {
+      const data = await getFixtures(undefined, filter, newOffset, 50);
+      if (newOffset === 0) {
+        setMatches(data);
+      } else {
+        setMatches(prev => [...prev, ...data]);
+      }
+      setHasMore(data.length === 50);
+      setOffset(newOffset);
+    } catch (error) {
+      console.error("Failed to load matches:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getFixtures().then((data) => { setMatches(data); setLoading(false); });
-  }, []);
+    loadMatches(activeFilter, 0);
+  }, [activeFilter]);
+
+  const handleLoadMore = () => {
+    loadMatches(activeFilter, offset + 50);
+  };
 
   const grouped = matches.reduce((acc: Record<string, Match[]>, m) => {
     const key = m.league.name;
@@ -26,15 +60,54 @@ export default function CreatePredictionStep1() {
         <h1 className="text-2xl font-black text-white">Chagua Mechi</h1>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Anza prediction yako ya AI</p>
       </div>
+
+      {/* Date Filter Tabs */}
+      <div className="px-5 pb-4">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {filters.map((filter) => (
+            <button
+              key={filter.id}
+              onClick={() => setActiveFilter(filter.id)}
+              className="px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all"
+              style={{
+                background: activeFilter === filter.id ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
+                color: activeFilter === filter.id ? "#D4AF37" : "rgba(255,255,255,0.6)",
+                border: activeFilter === filter.id ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Calendar size={14} />
+                {filter.label}
+              </div>
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            {matches.length} mechi
+          </span>
+          {hasMore && (
+            <button
+              onClick={handleLoadMore}
+              disabled={loading}
+              className="text-xs font-bold px-3 py-1 rounded-lg transition-all disabled:opacity-50"
+              style={{ color: "#D4AF37", background: "rgba(212, 175, 55, 0.1)" }}
+            >
+              {loading ? "..." : "Pakia Zaidi"}
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="px-4 md:px-6 lg:px-8 space-y-5">
         {loading ? (
           [1, 2].map((i) => <CardSkeleton key={i} />)
         ) : matches.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-dvh text-center pt-20">
             <div className="text-6xl mb-4">🏟️</div>
-            <p className="text-xl font-bold text-white mb-2">Hakuna Mechi Leo</p>
+            <p className="text-xl font-bold text-white mb-2">Hakuna Mechi</p>
             <p className="text-sm text-white/60 max-w-xs">
-              Kwa sasa hakuna mechi zinazopatikana kwa prediction. Rudi baadaye uone mechi zinazovuma!
+              Hakuna mechi kwa {filters.find(f => f.id === activeFilter)?.label}. Jaribu filter nyingine.
             </p>
           </div>
         ) : (
