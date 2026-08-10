@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getFixtures, Match } from "@/lib/api/predictions";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Calendar } from "lucide-react";
+import { Calendar, ChevronDown } from "lucide-react";
 
 export default function CreatePredictionStep1() {
   const router = useRouter();
@@ -63,39 +63,40 @@ export default function CreatePredictionStep1() {
 
       {/* Date Filter Tabs */}
       <div className="px-5 pb-4">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {filters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => setActiveFilter(filter.id)}
-              className="px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all"
-              style={{
-                background: activeFilter === filter.id ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
-                color: activeFilter === filter.id ? "#D4AF37" : "rgba(255,255,255,0.6)",
-                border: activeFilter === filter.id ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <Calendar size={14} />
-                {filter.label}
-              </div>
-            </button>
-          ))}
+        <div className="relative">
+          <div 
+            className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              scrollSnapType: 'x mandatory'
+            }}
+          >
+            {filters.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setActiveFilter(filter.id)}
+                className="px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all snap-start shrink-0"
+                style={{
+                  background: activeFilter === filter.id ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
+                  color: activeFilter === filter.id ? "#D4AF37" : "rgba(255,255,255,0.6)",
+                  border: activeFilter === filter.id ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+                  minWidth: 'fit-content'
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <Calendar size={14} />
+                  {filter.label}
+                </div>
+              </button>
+            ))}
+          </div>
+          {/* Scroll indicators */}
+          <div className="absolute right-0 top-0 bottom-2 w-8 pointer-events-none" style={{ background: "linear-gradient(to right, transparent, #0a0a0a)" }} />
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
             {matches.length} mechi
           </span>
-          {hasMore && (
-            <button
-              onClick={handleLoadMore}
-              disabled={loading}
-              className="text-xs font-bold px-3 py-1 rounded-lg transition-all disabled:opacity-50"
-              style={{ color: "#D4AF37", background: "rgba(212, 175, 55, 0.1)" }}
-            >
-              {loading ? "..." : "Pakia Zaidi"}
-            </button>
-          )}
         </div>
       </div>
 
@@ -148,6 +149,31 @@ export default function CreatePredictionStep1() {
           ))
         )}
       </div>
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="flex justify-center py-8">
+          <button
+            onClick={handleLoadMore}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all disabled:opacity-50 shadow-lg"
+            style={{
+              background: "#D4AF37",
+              color: "#000",
+              boxShadow: "0 4px 20px rgba(212, 175, 55, 0.4)"
+            }}
+          >
+            {loading ? (
+              <div className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+            ) : (
+              <>
+                <ChevronDown size={16} />
+                Pakia Zaidi
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
