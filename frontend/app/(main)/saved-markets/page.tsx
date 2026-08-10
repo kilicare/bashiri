@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { getSavedMarkets, generateSavedMarketsPDF } from "@/lib/api/predictions";
 import { Spinner } from "@/components/ui/Spinner";
-import { Bookmark, Download } from "lucide-react";
+import { Bookmark, Download, CheckCircle } from "lucide-react";
 
 interface SavedMarket {
   id: number;
@@ -24,6 +24,7 @@ export default function SavedMarketsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Convert market key to readable label
   const getMarketLabel = (key: string) => {
@@ -72,6 +73,9 @@ export default function SavedMarketsPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      // Show success modal
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
@@ -247,6 +251,43 @@ export default function SavedMarketsPage() {
           </div>
         )}
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div 
+            className="rounded-2xl p-6 max-w-sm w-full mx-4"
+            style={{ background: "#111111", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{ background: "rgba(0, 255, 135, 0.2)" }}
+              >
+                <CheckCircle size={32} style={{ color: "#00FF87" }} />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                PDF Imeshapakuliwa!
+              </h3>
+              <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+                Faili lako la PDF limehifadhiwa kwenye kifaa chako.
+              </p>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-3 rounded-xl font-bold transition-all"
+                style={{ background: "#D4AF37", color: "#000" }}
+              >
+                Sawa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

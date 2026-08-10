@@ -67,7 +67,8 @@ def generate_saved_markets_pdf(saved_markets, tab_name="All Markets"):
         fontSize=24,
         textColor=colors.HexColor('#D4AF37'),
         spaceAfter=30,
-        alignment=TA_CENTER
+        alignment=TA_CENTER,
+        leading=36  # 1.5 line spacing
     )
     
     subtitle_style = ParagraphStyle(
@@ -76,15 +77,17 @@ def generate_saved_markets_pdf(saved_markets, tab_name="All Markets"):
         fontSize=16,
         textColor=colors.HexColor('#CFAF7B'),
         spaceAfter=20,
-        alignment=TA_CENTER
+        alignment=TA_CENTER,
+        leading=24  # 1.5 line spacing
     )
     
     normal_style = ParagraphStyle(
         'CustomNormal',
         parent=styles['Normal'],
-        fontSize=10,
+        fontSize=12,
         textColor=colors.HexColor('#333333'),
-        spaceAfter=12
+        spaceAfter=12,
+        leading=18  # 1.5 line spacing
     )
     
     header_style = ParagraphStyle(
@@ -93,23 +96,26 @@ def generate_saved_markets_pdf(saved_markets, tab_name="All Markets"):
         fontSize=14,
         textColor=colors.HexColor('#D4AF37'),
         spaceAfter=10,
-        spaceBefore=20
+        spaceBefore=20,
+        leading=21  # 1.5 line spacing
     )
     
     market_style = ParagraphStyle(
         'CustomMarket',
         parent=styles['Normal'],
-        fontSize=9,
+        fontSize=12,
         textColor=colors.HexColor('#666666'),
-        spaceAfter=8
+        spaceAfter=8,
+        leading=18  # 1.5 line spacing
     )
     
     ai_style = ParagraphStyle(
         'CustomAI',
         parent=styles['Normal'],
-        fontSize=9,
+        fontSize=12,
         textColor=colors.HexColor('#00FF87'),
-        spaceAfter=8
+        spaceAfter=8,
+        leading=18  # 1.5 line spacing
     )
     
     # Build content
@@ -173,12 +179,16 @@ def generate_saved_markets_pdf(saved_markets, tab_name="All Markets"):
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#D4AF37')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 15),
+            ('TOPPADDING', (0, 0), (-1, 0), 15),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
             ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F5F5F5')),
             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#DDDDDD')),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F9F9F9')]),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTSIZE', (0, 1), (-1, -1), 11),
         ]))
         
         content.append(table)
