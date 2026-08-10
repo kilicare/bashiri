@@ -34,7 +34,15 @@ def run_http_server():
 
 def run_celery_worker():
     """Run Celery worker."""
-    print("🚀 Starting Celery worker...")
+    print("� Running database migrations...")
+    try:
+        subprocess.run(['python', 'manage.py', 'migrate', '--noinput'], check=True)
+        print("✅ Database migrations completed")
+    except Exception as e:
+        print(f"⚠️ Warning: Failed to run migrations: {e}")
+        print("Continuing with Celery worker startup...")
+    
+    print("�🚀 Starting Celery worker...")
     concurrency = os.environ.get('CELERY_CONCURRENCY', '1')
     cmd = [
         'celery', '-A', 'config', 'worker',
