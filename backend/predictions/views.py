@@ -4,6 +4,7 @@ predictions/views.py
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -12,8 +13,8 @@ from rest_framework.throttling import AnonRateThrottle
 
 from core.cache_utils import cache_response
 
-from .models import ActiveDerby, Match, SavedMatch
-from .serializers import ActiveDerbySerializer, MatchListSerializer, SavedMatchSerializer
+from .models import ActiveDerby, Match, SavedMatch, SavedMarket
+from .serializers import ActiveDerbySerializer, MatchListSerializer, SavedMatchSerializer, SavedMarketSerializer
 from .services import UnknownTeamError, build_prediction_dashboard, build_match_analysis, head_to_head, team_form
 
 
@@ -303,6 +304,159 @@ class SavedMatchesListView(APIView):
             "match", "match__league", "match__home_team", "match__away_team"
         ).order_by("-created_at")
         return Response(SavedMatchSerializer(saved, many=True).data)
+
+
+class SaveMarketView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        match = get_object_or_404(Match, pk=request.data.get("match_id"))
+        market_key = request.data.get("market_key")
+        if not market_key:
+            return Response({"detail": "market_key is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        saved, created = SavedMarket.objects.get_or_create(
+            user=request.user, 
+            match=match, 
+            market_key=market_key
+        )
+        return Response(
+            SavedMarketSerializer(saved).data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request):
+        SavedMarket.objects.filter(
+            user=request.user, 
+            match_id=request.data.get("match_id"),
+            market_key=request.data.get("market_key")
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SavedMarketsListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        match_id = request.query_params.get("match_id")
+        queryset = SavedMarket.objects.filter(user=request.user).select_related(
+            "match", "match__league", "match__home_team", "match__away_team"
+        )
+        
+        if match_id:
+            queryset = queryset.filter(match_id=match_id)
+            
+        saved = queryset.order_by("-created_at")
+        data = SavedMarketSerializer(saved, many=True).data
+        
+        # Add AI pick data for each saved market
+        from .services import get_ai_recommended_option
+        
+        for item in data:
+            try:
+                match = Match.objects.get(id=item['match']['id'])
+                ai_option = get_ai_recommended_option(match, item['market_key'])
+                if ai_option:
+                    # Get the prediction to get confidence
+                    from .ml.poisson_model import predict_fixture
+                    prediction = predict_fixture(match.league.poisson_key, match.home_team.name, match.away_team.name)
+                    
+                    # Get market definition
+                    from .services import MARKET_DEFINITIONS
+                    market_def = MARKET_DEFINITIONS.get(item['market_key'], {})
+                    source_data = prediction.get(market_def.get('source_key', ''), {})
+                    
+                    # Get option label
+                    option_def = next((opt for opt in market_def.get('options', []) if opt['key'] == ai_option), None)
+                    option_label = option_def['label'] if option_def else ai_option
+                    
+                    # Get confidence - check if it's already a percentage or probability
+                    raw_value = source_data.get(ai_option, 0) if source_data else 0
+                    if raw_value > 1:
+                        # Already a percentage (0-100), don't multiply
+                        confidence = round(raw_value, 1)
+                    else:
+                        # Probability (0-1), convert to percentage
+                        confidence = round(raw_value * 100, 1)
+                    
+                    # Ensure confidence is reasonable (0-100)
+                    if confidence is not None and (confidence < 0 or confidence > 100):
+                        confidence = None
+                    
+                    item['ai_pick'] = option_label
+                    item['ai_confidence'] = confidence
+            except Exception:
+                # If we can't get AI data, just leave fields empty
+                item['ai_pick'] = None
+                item['ai_confidence'] = None
+        
+        return Response(data)
+
+
+class GenerateSavedMarketsPDFView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from .pdf_service import generate_saved_markets_pdf
+        
+        tab_name = request.data.get("tab_name", "All Markets")
+        
+        # Filter markets based on tab
+        queryset = SavedMarket.objects.filter(user=request.user).select_related(
+            "match", "match__league", "match__home_team", "match__away_team"
+        )
+        
+        # Apply tab filtering
+        if tab_name == "over_under":
+            queryset = queryset.filter(market_key__contains='OVER_UNDER')
+        elif tab_name == "match_result":
+            queryset = queryset.filter(market_key__in=['1X2', 'DOUBLE_CHANCE', 'DRAW_NO_BET'])
+        elif tab_name == "btts":
+            queryset = queryset.filter(market_key='BTTS')
+        
+        saved = queryset.order_by("-created_at")
+        data = SavedMarketSerializer(saved, many=True).data
+        
+        # Add AI pick data
+        from .services import get_ai_recommended_option
+        
+        for item in data:
+            try:
+                match = Match.objects.get(id=item['match']['id'])
+                ai_option = get_ai_recommended_option(match, item['market_key'])
+                if ai_option:
+                    from .ml.poisson_model import predict_fixture
+                    prediction = predict_fixture(match.league.poisson_key, match.home_team.name, match.away_team.name)
+                    
+                    from .services import MARKET_DEFINITIONS
+                    market_def = MARKET_DEFINITIONS.get(item['market_key'], {})
+                    source_data = prediction.get(market_def.get('source_key', ''), {})
+                    
+                    option_def = next((opt for opt in market_def.get('options', []) if opt['key'] == ai_option), None)
+                    option_label = option_def['label'] if option_def else ai_option
+                    
+                    raw_value = source_data.get(ai_option, 0) if source_data else 0
+                    if raw_value > 1:
+                        confidence = round(raw_value, 1)
+                    else:
+                        confidence = round(raw_value * 100, 1)
+                    
+                    if confidence is not None and (confidence < 0 or confidence > 100):
+                        confidence = None
+                    
+                    item['ai_pick'] = option_label
+                    item['ai_confidence'] = confidence
+            except Exception:
+                item['ai_pick'] = None
+                item['ai_confidence'] = None
+        
+        # Generate PDF
+        pdf_buffer = generate_saved_markets_pdf(data, tab_name)
+        
+        # Return PDF as response
+        response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="bashiri_saved_markets_{tab_name.lower().replace(" ", "_")}.pdf"'
+        return response
 
 
 class LeagueListView(APIView):

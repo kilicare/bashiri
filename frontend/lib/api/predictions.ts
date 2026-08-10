@@ -96,6 +96,23 @@ export function saveMatch(matchId: number) {
 export function getSavedMatches() {
   return apiClient<any[]>("/predictions/saved/");
 }
+export function saveMarket(matchId: number, marketKey: string) {
+  return apiClient("/predictions/save-market/", { method: "POST", body: JSON.stringify({ match_id: matchId, market_key: marketKey }) });
+}
+export function unsaveMarket(matchId: number, marketKey: string) {
+  return apiClient("/predictions/save-market/", { method: "DELETE", body: JSON.stringify({ match_id: matchId, market_key: marketKey }) });
+}
+export function getSavedMarkets(matchId?: number) {
+  const query = matchId ? `?match_id=${matchId}` : "";
+  return apiClient<any[]>(`/predictions/saved-markets/${query}`);
+}
+export function generateSavedMarketsPDF(tabName: string) {
+  return apiClient("/predictions/saved-markets/pdf/", { 
+    method: "POST", 
+    body: JSON.stringify({ tab_name: tabName }),
+    responseType: 'blob'
+  });
+}
 
 export interface MarketOptionAnalysis {
   key: string;

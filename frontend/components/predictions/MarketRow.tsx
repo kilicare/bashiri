@@ -1,17 +1,66 @@
 "use client";
-import { motion } from "framer-motion";
-import { Lock, Check } from "lucide-react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { Lock, Check, Bookmark } from "lucide-react";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Market } from "@/lib/api/predictions";
 import { getConfidenceColor } from "@/lib/confidence-tiers";
+import { useState } from "react";
 
-export function MarketRow({ market, onLockedClick }: { market: Market; onLockedClick: () => void }) {
+interface MarketRowProps {
+  market: Market;
+  onLockedClick: () => void;
+  matchId?: number;
+  isSaved?: boolean;
+  onSave?: (marketKey: string) => void;
+  onUnsave?: (marketKey: string) => void;
+}
+
+export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onSave, onUnsave }: MarketRowProps) {
+  const [showSaveButton, setShowSaveButton] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const pressStartTime = useMotionValue(0);
+  const scale = useTransform(pressStartTime, [0, 500], [1, 0.97]);
+
+  const handlePressStart = () => {
+    if (market.is_locked) return;
+    pressStartTime.set(Date.now());
+  };
+
+  const handlePressEnd = () => {
+    if (market.is_locked) return;
+    const pressDuration = Date.now() - pressStartTime.get();
+    if (pressDuration > 400) {
+      setShowSaveButton(!showSaveButton);
+    }
+    pressStartTime.set(0);
+  };
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!matchId || !onSave || !onUnsave) return;
+    
+    setIsSaving(true);
+    try {
+      if (isSaved) {
+        await onUnsave(market.key);
+      } else {
+        await onSave(market.key);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <motion.div
-      className="rounded-2xl overflow-hidden"
-      style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}
+      className="rounded-2xl overflow-hidden relative"
+      style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)", scale }}
       whileTap={{ scale: 0.99 }}
       onClick={market.is_locked ? onLockedClick : undefined}
+      onMouseDown={handlePressStart}
+      onMouseUp={handlePressEnd}
+      onTouchStart={handlePressStart}
+      onTouchEnd={handlePressEnd}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         <span className="text-sm font-bold text-white">{market.label}</span>
@@ -21,9 +70,32 @@ export function MarketRow({ market, onLockedClick }: { market: Market; onLockedC
             <span className="text-xs font-bold" style={{ color: "#FFD600" }}>PRO</span>
           </div>
         ) : market.ai_pick ? (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,135,0.1)", color: "#00FF87" }}>
-            AI Pick ✓
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,135,0.1)", color: "#00FF87" }}>
+              AI Pick ✓
+            </span>
+            {showSaveButton && matchId && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                style={{ 
+                  background: isSaved ? "rgba(0,255,135,0.2)" : "rgba(255,255,255,0.1)",
+                  border: isSaved ? "1px solid #00FF87" : "1px solid rgba(255,255,255,0.2)"
+                }}
+              >
+                {isSaving ? (
+                  <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                ) : (
+                  <Bookmark 
+                    size={12} 
+                    fill={isSaved ? "#00FF87" : "none"} 
+                    style={{ color: isSaved ? "#00FF87" : "rgba(255,255,255,0.5)" }} 
+                  />
+                )}
+              </button>
+            )}
+          </div>
         ) : null}
       </div>
 

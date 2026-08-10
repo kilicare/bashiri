@@ -114,6 +114,22 @@ class SavedMatch(models.Model):
         return f"{self.user} saved {self.match}"
 
 
+class SavedMarket(models.Model):
+    """'💾 Save Market' — BURE kwa mtumiaji yeyote aliye-login."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="saved_markets")
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="saved_markets")
+    market_key = models.CharField(max_length=50, help_text="Market key, e.g., '1x2', 'btts'")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "predictions_savedmarket"
+        unique_together = ["user", "match", "market_key"]
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} saved {self.market_key} for {self.match}"
+
+
 class ActiveDerby(models.Model):
     """Config ya 'Derby Week' — admin anaiweka kwa mkono kwa mechi maalum."""
     home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="derby_home")

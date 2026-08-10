@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ActiveDerby, League, Match, SavedMatch, Team
+from .models import ActiveDerby, League, Match, SavedMatch, SavedMarket, Team
 
 
 class LeagueSerializer(serializers.ModelSerializer):
@@ -37,6 +37,16 @@ class SavedMatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedMatch
         fields = ["id", "match", "match_id", "created_at"]
+        read_only_fields = ["id", "created_at"]
+
+
+class SavedMarketSerializer(serializers.ModelSerializer):
+    match = MatchListSerializer(read_only=True)
+    match_id = serializers.PrimaryKeyRelatedField(queryset=Match.objects.all(), source="match", write_only=True)
+
+    class Meta:
+        model = SavedMarket
+        fields = ["id", "match", "match_id", "market_key", "created_at"]
         read_only_fields = ["id", "created_at"]
 
 

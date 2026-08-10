@@ -1,0 +1,252 @@
+"use client";
+import { useEffect, useState } from "react";
+import { getSavedMarkets, generateSavedMarketsPDF } from "@/lib/api/predictions";
+import { Spinner } from "@/components/ui/Spinner";
+import { Bookmark, Download } from "lucide-react";
+
+interface SavedMarket {
+  id: number;
+  match: {
+    id: number;
+    home_team: { name: string };
+    away_team: { name: string };
+    kickoff_at: string;
+    league: { name: string };
+  };
+  market_key: string;
+  created_at: string;
+  ai_pick?: string;
+  ai_confidence?: number;
+}
+
+export default function SavedMarketsPage() {
+  const [savedMarkets, setSavedMarkets] = useState<SavedMarket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
+  const [generatingPDF, setGeneratingPDF] = useState(false);
+
+  // Convert market key to readable label
+  const getMarketLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      "1X2": "Matokeo ya Mechi",
+      "DOUBLE_CHANCE": "Double Chance",
+      "DRAW_NO_BET": "Draw No Bet",
+      "OVER_UNDER_0_5": "Over/Under 0.5",
+      "OVER_UNDER_1_5": "Over/Under 1.5",
+      "OVER_UNDER_2_5": "Over/Under 2.5",
+      "OVER_UNDER_3_5": "Over/Under 3.5",
+      "OVER_UNDER_4_5": "Over/Under 4.5",
+      "BTTS": "Timu Zote Kufunga (BTTS)",
+    };
+    return labels[key] || key;
+  };
+
+  useEffect(() => {
+    loadSavedMarkets();
+  }, []);
+
+  async function loadSavedMarkets() {
+    try {
+      const markets = await getSavedMarkets();
+      setSavedMarkets(markets);
+    } catch (error) {
+      console.error("Failed to load saved markets:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGeneratePDF() {
+    if (currentMarkets.length === 0) return;
+    
+    setGeneratingPDF(true);
+    try {
+      const blob = await generateSavedMarketsPDF(activeTab);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bashiri_saved_markets_${activeTab.replace('_', '-')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setGeneratingPDF(false);
+    }
+  }
+
+  // Group markets by type based on actual market keys from backend
+  const marketGroups = {
+    all: savedMarkets,
+    over_under: savedMarkets.filter(m => 
+      m.market_key.includes('OVER_UNDER')
+    ),
+    match_result: savedMarkets.filter(m => 
+      ['1X2', 'DOUBLE_CHANCE', 'DRAW_NO_BET'].includes(m.market_key)
+    ),
+    btts: savedMarkets.filter(m => 
+      m.market_key === 'BTTS'
+    ),
+  };
+
+  const tabs = [
+    { id: "all", label: "All Markets" },
+    { id: "over_under", label: "Over/Under" },
+    { id: "match_result", label: "Match Result" },
+    { id: "btts", label: "BTTS" },
+  ];
+
+  const currentMarkets = marketGroups[activeTab as keyof typeof marketGroups] || [];
+
+  // Group markets by match ID
+  const groupedByMatch = currentMarkets.reduce((acc, market) => {
+    const matchId = market.match.id;
+    if (!acc[matchId]) {
+      acc[matchId] = {
+        match: market.match,
+        markets: [],
+      };
+    }
+    acc[matchId].markets.push(market);
+    return acc;
+  }, {} as Record<number, { match: SavedMarket['match']; markets: SavedMarket[] }>);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0a0a" }}>
+        <Spinner size={24} color="rgba(255,255,255,0.6)" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
+      {/* Header */}
+      <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(212, 175, 55, 0.2)" }}>
+            <Bookmark size={20} style={{ color: "#D4AF37" }} />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-white">Saved Markets</h1>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+              {savedMarkets.length} market{savedMarkets.length !== 1 ? 's' : ''} saved
+            </p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all"
+              style={{
+                background: activeTab === tab.id ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
+                color: activeTab === tab.id ? "#D4AF37" : "rgba(255,255,255,0.6)",
+                border: activeTab === tab.id ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Generate Button */}
+        <div className="mt-4">
+          <button
+            onClick={handleGeneratePDF}
+            disabled={generatingPDF || currentMarkets.length === 0}
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "rgba(212, 175, 55, 0.15)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+          >
+            {generatingPDF ? (
+              <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            ) : (
+              <Download size={14} />
+            )}
+            {generatingPDF ? "..." : "PDF"}
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-5 pb-8">
+        {currentMarkets.length === 0 ? (
+          <div className="text-center py-12">
+            <Bookmark size={48} style={{ color: "rgba(255,255,255,0.2)" }} />
+            <p className="text-sm mt-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+              No saved markets in this category
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {Object.values(groupedByMatch).map(({ match, markets }) => (
+              <div
+                key={match.id}
+                className="rounded-2xl p-4 transition-all"
+                style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {match.league.name}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-white">
+                      {match.home_team.name} vs {match.away_team.name}
+                    </h3>
+                  </div>
+                </div>
+                
+                {/* Markets list */}
+                <div className="space-y-2 mb-3">
+                  {markets.map((market) => (
+                    <div
+                      key={market.id}
+                      className="flex items-center justify-between p-2 rounded-lg"
+                      style={{ background: "rgba(255,255,255,0.03)" }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(212, 175, 55, 0.2)", color: "#D4AF37" }}>
+                          {getMarketLabel(market.market_key)}
+                        </span>
+                        {market.ai_pick && (
+                          <span className="text-xs font-bold" style={{ color: "#00FF87" }}>
+                            AI: {market.ai_pick} {market.ai_confidence && `(${market.ai_confidence}%)`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  <span>
+                    {new Date(match.kickoff_at).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                  <span>
+                    {markets.length} market{markets.length !== 1 ? 's' : ''} saved
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

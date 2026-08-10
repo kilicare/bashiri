@@ -9,6 +9,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8
 interface ApiOptions extends RequestInit {
   skipAuth?: boolean;
   skipContentType?: boolean;
+  responseType?: 'json' | 'blob';
 }
 
 let refreshPromise: Promise<string | null> | null = null;
@@ -51,7 +52,7 @@ export async function apiClient<T = any>(
   options: ApiOptions = {},
   _isRetry = false
 ): Promise<T> {
-  const { skipAuth, skipContentType, headers, ...rest } = options;
+  const { skipAuth, skipContentType, responseType = 'json', headers, ...rest } = options;
   const token = useAuthStore.getState().access;
 
   const finalHeaders: Record<string, string> = {};
@@ -129,6 +130,11 @@ export async function apiClient<T = any>(
   }
 
   if (res.status === 204) return undefined as T;
+  
+  // Handle blob responses (PDF, etc.)
+  if (responseType === 'blob') {
+    return res.blob() as Promise<T>;
+  }
   
   // Check if response body is empty before parsing JSON
   const text = await res.text();
