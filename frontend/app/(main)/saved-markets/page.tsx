@@ -26,6 +26,8 @@ export default function SavedMarketsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPDFPreview, setShowPDFPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [marketToDelete, setMarketToDelete] = useState<{ id: number; matchId: number; marketKey: string } | null>(null);
@@ -74,18 +76,11 @@ export default function SavedMarketsPage() {
     try {
       const blob = await generateSavedMarketsPDF(activeTab);
       
-      // Create download link
+      // Create URL for preview
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `bashiri_saved_markets_${activeTab.replace('_', '-')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      setPdfUrl(url);
+      setShowPDFPreview(true);
       
-      // Show success modal
-      setShowSuccessModal(true);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       setAlertModal({
@@ -97,6 +92,19 @@ export default function SavedMarketsPage() {
     } finally {
       setGeneratingPDF(false);
     }
+  }
+
+  function handleDownloadPDF() {
+    if (!pdfUrl) return;
+    
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = `bashiri_saved_markets_${activeTab.replace('_', '-')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    setShowSuccessModal(true);
   }
 
   async function handleDelete(marketId: number, matchId: number, marketKey: string) {
@@ -383,6 +391,57 @@ export default function SavedMarketsPage() {
                   Ndiyo, Futa
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PDF Preview Modal */}
+      {showPDFPreview && pdfUrl && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0,0,0,0.9)" }}
+          onClick={() => setShowPDFPreview(false)}
+        >
+          <div 
+            className="rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col"
+            style={{ background: "#111111", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">PDF Preview</h3>
+                <button
+                  onClick={() => setShowPDFPreview(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-white/10"
+                >
+                  <Trash2 size={18} style={{ color: "rgba(255,255,255,0.6)" }} />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full rounded-lg"
+                style={{ minHeight: "500px" }}
+              />
+            </div>
+            <div className="p-4 border-t flex gap-3" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+              <button
+                onClick={() => setShowPDFPreview(false)}
+                className="flex-1 py-3 rounded-xl font-bold transition-all"
+                style={{ background: "rgba(255,255,255,0.1)", color: "white" }}
+              >
+                Funga
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                className="flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                style={{ background: "#D4AF37", color: "#000" }}
+              >
+                <Download size={16} />
+                Pakua PDF
+              </button>
             </div>
           </div>
         </div>
