@@ -29,18 +29,18 @@ logger = logging.getLogger(__name__)
 
 # League code mapping and their specific seasons
 LEAGUE_SEASONS = {
-    "EPL": [2023, 2024, 2025, 2026],
-    "LaLiga": [2023, 2024, 2025, 2026],
-    "Bundesliga": [2023, 2024, 2025, 2026],
-    "Ligue1": [2023, 2024, 2025, 2026],
-    "WorldCup": [2018, 2022, 2026],
-    "Eredivisie": [2023, 2024, 2025, 2026],
-    "Brasileirao Serie A": [2023, 2024, 2025, 2026],
-    "Championship": [2023, 2024, 2025, 2026],
-    "UEFA Champions League": [2023, 2024, 2025, 2026],
-    "European Championship": [2020, 2024],
-    "Serie A": [2023, 2024, 2025, 2026],
-    "Primeira Liga": [2023, 2024, 2025, 2026]
+    "EPL": [2023, 2024, 2025, 2026, 2027],
+    "LaLiga": [2023, 2024, 2025, 2026, 2027],
+    "Bundesliga": [2023, 2024, 2025, 2026, 2027],
+    "Ligue1": [2023, 2024, 2025, 2026, 2027],
+    "WorldCup": [2018, 2022, 2026, 2030],
+    "Eredivisie": [2023, 2024, 2025, 2026, 2027],
+    "Brasileirao Serie A": [2023, 2024, 2025, 2026, 2027],
+    "Championship": [2023, 2024, 2025, 2026, 2027],
+    "UEFA Champions League": [2023, 2024, 2025, 2026, 2027],
+    "European Championship": [2020, 2024, 2028],
+    "Serie A": [2023, 2024, 2025, 2026, 2027],
+    "Primeira Liga": [2023, 2024, 2025, 2026, 2027]
 }
 
 
