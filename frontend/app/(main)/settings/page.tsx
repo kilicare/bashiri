@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Star, Bell, Globe, Heart, MessageSquare, HelpCircle, LogOut, Shield, Settings as SettingsIcon, ShieldAlert, Phone } from "lucide-react";
+import { ChevronRight, Star, Bell, Globe, Heart, MessageSquare, HelpCircle, LogOut, Shield, Settings as SettingsIcon, ShieldAlert, Phone, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/stores/auth.store";
 import { PremiumButton } from "@/components/ui/Button";
@@ -126,9 +126,14 @@ export default function SettingsPage() {
     <div className="min-h-dvh bg-[#050508] overflow-y-auto no-scrollbar">
       {/* Header */}
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
-        <h1 className="text-2xl font-black text-white tracking-tight">
-          Settings
-        </h1>
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-2xl font-black text-white tracking-tight">
+            Settings
+          </h1>
+        </div>
         <p className="text-sm text-white/50 mt-1">Personalize your experience</p>
       </div>
 

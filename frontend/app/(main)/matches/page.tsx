@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getFixtures, getLiveMatches, getFinishedMatches, searchMatches, Match, getLeagues, League } from "@/lib/api/predictions";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, ArrowLeft } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -94,7 +94,12 @@ export default function MatchesPage() {
   return (
     <div>
       <div className="px-5 pt-safe pt-10 pb-3" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
-        <h1 className="text-2xl font-black text-white mb-4">Matches</h1>
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-2xl font-black text-white">Matches</h1>
+        </div>
         <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4" style={{ background: "#151515" }}>
           <Search size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
           <input

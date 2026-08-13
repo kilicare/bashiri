@@ -9,7 +9,7 @@ import { ConfidenceLegend } from "@/components/predictions/ConfidenceLegend";
 import { SubscriptionSheet } from "@/components/predictions/SubscriptionSheet";
 import { Spinner } from "@/components/ui/Spinner";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Bookmark, CheckSquare, Square, ArrowRight } from "lucide-react";
+import { Bookmark, CheckSquare, Square, ArrowRight, ArrowLeft } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
@@ -123,9 +123,14 @@ export default function PredictDashboardPage() {
     <DerbyThemeProvider matchId={matchId}>
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="flex items-center justify-between mb-1">
-          <h1 className="text-xl font-black text-white">
-            {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}
-          </h1>
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.back()} aria-label="Rudi nyuma">
+              <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+            </button>
+            <h1 className="text-xl font-black text-white">
+              {dashboard.match.home_team.name} vs {dashboard.match.away_team.name}
+            </h1>
+          </div>
           <button 
             onClick={() => router.push('/saved-markets')}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 shrink-0 transition-all hover:bg-white/10"

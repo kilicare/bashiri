@@ -6,7 +6,7 @@ import { MicReactionPlayer } from "@/components/mic/MicReactionPlayer";
 import { MicReactionFullView } from "@/components/mic/MicReactionFullView";
 import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Mic, Clock, Grid, Maximize2, X } from "lucide-react";
+import { Mic, Clock, Grid, Maximize2, X, ArrowLeft } from "lucide-react";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -135,9 +135,14 @@ export default function BashiriMicPage() {
       <div className={layoutMode === "full" ? "relative" : ""}>
         {layoutMode === "grid" && (
           <div className="px-5 pt-safe pt-10 pb-4 flex items-center justify-between" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
-            <h1 className="text-xl font-black text-white flex items-center gap-2">
-              <Mic size={20} style={{ color: "var(--brand-accent)" }} /> Bashiri Mic
-            </h1>
+            <div className="flex items-center gap-3">
+              <button onClick={() => router.back()} aria-label="Rudi nyuma">
+                <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+              </button>
+              <h1 className="text-xl font-black text-white flex items-center gap-2">
+                <Mic size={20} style={{ color: "var(--brand-accent)" }} /> Bashiri Mic
+              </h1>
+            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setLayoutMode(layoutMode === "grid" ? "full" : "grid")}

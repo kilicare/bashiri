@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Film, Target, TrendingUp, Award, Loader2, User, Calendar, Heart, Eye } from "lucide-react";
+import { Film, Target, TrendingUp, Award, Loader2, User, Calendar, Heart, Eye, ArrowLeft } from "lucide-react";
 import { getPublicProfile } from "@/lib/api/auth";
 import { MicVideoCard } from "@/components/mic/MicVideoCard";
 import { MicReaction } from "@/lib/api/mic";
@@ -73,6 +73,9 @@ export default function PublicProfilePage() {
     <div className="min-h-dvh px-5 pt-safe pt-10 pb-24">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center">
           <User size={20} className="text-black" />
         </div>

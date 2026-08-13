@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getFixtures, getLeagues, Match, League } from "@/lib/api/predictions";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Calendar, ChevronDown } from "lucide-react";
+import { Calendar, ChevronDown, ArrowLeft } from "lucide-react";
 
 export default function CreatePredictionStep1() {
   const router = useRouter();
@@ -69,7 +69,12 @@ export default function CreatePredictionStep1() {
   return (
     <div>
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
-        <h1 className="text-2xl font-black text-white">Chagua Mechi</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-2xl font-black text-white">Chagua Mechi</h1>
+        </div>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Anza prediction yako ya AI</p>
       </div>
 

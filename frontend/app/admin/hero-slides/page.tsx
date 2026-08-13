@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   getAdminHeroSlides, createHeroSlide, updateHeroSlide, deleteHeroSlide,
   getHeroImageUploadSignature, uploadHeroImageToCloudinary, AdminHeroSlide,
 } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
-import { Plus, X, Trash2, Upload } from "lucide-react";
+import { Plus, X, Trash2, Upload, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM = {
   title: "", subtitle: "", image_url: "", cta_label: "Angalia", route: "",
@@ -13,6 +14,7 @@ const EMPTY_FORM = {
 };
 
 export default function AdminHeroSlidesPage() {
+  const router = useRouter();
   const [slides, setSlides] = useState<AdminHeroSlide[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -87,7 +89,12 @@ export default function AdminHeroSlidesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Hero Carousel</h1>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-2xl font-black text-white">Hero Carousel</h1>
+        </div>
         <BashiriButton size="md" onClick={openNew}><Plus size={16} /> Slide Mpya</BashiriButton>
       </div>
 

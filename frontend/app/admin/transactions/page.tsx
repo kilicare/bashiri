@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getTransactions } from "@/lib/api/admin";
+import { ArrowLeft } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
   SUCCESS: "#00FF87", PENDING: "#FFD600", FAILED: "#FF4757", CANCELLED: "#FF4757",
 };
 
 export default function AdminTransactionsPage() {
+  const router = useRouter();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -16,7 +19,12 @@ export default function AdminTransactionsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-4">Malipo</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">Malipo</h1>
+      </div>
       <div className="flex gap-2 mb-4 flex-wrap">
         {["", "SUCCESS", "PENDING", "FAILED"].map((s) => (
           <button

@@ -35,26 +35,34 @@ export function ConfidenceEducation({ onClose }: ConfidenceEducationProps) {
             <h3 className="text-base font-semibold text-white">Viwango vya Uhakika</h3>
             
             <div className="flex items-start gap-3 bg-[var(--brand-accent)]/10 rounded-xl p-4 border border-[var(--brand-accent)]/20">
-              <CheckCircle size={20} className="text-[var(--brand-accent)] mt-0.5" />
+              <span className="text-2xl mt-0.5">🔥</span>
               <div>
-                <p className="text-base font-semibold text-[var(--brand-accent)]">70%+ (High)</p>
-                <p className="text-sm text-white/60">Uhakika mkubwa - AI ina data nyingi ya kuhakikisha</p>
+                <p className="text-base font-semibold text-[var(--brand-accent)]">80%+ Uhakika Mkubwa Sana</p>
+                <p className="text-sm text-white/60">Bora zaidi, lakini si guarantee</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 bg-[var(--success)]/10 rounded-xl p-4 border border-[var(--success)]/20">
+              <span className="text-2xl mt-0.5">✅</span>
+              <div>
+                <p className="text-base font-semibold text-[var(--success)]">65-80% AI Ina Uhakika Mzuri</p>
+                <p className="text-sm text-white/60">Nzuri - Chaguo salama</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 bg-[var(--warning)]/10 rounded-xl p-4 border border-[var(--warning)]/20">
-              <TrendingUp size={20} className="text-[var(--warning)] mt-0.5" />
+              <span className="text-2xl mt-0.5">⚠️</span>
               <div>
-                <p className="text-base font-semibold text-[var(--warning)]">55-69% (Edge)</p>
-                <p className="text-sm text-white/60">Uhakika wa kati - Fa ndogo lakini inaweza kufanya kazi</p>
+                <p className="text-base font-semibold text-[var(--warning)]">50-65% Wastani — Angalia kwa Makini</p>
+                <p className="text-sm text-white/60">Uhakika wa kati - Tazama kwa makini</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 bg-[var(--danger)]/10 rounded-xl p-4 border border-[var(--danger)]/20">
-              <AlertTriangle size={20} className="text-[var(--danger)] mt-0.5" />
+              <span className="text-2xl mt-0.5">🔴</span>
               <div>
-                <p className="text-base font-semibold text-[var(--danger)]">&lt;55% (Low)</p>
-                <p className="text-sm text-white/60">Uhakika mdogo - Mechi ngumu kutabiri</p>
+                <p className="text-base font-semibold text-[var(--danger)]">0-50% Chini — Hatari Kubwa</p>
+                <p className="text-sm text-white/60">Uhakika mdogo - Epuka kama inawezekana</p>
               </div>
             </div>
           </div>

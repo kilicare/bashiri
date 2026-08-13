@@ -6,6 +6,7 @@ import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 
 const DERBY_TABS = [
   { key: "stats", label: "Derby Stats" },
@@ -45,6 +46,11 @@ export default function MatchOverviewPage() {
 
   return (
     <div className="px-5 pt-safe pt-10 pb-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+      </div>
       <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
         {match.league.name}
         {match.stage_display && ` • ${match.stage_display}`}

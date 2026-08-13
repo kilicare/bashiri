@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getDashboardStats } from "@/lib/api/admin";
-import { Users, DollarSign, TrendingUp, Calendar, Radio, Clock } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Calendar, Radio, Clock, ArrowLeft } from "lucide-react";
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
@@ -25,7 +27,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-6">Dashboard</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">Dashboard</h1>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {CARDS.map((c) => {
           const Icon = c.icon;

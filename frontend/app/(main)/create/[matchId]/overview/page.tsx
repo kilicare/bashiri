@@ -8,7 +8,7 @@ import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
-import { TrendingUp, Calendar, Trophy, Flag } from "lucide-react";
+import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft } from "lucide-react";
 
 export default function MatchOverviewPage() {
   const router = useRouter();
@@ -30,6 +30,11 @@ export default function MatchOverviewPage() {
       <div className="min-h-dvh bg-[#050508] pb-8">
         {/* Header */}
         <div className="max-w-2xl mx-auto px-4 sm:px-5 pt-safe pt-10 pb-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+          <div className="flex items-center gap-3 mb-3">
+            <button onClick={() => router.back()} aria-label="Rudi nyuma">
+              <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+            </button>
+          </div>
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             <Flag size={14} className="text-[#F5A623]" />
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: "rgba(255,255,255,0.5)" }}>

@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BashiriButton } from "@/components/ui/Button";
 import { getUploadSignature, uploadVideoResilient, createMicReaction } from "@/lib/api/mic";
-import { Upload, X } from "lucide-react";
+import { Upload, X, ArrowLeft } from "lucide-react";
 import { MoodSelector } from "@/components/mic/MoodSelector";
 import { VideoUploader } from "@/components/video/VideoUploader";
 import { VideoTrimmer } from "@/components/video/VideoTrimmer";
@@ -121,6 +121,11 @@ export default function MicRecordPage() {
   if (!mood) {
     return (
       <div className="min-h-dvh px-6 pt-safe pt-10">
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+        </div>
         <h1 className="text-2xl font-black text-white mb-2">Chagua Mood Yako</h1>
         <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>Kabla ya kuongeza video, tuambie unahisije kuhusu mechi hii.</p>
         <MoodSelector selected={mood} onSelect={setMood} />
@@ -130,6 +135,13 @@ export default function MicRecordPage() {
 
   return (
     <>
+      <div className="px-5 pt-safe pt-6 pb-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+        </div>
+      </div>
       <VideoUploader 
         onVideoSelected={handleVideoSelected}
         onShowTrimmer={handleShowTrimmer}

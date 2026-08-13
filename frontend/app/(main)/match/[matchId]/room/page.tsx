@@ -5,7 +5,7 @@ import { getRoomHistory } from "@/lib/api/matchroom";
 import { getMatchDashboard } from "@/lib/api/predictions";
 import { useMatchRoomSocket } from "@/hooks/useMatchRoomSocket";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Clock3, Send, Smile, Sparkles } from "lucide-react";
+import { Clock3, Send, Smile, Sparkles, ArrowLeft } from "lucide-react";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -175,20 +175,25 @@ export default function MatchRoomPage() {
         <header className="sticky top-0 z-20 border-b border-white/10 bg-[var(--background)]/95 backdrop-blur-xl">
           <div className="px-4 pb-3 pt-4 sm:px-5 sm:pt-5">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#AFCE18]/15 text-[#AFCE18]">
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <h1 className="text-base font-black text-white">
-                      {roomState === "watch_party" ? "WATCH PARTY 🙋‍♂️" : "💬 Match Room"}
-                    </h1>
-                    {roomState === "watch_party" && countdown !== "00:00:00" && (
-                      <p className="mt-0.5 text-[11px] font-mono font-semibold text-white/60">
-                        ⏱️ Starts in {countdown}
-                      </p>
-                    )}
+              <div className="flex items-center gap-3 min-w-0">
+                <button onClick={() => router.back()} aria-label="Rudi nyuma" className="shrink-0">
+                  <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+                </button>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#AFCE18]/15 text-[#AFCE18]">
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <h1 className="text-base font-black text-white">
+                        {roomState === "watch_party" ? "WATCH PARTY 🙋‍♂️" : "💬 Match Room"}
+                      </h1>
+                      {roomState === "watch_party" && countdown !== "00:00:00" && (
+                        <p className="mt-0.5 text-[11px] font-mono font-semibold text-white/60">
+                          ⏱️ Starts in {countdown}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

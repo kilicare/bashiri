@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getMLStatus } from "@/lib/api/admin";
+import { ArrowLeft } from "lucide-react";
 
 export default function AdminMLStatusPage() {
+  const router = useRouter();
   const [status, setStatus] = useState<any>(null);
 
   useEffect(() => {
@@ -13,7 +16,12 @@ export default function AdminMLStatusPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-4">ML Model Status</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">ML Model Status</h1>
+      </div>
 
       {!status.loaded ? (
         <p style={{ color: "#FF4757" }}>Model haijapakiwa — hakikisha bashiri_prediction_models.json ipo.</p>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getMatchAnalysis, MatchAnalysis } from "@/lib/api/predictions";
 import { useAuthStore } from "@/stores/auth.store";
 import { AnalysisMarketRow } from "@/components/predictions/AnalysisMarketRow";
@@ -8,9 +8,11 @@ import { SubscriptionSheet } from "@/components/predictions/SubscriptionSheet";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
 import { CardSkeleton } from "@/components/ui/Skeleton";
+import { ArrowLeft } from "lucide-react";
 
 export default function MatchTrackRecordPage() {
   const params = useParams();
+  const router = useRouter();
   const matchId = Number(params.matchId);
   const [analysis, setAnalysis] = useState<MatchAnalysis | null>(null);
   const [showSub, setShowSub] = useState(false);
@@ -47,6 +49,11 @@ export default function MatchTrackRecordPage() {
   return (
     <DerbyThemeProvider matchId={matchId}>
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+        </div>
         <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{match.league.name}</p>
         <h1 className="text-xl font-black text-white mb-1">
           {match.home_team.name} {actual_score.home} - {actual_score.away} {match.away_team.name}

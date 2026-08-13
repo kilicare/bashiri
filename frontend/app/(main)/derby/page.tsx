@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getActiveDerby, ActiveDerby } from "@/lib/api/derby";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { AlertModal } from "@/components/ui/AlertModal";
+import { ArrowLeft } from "lucide-react";
 
 const HUB_ITEMS = [
   { key: "stats", label: "Derby Stats" },
@@ -53,6 +54,11 @@ function DerbyHubContent() {
   return (
     <div className="max-w-4xl mx-auto min-h-dvh" style={{ background: `linear-gradient(180deg, ${derby.theme_accent_color}15, var(--background) 40%)` }}>
       <div className="px-5 pt-safe pt-10 pb-6 text-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+        </div>
         <p className="text-sm font-black uppercase tracking-widest mb-2" style={{ color: derby.theme_accent_color }}>
           🔥 {derby.derby_name} 🔥
         </p>

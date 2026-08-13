@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { broadcastNotification } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
+import { ArrowLeft } from "lucide-react";
 
 export default function AdminNotificationsPage() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [segment, setSegment] = useState("all");
@@ -25,7 +28,12 @@ export default function AdminNotificationsPage() {
 
   return (
     <div className="max-w-lg w-full">
-      <h1 className="text-2xl font-black text-white mb-4">Tuma Notification kwa Watumiaji</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">Tuma Notification kwa Watumiaji</h1>
+      </div>
 
       <div className="rounded-2xl p-6 space-y-4" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
         <div>

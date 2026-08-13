@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUsers } from "@/lib/api/admin";
-import { Search } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -20,7 +20,12 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-4">Watumiaji</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">Watumiaji</h1>
+      </div>
       <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4 w-full md:max-w-sm" style={{ background: "#151515" }}>
         <Search size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
         <input

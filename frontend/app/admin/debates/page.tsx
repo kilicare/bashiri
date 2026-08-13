@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getCards, createDebate, resolveDebate, deleteDebate } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
-import { Plus, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2, ArrowLeft } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function AdminDebatesPage() {
+  const router = useRouter();
   const [debates, setDebates] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [question, setQuestion] = useState("");
@@ -72,7 +74,12 @@ export default function AdminDebatesPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Debate Cards</h1>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-2xl font-black text-white">Debate Cards</h1>
+        </div>
         <BashiriButton size="md" onClick={() => setShowForm(!showForm)}>
           {showForm ? <X size={16} /> : <Plus size={16} />} {showForm ? "Funga" : "Tengeneza Debate"}
         </BashiriButton>

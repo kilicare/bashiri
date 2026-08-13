@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getMatches, updateMatch } from "@/lib/api/admin";
+import { ArrowLeft } from "lucide-react";
 
 export default function AdminMatchesPage() {
+  const router = useRouter();
   const [matches, setMatches] = useState<any[]>([]);
   const [allMatches, setAllMatches] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
@@ -25,7 +28,12 @@ export default function AdminMatchesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-4">Mechi</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">Mechi</h1>
+      </div>
       <div className="flex gap-2 mb-4 flex-wrap">
         {["", "SCHEDULED", "LIVE", "FINISHED"].map((s) => (
           <button

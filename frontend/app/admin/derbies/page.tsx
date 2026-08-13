@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getDerbies, createDerby, updateDerby, deleteDerby, getTeams, getMatches } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
-import { Plus, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2, ArrowLeft } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function AdminDerbiesPage() {
+  const router = useRouter();
   const [derbies, setDerbies] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
@@ -71,7 +73,12 @@ export default function AdminDerbiesPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Local Derby Mode</h1>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-2xl font-black text-white">Local Derby Mode</h1>
+        </div>
         <BashiriButton size="md" onClick={() => setShowForm(!showForm)}>
           {showForm ? <X size={16} /> : <Plus size={16} />} {showForm ? "Funga" : "Tengeneza Derby"}
         </BashiriButton>

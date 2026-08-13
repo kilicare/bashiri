@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getMicReactionsAdmin, toggleMicReactionActive, getCards, getAdminContentReports } from "@/lib/api/admin";
+import { ArrowLeft } from "lucide-react";
 
 export default function AdminModerationPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<"mic" | "reports">("mic");
   const [micReactions, setMicReactions] = useState<any[]>([]);
   const [contentReports, setContentReports] = useState<any[]>([]);
@@ -26,7 +29,12 @@ export default function AdminModerationPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-black text-white mb-4">Content Moderation</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">Content Moderation</h1>
+      </div>
       <div className="flex gap-2 mb-6">
         {(["mic", "reports"] as const).map((t) => (
           <button

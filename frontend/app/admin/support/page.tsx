@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAdminTickets } from "@/lib/api/admin";
+import { ArrowLeft } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
   OPEN: "#FFD600", IN_PROGRESS: "#3B82F6", RESOLVED: "#00FF87", CLOSED: "rgba(255,255,255,0.4)",
@@ -18,7 +19,12 @@ export default function AdminSupportPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-black text-white mb-4">Support Inbox</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => router.back()} aria-label="Rudi nyuma">
+          <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+        </button>
+        <h1 className="text-2xl font-black text-white">Support Inbox</h1>
+      </div>
 
       <div className="flex gap-2 mb-4">
         {["", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((s) => (

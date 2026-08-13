@@ -5,7 +5,7 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { MicVideoCard } from "@/components/mic/MicVideoCard";
 import { getUserMicReactions, deleteMicReaction, MicReaction } from "@/lib/api/mic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Film, RefreshCw, Plus } from "lucide-react";
+import { Film, RefreshCw, Plus, ArrowLeft } from "lucide-react";
 
 export default function HistoryPage() {
   const router = useRouter();
@@ -64,6 +64,9 @@ export default function HistoryPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center">
             <Film size={20} className="text-black" />
           </div>

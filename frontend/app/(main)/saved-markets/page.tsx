@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getSavedMarkets, generateSavedMarketsPDF, unsaveMarket } from "@/lib/api/predictions";
 import { Spinner } from "@/components/ui/Spinner";
-import { Bookmark, Download, CheckCircle, Trash2, Share2, Copy, MessageCircle, Send } from "lucide-react";
+import { Bookmark, Download, CheckCircle, Trash2, Share2, Copy, MessageCircle, Send, ArrowLeft } from "lucide-react";
 import { AlertModal } from "@/components/ui/AlertModal";
 
 interface SavedMarket {
@@ -21,6 +22,7 @@ interface SavedMarket {
 }
 
 export default function SavedMarketsPage() {
+  const router = useRouter();
   const [savedMarkets, setSavedMarkets] = useState<SavedMarket[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
@@ -224,6 +226,9 @@ export default function SavedMarketsPage() {
       {/* Header */}
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(212, 175, 55, 0.2)" }}>
             <Bookmark size={20} style={{ color: "#D4AF37" }} />
           </div>

@@ -5,6 +5,7 @@ import { getAITrackRecord, AITrackRecord, League } from "@/lib/api/predictions";
 import { getLeagues } from "@/lib/api/settings";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { ArrowLeft } from "lucide-react";
 
 const MARKET_LABELS: Record<string, string> = {
   "1X2": "Matokeo ya Mechi", DOUBLE_CHANCE: "Double Chance", DRAW_NO_BET: "Draw No Bet",
@@ -53,7 +54,12 @@ export default function AITrackRecordPage() {
   return (
     <div>
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
-        <h1 className="text-2xl font-black text-white mb-1">Bashiri Track Record</h1>
+        <div className="flex items-center gap-3 mb-1">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-2xl font-black text-white">Bashiri Track Record</h1>
+        </div>
         <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.5)" }}>
           Uwazi kamili — jinsi AI yetu ilivyofanya kwa mechi zote zilizopita.
         </p>
