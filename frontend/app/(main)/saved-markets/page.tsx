@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { getSavedMarkets, generateSavedMarketsPDF, unsaveMarket } from "@/lib/api/predictions";
 import { Spinner } from "@/components/ui/Spinner";
-import { Bookmark, Download, CheckCircle, Trash2 } from "lucide-react";
+import { Bookmark, Download, CheckCircle, Trash2, Share2, Copy, MessageCircle, Send } from "lucide-react";
 import { AlertModal } from "@/components/ui/AlertModal";
 
 interface SavedMarket {
@@ -28,6 +28,8 @@ export default function SavedMarketsPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPDFPreview, setShowPDFPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [marketToDelete, setMarketToDelete] = useState<{ id: number; matchId: number; marketKey: string } | null>(null);
@@ -105,6 +107,37 @@ export default function SavedMarketsPage() {
     document.body.removeChild(a);
     
     setShowSuccessModal(true);
+  }
+
+  function handleShare() {
+    // Generate share URL (current page URL with tab parameter)
+    const url = `${window.location.origin}/saved-markets?tab=${activeTab}`;
+    setShareUrl(url);
+    setShowShareModal(true);
+  }
+
+  function handleCopyLink() {
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl);
+    setAlertModal({
+      isOpen: true,
+      title: "Imekopiwaa!",
+      message: "Link imekopiwaa kwenye clipboard.",
+      variant: "success"
+    });
+    setShowShareModal(false);
+  }
+
+  function handleShareWhatsApp() {
+    if (!shareUrl) return;
+    const text = `Angalia saved markets zangu za football kwenye Bashiri: ${shareUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  }
+
+  function handleShareTelegram() {
+    if (!shareUrl) return;
+    const text = `Angalia saved markets zangu za football kwenye Bashiri: ${shareUrl}`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, '_blank');
   }
 
   async function handleDelete(marketId: number, matchId: number, marketKey: string) {
@@ -212,8 +245,8 @@ export default function SavedMarketsPage() {
           ))}
         </div>
 
-        {/* Generate Button */}
-        <div className="mt-4">
+        {/* Generate and Share Buttons */}
+        <div className="mt-4 flex gap-2">
           <button
             onClick={handleGeneratePDF}
             disabled={generatingPDF || currentMarkets.length === 0}
@@ -226,6 +259,15 @@ export default function SavedMarketsPage() {
               <Download size={14} />
             )}
             {generatingPDF ? "..." : "PDF"}
+          </button>
+          <button
+            onClick={handleShare}
+            disabled={currentMarkets.length === 0}
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "rgba(212, 175, 55, 0.15)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+          >
+            <Share2 size={14} />
+            Share
           </button>
         </div>
       </div>
@@ -428,6 +470,14 @@ export default function SavedMarketsPage() {
             </div>
             <div className="p-4 border-t flex gap-3" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
               <button
+                onClick={handleShare}
+                className="flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                style={{ background: "rgba(212, 175, 55, 0.2)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+              >
+                <Share2 size={16} />
+                Share
+              </button>
+              <button
                 onClick={() => setShowPDFPreview(false)}
                 className="flex-1 py-3 rounded-xl font-bold transition-all"
                 style={{ background: "rgba(255,255,255,0.1)", color: "white" }}
@@ -440,7 +490,72 @@ export default function SavedMarketsPage() {
                 style={{ background: "#D4AF37", color: "#000" }}
               >
                 <Download size={16} />
-                Pakua PDF
+                Pakua
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+          onClick={() => setShowShareModal(false)}
+        >
+          <div 
+            className="rounded-2xl p-6 max-w-sm w-full mx-4"
+            style={{ background: "#111111", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{ background: "rgba(212, 175, 55, 0.2)" }}
+              >
+                <Share2 size={32} style={{ color: "#D4AF37" }} />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Share Saved Markets
+              </h3>
+              <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+                Chagua jinsi unavyotaka kushare saved markets zako
+              </p>
+              
+              <div className="space-y-3 w-full">
+                <button
+                  onClick={handleCopyLink}
+                  className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-3"
+                  style={{ background: "rgba(255,255,255,0.1)", color: "white" }}
+                >
+                  <Copy size={18} />
+                  Copy Link
+                </button>
+                <button
+                  onClick={handleShareWhatsApp}
+                  className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-3"
+                  style={{ background: "#25D366", color: "#000" }}
+                >
+                  <MessageCircle size={18} />
+                  WhatsApp
+                </button>
+                <button
+                  onClick={handleShareTelegram}
+                  className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-3"
+                  style={{ background: "#0088cc", color: "#000" }}
+                >
+                  <Send size={18} />
+                  Telegram
+                </button>
+              </div>
+              
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="w-full py-3 rounded-xl font-bold transition-all mt-4"
+                style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)" }}
+              >
+                Ghairi
               </button>
             </div>
           </div>
