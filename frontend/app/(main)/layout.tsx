@@ -1,5 +1,5 @@
 "use client";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { AuthRequiredSheet } from "@/components/auth/AuthRequiredSheet";
@@ -7,10 +7,12 @@ import { PWAInstallProvider } from "@/components/pwa/PWAInstallProvider";
 import { InstallPromptSheet } from "@/components/pwa/InstallPromptSheet";
 import { CommandPaletteProvider } from "@/components/pulse/CommandPaletteProvider";
 import { FloatingWhatsAppButton } from "@/components/contact/FloatingWhatsAppButton";
+import { FloatingReviewButton } from "@/components/review/FloatingReviewButton";
 
 function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isAIPage = pathname === "/ai";
   const isMicFullMode = pathname.includes("/mic") && searchParams.get("mode") === "full";
   const shouldHideBottomNav = isAIPage || isMicFullMode;
@@ -24,6 +26,7 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
         <InstallPromptSheet />
         <CommandPaletteProvider />
         <FloatingWhatsAppButton />
+        <FloatingReviewButton onClick={() => router.push("/review")} />
       </div>
     </PWAInstallProvider>
   );

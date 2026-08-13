@@ -32,4 +32,5 @@ urlpatterns = [
     path("api/support/", include("support.urls")),
     path("api/hero/", include("herocarousel.urls")),
     path("api/pulse/", include("pulse.urls")),
+    path("api/reviews/", include("reviews.urls")),
 ]

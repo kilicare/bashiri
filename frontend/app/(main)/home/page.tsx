@@ -9,11 +9,24 @@ import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
 import { Bell, Target } from "lucide-react";
 import { motion } from "framer-motion";
+import { ReviewPromptModal } from "@/components/review/ReviewPromptModal";
 
 export default function HomePage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
+  useEffect(() => {
+    // Show review modal after 5 seconds if user hasn't seen it
+    const hasSeenReviewPrompt = localStorage.getItem('hasSeenReviewPrompt');
+    if (!hasSeenReviewPrompt) {
+      const timer = setTimeout(() => {
+        setShowReviewModal(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -127,6 +140,16 @@ export default function HomePage() {
         </div>
         <FeedContainer />
       </div>
+
+      {/* Review Prompt Modal */}
+      <ReviewPromptModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onWriteReview={() => {
+          setShowReviewModal(false);
+          router.push("/review");
+        }}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboardStats } from "@/lib/api/admin";
-import { Users, DollarSign, TrendingUp, Calendar, Radio, Clock, ArrowLeft } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Calendar, Radio, Clock, ArrowLeft, Star } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -15,14 +15,15 @@ export default function AdminDashboardPage() {
   if (!stats) return <p style={{ color: "rgba(255,255,255,0.5)" }}>Inapakia...</p>;
 
   const CARDS = [
-    { label: "Watumiaji Wote", value: stats.total_users, icon: Users, color: "var(--success)" },
-    { label: "Subscribers Active", value: stats.total_subscribers, icon: TrendingUp, color: "var(--warning)" },
-    { label: "Mapato Mwezi Huu", value: `TZS ${stats.revenue_this_month_tzs.toLocaleString()}`, icon: DollarSign, color: "var(--success)" },
-    { label: "Mapato Yote", value: `TZS ${stats.revenue_all_time_tzs.toLocaleString()}`, icon: DollarSign, color: "var(--info)" },
-    { label: "AI Accuracy", value: `${stats.ai_prediction_accuracy}%`, icon: TrendingUp, color: "var(--brand-accent)" },
-    { label: "Mechi Leo", value: stats.matches_today, icon: Calendar, color: "var(--warning)" },
-    { label: "Live Sasa", value: stats.live_matches_now, icon: Radio, color: "var(--danger)" },
-    { label: "Malipo Yanayosubiri", value: stats.pending_transactions, icon: Clock, color: "var(--warning)" },
+    { label: "Watumiaji Wote", value: stats.total_users, icon: Users, color: "var(--success)", link: "/admin/users" },
+    { label: "Subscribers Active", value: stats.total_subscribers, icon: TrendingUp, color: "var(--warning)", link: "/admin/users" },
+    { label: "Mapato Mwezi Huu", value: `TZS ${stats.revenue_this_month_tzs.toLocaleString()}`, icon: DollarSign, color: "var(--success)", link: "/admin/transactions" },
+    { label: "Mapato Yote", value: `TZS ${stats.revenue_all_time_tzs.toLocaleString()}`, icon: DollarSign, color: "var(--info)", link: "/admin/transactions" },
+    { label: "AI Accuracy", value: `${stats.ai_prediction_accuracy}%`, icon: TrendingUp, color: "var(--brand-accent)", link: "/admin/ml-status" },
+    { label: "Mechi Leo", value: stats.matches_today, icon: Calendar, color: "var(--warning)", link: "/admin/matches" },
+    { label: "Live Sasa", value: stats.live_matches_now, icon: Radio, color: "var(--danger)", link: "/admin/matches" },
+    { label: "Malipo Yanayosubiri", value: stats.pending_transactions, icon: Clock, color: "var(--warning)", link: "/admin/transactions" },
+    { label: "Reviews", value: "Manage", icon: Star, color: "#D4AF37", link: "/admin/reviews" },
   ];
 
   return (
@@ -36,13 +37,25 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {CARDS.map((c) => {
           const Icon = c.icon;
-          return (
+          const Card = c.link ? (
+            <button
+              key={c.label}
+              onClick={() => router.push(c.link)}
+              className="rounded-2xl p-5 text-left transition-all hover:scale-105 active:scale-95"
+              style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <Icon size={20} style={{ color: c.color }} className="mb-3" />
+              <p className="text-2xl font-black" style={{ color: c.color }}>{c.value}</p>
+              <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{c.label}</p>
+            </button>
+          ) : (
             <div key={c.label} className="rounded-2xl p-5" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
               <Icon size={20} style={{ color: c.color }} className="mb-3" />
               <p className="text-2xl font-black" style={{ color: c.color }}>{c.value}</p>
               <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{c.label}</p>
             </div>
           );
+          return Card;
         })}
       </div>
     </div>

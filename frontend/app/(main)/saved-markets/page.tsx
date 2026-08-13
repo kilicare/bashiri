@@ -119,11 +119,39 @@ export default function SavedMarketsPage() {
   // Detect mobile device
   const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  function handleShare() {
-    // Generate share URL (current page URL with tab parameter)
-    const url = `${window.location.origin}/saved-markets?tab=${activeTab}`;
-    setShareUrl(url);
-    setShowShareModal(true);
+  async function handleShare() {
+    if (!pdfUrl) {
+      // Generate PDF first if not already generated
+      await handleGeneratePDF();
+      return;
+    }
+    
+    // Convert blob URL to File for sharing
+    try {
+      const response = await fetch(pdfUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `bashiri_saved_markets_${activeTab.replace('_', '-')}.pdf`, { type: 'application/pdf' });
+      
+      // Try to share the file using Web Share API
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Bashiri Saved Markets',
+          text: `Angalia saved markets zangu za football kwenye Bashiri`
+        });
+      } else {
+        // Fallback: show share modal with link
+        const url = `${window.location.origin}/saved-markets?tab=${activeTab}`;
+        setShareUrl(url);
+        setShowShareModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to share PDF:', error);
+      // Fallback to link sharing
+      const url = `${window.location.origin}/saved-markets?tab=${activeTab}`;
+      setShareUrl(url);
+      setShowShareModal(true);
+    }
   }
 
   function handleCopyLink() {

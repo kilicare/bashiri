@@ -20,7 +20,7 @@ export function FloatingWhatsAppButton() {
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1, duration: 0.4 }}
-      className="fixed bottom-24 right-4 z-40"
+      className="fixed bottom-20 right-4 z-40"
       aria-label="Wasiliana nasi kwa WhatsApp"
     >
       {/* Glow Effect */}
@@ -42,7 +42,7 @@ export function FloatingWhatsAppButton() {
 
       {/* Button */}
       <div
-        className="relative w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-sm"
+        className="relative w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm"
         style={{
           background: "rgba(17, 18, 24, 0.8)",
           border: "2px solid rgba(37, 211, 102, 0.6)",
@@ -53,8 +53,8 @@ export function FloatingWhatsAppButton() {
       >
         {/* WhatsApp SVG Icon */}
         <svg
-          width="28"
-          height="28"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="currentColor"
           style={{ color: "#25D366" }}
