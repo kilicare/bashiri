@@ -3,7 +3,7 @@ predictions/services.py
 
 Business logic ya AI Prediction Dashboard — masoko yote, is_locked
 imewekwa server-side (sio blur ya frontend pekee), na form/H2H kwa
-Match Overview.
+MatchOverview.
 """
 from django.conf import settings
 
