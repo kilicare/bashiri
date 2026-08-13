@@ -33,7 +33,7 @@ def sync_historical_task():
     Celery task for historical sync (seasons 2023, 2024, 2025, 2026).
     This should be run ONCE then disabled from Celery Beat.
     """
-    call_command("sync_historical", "--seasons", "2023", "2024", "2025", "2026")
+    call_command("sync_historical", "--all-available")
     return "sync_historical imekamilika kwa seasons 2023, 2024, 2025, 2026"
 
 
