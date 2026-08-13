@@ -34,6 +34,13 @@ LEAGUE_SEED = [
     {"code": "BL1", "name": "Bundesliga", "poisson_key": "Bundesliga"},
     {"code": "FL1", "name": "Ligue 1", "poisson_key": "Ligue1"},
     {"code": "WC", "name": "FIFA World Cup 2026", "poisson_key": "WorldCup"},
+    {"code": "BSA", "name": "Brasileirao Serie A", "poisson_key": "Brasileirao Serie A"},
+    {"code": "ELC", "name": "Championship", "poisson_key": "Championship"},
+    {"code": "DED", "name": "Eredivisie", "poisson_key": "Eredivisie"},
+    {"code": "EC", "name": "European Championship", "poisson_key": "European Championship"},
+    {"code": "PPL", "name": "Primeira Liga", "poisson_key": "Primeira Liga"},
+    {"code": "SA", "name": "Serie A", "poisson_key": "Serie A"},
+    {"code": "CL", "name": "UEFA Champions League", "poisson_key": "UEFA Champions League"},
 ]
 
 

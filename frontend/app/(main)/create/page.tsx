@@ -1,15 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getFixtures, Match } from "@/lib/api/predictions";
+import { getFixtures, getLeagues, Match, League } from "@/lib/api/predictions";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Calendar, ChevronDown } from "lucide-react";
 
 export default function CreatePredictionStep1() {
   const router = useRouter();
   const [matches, setMatches] = useState<Match[]>([]);
+  const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("this_week");
+  const [selectedLeague, setSelectedLeague] = useState<string>("all");
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
@@ -24,7 +26,8 @@ export default function CreatePredictionStep1() {
   const loadMatches = async (filter: string, newOffset = 0) => {
     setLoading(true);
     try {
-      const data = await getFixtures(undefined, filter, newOffset, 50);
+      const leagueParam = selectedLeague === "all" ? undefined : selectedLeague;
+      const data = await getFixtures(undefined, filter, newOffset, 50, leagueParam);
       if (newOffset === 0) {
         setMatches(data);
       } else {
@@ -40,8 +43,11 @@ export default function CreatePredictionStep1() {
   };
 
   useEffect(() => {
+    // Load leagues
+    getLeagues().then(setLeagues);
+    // Load matches
     loadMatches(activeFilter, 0);
-  }, [activeFilter]);
+  }, [activeFilter, selectedLeague]);
 
   const handleLoadMore = () => {
     loadMatches(activeFilter, offset + 50);
@@ -54,6 +60,12 @@ export default function CreatePredictionStep1() {
     return acc;
   }, {});
 
+  // Sort leagues alphabetically
+  const sortedLeagues = Object.keys(grouped).sort();
+
+  // No client-side filtering needed - server handles it now
+  const filteredLeagues = sortedLeagues;
+
   return (
     <div>
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
@@ -63,6 +75,51 @@ export default function CreatePredictionStep1() {
 
       {/* Date Filter Tabs */}
       <div className="px-5 pb-4">
+        {/* League Select */}
+        <div className="mb-4">
+          <div className="relative group">
+            <div 
+              className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: "linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(207, 175, 123, 0.05))",
+                border: "1px solid rgba(212, 175, 55, 0.2)"
+              }}
+            />
+            <select
+              value={selectedLeague}
+              onChange={(e) => setSelectedLeague(e.target.value)}
+              className="w-full pl-4 pr-12 py-3.5 rounded-xl text-sm font-semibold appearance-none cursor-pointer transition-all duration-300 relative z-10"
+              style={{
+                background: "rgba(15, 15, 20, 0.8)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "white",
+                outline: "none",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)"
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "rgba(212, 175, 55, 0.5)";
+                e.target.style.boxShadow = "0 4px 25px rgba(212, 175, 55, 0.2)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "rgba(255,255,255,0.12)";
+                e.target.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.3)";
+              }}
+            >
+              <option value="all" style={{ background: "#0f0f14", color: "white", fontWeight: "600" }}>Ligi Zote</option>
+              {leagues.map((league) => (
+                <option key={league.id} value={league.poisson_key} style={{ background: "#0f0f14", color: "white", fontWeight: "500" }}>
+                  {league.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown 
+              size={20} 
+              className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none z-10 transition-transform duration-300 group-hover:translate-y-0.5" 
+              style={{ color: "rgba(255,255,255,0.5)" }}
+            />
+          </div>
+        </div>
         <div className="relative">
           <div 
             className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
@@ -112,11 +169,11 @@ export default function CreatePredictionStep1() {
             </p>
           </div>
         ) : (
-          Object.entries(grouped).map(([league, leagueMatches]) => (
+          filteredLeagues.map((league) => (
             <div key={league}>
               <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{league}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {leagueMatches.map((m) => (
+                {grouped[league].map((m) => (
                   <button
                     key={m.id}
                     onClick={() => router.push(`/create/${m.id}/overview`)}

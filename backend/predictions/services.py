@@ -41,7 +41,7 @@ MARKET_DEFINITIONS = {
     ]},
 }
 
-MODEL_VERSION = "dixon-coles-v1"
+MODEL_VERSION = "bashiri-ml-v2.0"
 
 
 class UnknownTeamError(Exception):

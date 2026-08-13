@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAITrackRecord, AITrackRecord } from "@/lib/api/predictions";
+import { getAITrackRecord, AITrackRecord, League } from "@/lib/api/predictions";
+import { getLeagues } from "@/lib/api/settings";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -11,17 +12,35 @@ const MARKET_LABELS: Record<string, string> = {
   OVER_UNDER_3_5: "O/U 3.5", OVER_UNDER_4_5: "O/U 4.5", BTTS: "BTTS",
 };
 
-const LEAGUES = [
-  { key: "", label: "Ligi Zote" }, { key: "EPL", label: "EPL" }, { key: "LaLiga", label: "La Liga" },
-  { key: "Bundesliga", label: "Bundesliga" }, { key: "Ligue1", label: "Ligue 1" },
-];
-
 export default function AITrackRecordPage() {
   const router = useRouter();
   const [league, setLeague] = useState("");
   const [data, setData] = useState<AITrackRecord | null>(null);
+  const [leagues, setLeagues] = useState<{ key: string; label: string }[]>([
+    { key: "", label: "Ligi Zote" }
+  ]);
   const [loading, setLoading] = useState(true);
   const [notReady, setNotReady] = useState(false);
+
+  useEffect(() => {
+    // Load available leagues dynamically from backend
+    getLeagues().then((leagueData: League[]) => {
+      const leagueOptions = leagueData.map((l) => ({
+        key: l.poisson_key,
+        label: l.name
+      }));
+      setLeagues([{ key: "", label: "Ligi Zote" }, ...leagueOptions]);
+    }).catch(() => {
+      // Fallback to hardcoded leagues if API fails
+      setLeagues([
+        { key: "", label: "Ligi Zote" },
+        { key: "EPL", label: "EPL" },
+        { key: "LaLiga", label: "La Liga" },
+        { key: "Bundesliga", label: "Bundesliga" },
+        { key: "Ligue1", label: "Ligue 1" }
+      ]);
+    });
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -39,7 +58,7 @@ export default function AITrackRecordPage() {
           Uwazi kamili — jinsi AI yetu ilivyofanya kwa mechi zote zilizopita.
         </p>
         <div className="flex gap-2 overflow-x-auto">
-          {LEAGUES.map((l) => (
+          {leagues.map((l: { key: string; label: string }) => (
             <button
               key={l.key}
               onClick={() => setLeague(l.key)}

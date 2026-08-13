@@ -62,6 +62,9 @@ class FixturesView(APIView):
         # Get range filter (today, tomorrow, this_week, next_week, this_month)
         range_filter = request.query_params.get("range", "this_week")
         
+        # Get league filter
+        league_filter = request.query_params.get("league")
+        
         # Get pagination parameters
         offset = int(request.query_params.get("offset", 0))
         limit = int(request.query_params.get("limit", 50))
@@ -119,18 +122,24 @@ class FixturesView(APIView):
             start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
             end_date = now + timedelta(days=7)
         
-        cache_key = f"fixtures_list_{range_filter}_{offset}_{limit}"
+        cache_key = f"fixtures_list_{range_filter}_{league_filter or 'all'}_{offset}_{limit}"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
             return Response(cached_data)
 
+        # Build query with optional league filter
+        query = Match.objects.filter(
+            status="SCHEDULED",
+            kickoff_at__gte=start_date,
+            kickoff_at__lte=end_date
+        )
+        
+        if league_filter:
+            query = query.filter(league__poisson_key=league_filter)
+        
         matches = (
-            Match.objects.filter(
-                status="SCHEDULED",
-                kickoff_at__gte=start_date,
-                kickoff_at__lte=end_date
-            )
+            query
             .select_related("league", "home_team", "away_team")
             .order_by("kickoff_at")[offset:offset + limit]
         )
@@ -504,9 +513,20 @@ class LeagueListView(APIView):
     def get(self, request):
         from .models import League
         from .serializers import LeagueSerializer
+        from .ml.poisson_model import get_available_leagues
 
-        leagues = League.objects.filter(is_active=True)
-        return Response(LeagueSerializer(leagues, many=True).data)
+        # Get leagues from database that are active
+        db_leagues = League.objects.filter(is_active=True)
+        db_league_data = LeagueSerializer(db_leagues, many=True).data
+        
+        # Get available leagues from ML model JSON for validation
+        ml_leagues = get_available_leagues()
+        
+        # Filter to only include leagues that exist in both DB and ML model
+        # This ensures frontend only shows leagues that have working prediction models
+        valid_leagues = [league for league in db_league_data if league['poisson_key'] in ml_leagues]
+        
+        return Response(valid_leagues)
 
 
 class TeamListView(APIView):

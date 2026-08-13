@@ -134,6 +134,9 @@ class Command(BaseCommand):
         """Show what would be synced without actually syncing."""
         self.stdout.write("DRY RUN MODE - No changes will be made\n")
         self.stdout.write(f"Date range: {date_from} to {date_to}")
-        self.stdout.write("Leagues: PL (EPL), PD (LaLiga), BL1 (Bundesliga), FL1 (Ligue 1)")
+        self.stdout.write("Leagues: PL (EPL), PD (LaLiga), BL1 (Bundesliga), FL1 (Ligue 1),")
+        self.stdout.write("          WC (WorldCup), BSA (Brasileirao), ELC (Championship),")
+        self.stdout.write("          DED (Eredivisie), EC (European Championship), PPL (Primeira Liga),")
+        self.stdout.write("          SA (Serie A), CL (UEFA Champions League)")
         self.stdout.write("")
         self.stdout.write("To perform actual sync, remove --dry-run flag.")

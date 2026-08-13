@@ -22,20 +22,37 @@ def load_models():
         return json.load(f)
 
 
-def get_league_params(league_code: str):
-    """Inatafuta vigezo halisi vya ligi kutoka kwenye faili lililosaviwa Colab"""
+def sanitize_parameter(value: float, min_val: float = 0.05, max_val: float = 6.0) -> float:
+    """Inahakikisha parameter ziko ndani ya mipaka salama - kwa ajili ya Eredivisie na ligi nyingine"""
+    return max(min_val, min(max_val, value))
+
+def get_available_leagues():
+    """Inarudisha orodha ya ligi zote zilizopo kwenye model JSON kwa ajili ya dynamic loading"""
     models = load_models()
-    league_data = models["leagues"].get(league_code)
+    return list(models["team_parameters"]["per_league"].keys())
+
+def get_league_params(league_code: str):
+    """Inatafuta vigezo halisi vya ligi kutoka kwenye faili lililosaviwa Colab (v2.0 structure)"""
+    models = load_models()
+    league_data = models["team_parameters"]["per_league"].get(league_code)
     if not league_data:
         raise ValueError(
             f"Hakuna trained model kwa ligi '{league_code}'. "
-            f"Ligi zilizopo: {list(models['leagues'].keys())}"
+            f"Ligi zilizopo: {list(models['team_parameters']['per_league'].keys())}"
         )
     # Tofauti na mwanzo, hapa tunachukua league_avg_goals halisi iliyotoka Colab!
+    # Tumia muundo sahihi wa JSON v2.0: baseline["home_advantage"] na baseline["avg_goals"]
+    home_advantage = league_data["baseline"]["home_advantage"]
+    league_avg_goals = league_data["baseline"]["avg_goals"]
+    
+    # Sanitize parameters kuhakikisha ziko ndani ya mipaka salama
+    home_advantage = sanitize_parameter(home_advantage, 0.5, 2.0)  # Home advantage kawaida 1.0-1.5
+    league_avg_goals = sanitize_parameter(league_avg_goals, 0.8, 2.5)  # Average goals kawaida 1.0-1.8
+    
     return (
         league_data["teams"],
-        league_data["home_advantage"],
-        league_data["league_avg_goals"],
+        home_advantage,
+        league_avg_goals,
     )
 
 
@@ -47,9 +64,19 @@ def predict_all_markets(home_team, away_team, team_params, home_advantage, leagu
     home = team_params[home_team]
     away = team_params[away_team]
 
+    # Sanitize attack/defense parameters kwa ajili ya Eredivisie na ligi nyingine
+    home_attack = sanitize_parameter(home["attack"], 0.5, 3.0)
+    home_defense = sanitize_parameter(home["defense"], 0.5, 3.0)
+    away_attack = sanitize_parameter(away["attack"], 0.5, 3.0)
+    away_defense = sanitize_parameter(away["defense"], 0.5, 3.0)
+
     # Hesabu ya Expected Goals (xG) kulingana na formula yetu ya Colab
-    home_xg = league_avg_goals * home["attack"] * away["defense"] * home_advantage
-    away_xg = league_avg_goals * away["attack"] * home["defense"]
+    home_xg = league_avg_goals * home_attack * away_defense * home_advantage
+    away_xg = league_avg_goals * away_attack * home_defense
+    
+    # Sanitize xG values kuhakikisha ziko ndani ya mipima salama (0.05 - 6.0)
+    home_xg = sanitize_parameter(home_xg, 0.05, 6.0)
+    away_xg = sanitize_parameter(away_xg, 0.05, 6.0)
 
     # Kupata usambazaji wa magoli (Poisson Probability Distribution)
     home_probs = [poisson.pmf(i, home_xg) for i in range(max_goals)]
@@ -76,6 +103,11 @@ def predict_all_markets(home_team, away_team, team_params, home_advantage, leagu
                     over[line] += p
             if h > 0 and a > 0:
                 btts_yes += p
+
+    # Apply calibration tweaks from v2.0 (BTTS ×0.88, Over ×0.85)
+    btts_yes *= 0.88  # BTTS adjustment - reduced by 12%
+    for line in over:
+        over[line] *= 0.85  # Over/Under adjustment - reduced by 15%
 
     # Kurekebisha jumla ya uwezekano (Normalisation) ili isizidi wala kupungua 100%
     total_prob = home_win + draw + away_win

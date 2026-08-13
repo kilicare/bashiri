@@ -27,12 +27,13 @@ export interface Match {
   matchday?: number | null;
 }
 
-export function getFixtures(date?: string, range?: string, offset?: number, limit?: number) {
+export function getFixtures(date?: string, range?: string, offset?: number, limit?: number, league?: string) {
   const params = new URLSearchParams();
   if (date) params.append("date", date);
   if (range) params.append("range", range);
   if (offset !== undefined) params.append("offset", offset.toString());
   if (limit !== undefined) params.append("limit", limit.toString());
+  if (league) params.append("league", league);
   const query = params.toString();
   return apiClient<Match[]>(`/predictions/fixtures/${query ? '?' + query : ''}`, { skipAuth: true });
 }
