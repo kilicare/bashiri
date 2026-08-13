@@ -109,6 +109,14 @@ export default function SavedMarketsPage() {
     setShowSuccessModal(true);
   }
 
+  function handleOpenPDFInNewTab() {
+    if (!pdfUrl) return;
+    window.open(pdfUrl, '_blank');
+  }
+
+  // Detect mobile device
+  const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   function handleShare() {
     // Generate share URL (current page URL with tab parameter)
     const url = `${window.location.origin}/saved-markets?tab=${activeTab}`;
@@ -452,7 +460,9 @@ export default function SavedMarketsPage() {
           >
             <div className="p-4 border-b" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">PDF Preview</h3>
+                <h3 className="text-lg font-bold text-white">
+                  {isMobile ? "PDF Options" : "PDF Preview"}
+                </h3>
                 <button
                   onClick={() => setShowPDFPreview(false)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-white/10"
@@ -461,13 +471,31 @@ export default function SavedMarketsPage() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-auto p-4">
-              <iframe
-                src={pdfUrl}
-                className="w-full h-full rounded-lg"
-                style={{ minHeight: "500px" }}
-              />
-            </div>
+            
+            {isMobile ? (
+              // Mobile: Show options instead of iframe
+              <div className="flex-1 p-6 flex flex-col items-center justify-center">
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
+                  style={{ background: "rgba(212, 175, 55, 0.2)" }}
+                >
+                  <Download size={40} style={{ color: "#D4AF37" }} />
+                </div>
+                <p className="text-center mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  Chagua jinsi unavyotaka kutumia PDF hii
+                </p>
+              </div>
+            ) : (
+              // Desktop: Show iframe preview
+              <div className="flex-1 overflow-auto p-4">
+                <iframe
+                  src={pdfUrl}
+                  className="w-full h-full rounded-lg"
+                  style={{ minHeight: "500px" }}
+                />
+              </div>
+            )}
+            
             <div className="p-4 border-t flex gap-3" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
               <button
                 onClick={handleShare}
@@ -485,12 +513,12 @@ export default function SavedMarketsPage() {
                 Funga
               </button>
               <button
-                onClick={handleDownloadPDF}
+                onClick={isMobile ? handleOpenPDFInNewTab : handleDownloadPDF}
                 className="flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
                 style={{ background: "#D4AF37", color: "#000" }}
               >
                 <Download size={16} />
-                Pakua
+                {isMobile ? "Fungua" : "Pakua"}
               </button>
             </div>
           </div>
