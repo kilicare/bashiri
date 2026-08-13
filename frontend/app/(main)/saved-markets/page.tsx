@@ -273,12 +273,12 @@ export default function SavedMarketsPage() {
                       <button
                         onClick={() => handleDelete(market.id, market.match.id, market.market_key)}
                         disabled={deletingId === market.id}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 disabled:opacity-50"
+                        className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 disabled:opacity-50"
                       >
                         {deletingId === market.id ? (
-                          <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                          <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                         ) : (
-                          <Trash2 size={12} style={{ color: "rgba(255,255,255,0.4)" }} />
+                          <Trash2 size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
                         )}
                       </button>
                     </div>
