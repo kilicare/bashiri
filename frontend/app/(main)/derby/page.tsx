@@ -3,6 +3,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getActiveDerby, ActiveDerby } from "@/lib/api/derby";
 import { CardSkeleton } from "@/components/ui/Skeleton";
+import { AlertModal } from "@/components/ui/AlertModal";
 
 const HUB_ITEMS = [
   { key: "stats", label: "Derby Stats" },
@@ -17,6 +18,12 @@ function DerbyHubContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [derby, setDerby] = useState<ActiveDerby | null>(null);
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; variant: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "info"
+  });
 
   useEffect(() => {
     getActiveDerby().then((data) => {
@@ -62,7 +69,12 @@ function DerbyHubContent() {
             key={item.key}
             onClick={() => {
               if (!derby.match_id) {
-                alert('Derby haina mechi iliyounganishwa. Tafadhali admin alink derby na mechi halisi.');
+                setAlertModal({
+                  isOpen: true,
+                  title: "Derby Haina Mechi",
+                  message: "Derby haina mechi iliyounganishwa. Tafadhali admin alink derby na mechi halisi.",
+                  variant: "warning"
+                });
                 return;
               }
               if (item.key === "room") {
@@ -96,6 +108,14 @@ function DerbyHubContent() {
           </div>
         </div>
       )}
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        variant={alertModal.variant}
+      />
     </div>
   );
 }

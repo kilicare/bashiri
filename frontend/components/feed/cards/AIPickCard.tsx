@@ -1,19 +1,19 @@
 "use client";
 import { motion } from "framer-motion";
-import { ConfidenceBadge, PremiumBadge } from "@/components/ui/Badge";
-import { Brain, TrendingUp, Clock, Sparkles, Info } from "lucide-react";
+import { PremiumBadge } from "@/components/ui/Badge";
+import { Brain, TrendingUp, Clock } from "lucide-react";
 import { clsx } from "clsx";
-import { useState } from "react";
-import { ConfidenceEducation } from "@/components/predictions/ConfidenceEducation";
-import { createPortal } from "react-dom";
 
 export function AIPickCard({ data }: { data: any }) {
-  const { match, ai_pick, reasons } = data;
-  const [showEducation, setShowEducation] = useState(false);
+  const { match, ai_pick } = data;
   const selectionLabel: Record<string, string> = {
-    "Home Win": match.home_team,
-    Draw: "Sare",
-    "Away Win": match.away_team,
+    "home_win": match.home_team,
+    "draw": "Sare",
+    "away_win": match.away_team,
+    "over_2.5": "Over 2.5",
+    "under_2.5": "Under 2.5",
+    "yes": "Ndiyo (BTTS)",
+    "no": "Hapana (BTTS)",
   };
 
   const isStrong = ai_pick.confidence >= 70;
@@ -45,14 +45,6 @@ export function AIPickCard({ data }: { data: any }) {
             AI PICK
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowEducation(true)}
-              className="p-2.5 rounded-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
-              style={{ background: "rgba(212,175,55,0.1)", color: "var(--brand-primary)", touchAction: "manipulation" }}
-              title="Jifunze kuhusu uhakika"
-            >
-              <Info size={13} />
-            </button>
             <PremiumBadge variant={isStrong ? "green" : hasEdge ? "gold" : "red"}>
               {isStrong ? "High" : hasEdge ? "Edge" : "Low"}
             </PremiumBadge>
@@ -63,7 +55,7 @@ export function AIPickCard({ data }: { data: any }) {
         </div>
 
         <div className="mt-5">
-          <p className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>{selectionLabel[ai_pick.selection]}</p>
+          <p className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>{selectionLabel[ai_pick.option_key]}</p>
           <p className="mt-1.5 text-xs" style={{ color: "var(--text-secondary)" }}>{match.home_team} vs {match.away_team}</p>
         </div>
 
@@ -73,41 +65,14 @@ export function AIPickCard({ data }: { data: any }) {
               className={clsx("h-3.5 w-3.5", isStrong ? "text-[var(--brand-accent)]" : hasEdge ? "text-[var(--warning)]" : "text-[var(--danger)]")} 
               style={isStrong ? { color: "var(--brand-accent)" } : hasEdge ? { color: "var(--warning)" } : { color: "var(--danger)" }}
             />
-            <span>{ai_pick.market}</span>
+            <span>{ai_pick.market_label}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" style={{ color: "var(--text-secondary)" }} />
             <span>{match.kickoff_at ? new Date(match.kickoff_at).toLocaleString("sw-TZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "N/A"}</span>
           </div>
         </div>
-
-        <div className="mt-5">
-          <div className="mb-3 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider" style={{ color: "var(--brand-accent)" }}>
-            <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}
-            >
-              <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--brand-accent)" }} />
-            </motion.div>
-            <span>Reasoning</span>
-          </div>
-          <div className="space-y-2">
-            {reasons.slice(0, 2).map((reason: string, index: number) => (
-              <div key={index} className="rounded-xl border p-2.5 transition-all duration-200 hover:border-[var(--brand-accent)]/20 hover:bg-[var(--surface)]/80" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-                <p className="text-xs leading-5" style={{ color: "var(--text-secondary)" }}>{reason}</p>
-              </div>
-            ))}
-            {reasons.length > 2 && (
-              <p className="text-[10px]" style={{ color: "var(--text-secondary)" }}>+{reasons.length - 2} more reasons</p>
-            )}
-          </div>
-        </div>
       </div>
-      
-      {showEducation && createPortal(
-        <ConfidenceEducation onClose={() => setShowEducation(false)} />,
-        document.body
-      )}
     </motion.article>
   );
 }

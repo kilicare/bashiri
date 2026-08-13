@@ -178,37 +178,18 @@ export default function PredictDashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {dashboard.markets.map((market) => (
-            <div key={market.key} className="relative">
-              {/* Desktop selection checkbox */}
-              {selectionMode && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleMarketSelection(market.key);
-                  }}
-                  className="absolute top-3 right-3 z-10 w-6 h-6 rounded-lg flex items-center justify-center transition-all"
-                  style={{ 
-                    background: selectedMarkets.has(market.key) ? "#D4AF37" : "rgba(255,255,255,0.1)",
-                    border: selectedMarkets.has(market.key) ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.2)"
-                  }}
-                >
-                  {selectedMarkets.has(market.key) ? (
-                    <CheckSquare size={14} fill="#000" color="#000" />
-                  ) : (
-                    <Square size={14} color="rgba(255,255,255,0.5)" />
-                  )}
-                </button>
-              )}
-              
-              <MarketRow 
-                market={market} 
-                onLockedClick={() => setShowSub(true)}
-                matchId={matchId}
-                isSaved={savedMarkets.has(market.key)}
-                onSave={handleSaveMarket}
-                onUnsave={handleUnsaveMarket}
-              />
-            </div>
+            <MarketRow 
+              key={market.key}
+              market={market} 
+              onLockedClick={() => setShowSub(true)}
+              matchId={matchId}
+              isSaved={savedMarkets.has(market.key)}
+              onSave={handleSaveMarket}
+              onUnsave={handleUnsaveMarket}
+              selectionMode={selectionMode}
+              isSelected={selectedMarkets.has(market.key)}
+              onToggleSelection={toggleMarketSelection}
+            />
           ))}
         </div>
 

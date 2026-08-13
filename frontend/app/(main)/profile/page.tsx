@@ -11,6 +11,7 @@ import { updateAvatar, completeProfile } from "@/lib/api/auth";
 import { getAIPerformanceStats } from "@/lib/api/predictions";
 import { ShareProfileModal } from "@/components/profile/ShareProfileModal";
 import { QRCodeModal } from "@/components/profile/QRCodeModal";
+import { AlertModal } from "@/components/ui/AlertModal";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -25,6 +26,12 @@ export default function ProfilePage() {
   const [loadingAI, setLoadingAI] = useState(true);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; variant: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "info"
+  });
 
   useEffect(() => {
     fetchAIPerformance();
@@ -57,14 +64,24 @@ export default function ProfilePage() {
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Picha isiyozidi 5MB inaruhusiwa.");
+      setAlertModal({
+        isOpen: true,
+        title: "Picha Kubwa Sana",
+        message: "Picha isiyozidi 5MB inaruhusiwa.",
+        variant: "warning"
+      });
       return;
     }
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      alert("Aina ya picha inaruhusiwa: JPEG, PNG, au WebP.");
+      setAlertModal({
+        isOpen: true,
+        title: "Aina ya Picha",
+        message: "Aina ya picha inaruhusiwa: JPEG, PNG, au WebP.",
+        variant: "warning"
+      });
       return;
     }
 
@@ -73,7 +90,12 @@ export default function ProfilePage() {
       const updatedUser = await updateAvatar(file);
       setUser(updatedUser);
     } catch (error) {
-      alert("Imeshindwa ku-upload picha. Jaribu tena.");
+      setAlertModal({
+        isOpen: true,
+        title: "Imeshindwa",
+        message: "Imeshindwa ku-upload picha. Jaribu tena.",
+        variant: "error"
+      });
     } finally {
       setUploading(false);
     }
@@ -85,7 +107,12 @@ export default function ProfilePage() {
 
   async function handleProfileSave() {
     if (!editUsername || !editDob) {
-      alert("Tafadhali jaza username na tarehe ya kuzaliwa.");
+      setAlertModal({
+        isOpen: true,
+        title: "Taarifa Zinazokosea",
+        message: "Tafadhali jaza username na tarehe ya kuzaliwa.",
+        variant: "warning"
+      });
       return;
     }
 
@@ -95,7 +122,12 @@ export default function ProfilePage() {
       setUser(updatedUser);
       setEditingProfile(false);
     } catch (error) {
-      alert("Imeshindika kuhifadhi mabadiliko. Jaribu tena.");
+      setAlertModal({
+        isOpen: true,
+        title: "Imeshindika",
+        message: "Imeshindika kuhifadhi mabadiliko. Jaribu tena.",
+        variant: "error"
+      });
     } finally {
       setSavingProfile(false);
     }
@@ -478,6 +510,15 @@ export default function ProfilePage() {
         isOpen={qrModalOpen}
         onClose={() => setQrModalOpen(false)}
         username={user?.username || ""}
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        variant={alertModal.variant}
       />
     </div>
   );

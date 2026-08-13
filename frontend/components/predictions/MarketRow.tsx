@@ -1,5 +1,5 @@
 "use client";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { Lock, Check, Bookmark } from "lucide-react";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Market } from "@/lib/api/predictions";
@@ -13,27 +13,13 @@ interface MarketRowProps {
   isSaved?: boolean;
   onSave?: (marketKey: string) => void;
   onUnsave?: (marketKey: string) => void;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (marketKey: string) => void;
 }
 
-export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onSave, onUnsave }: MarketRowProps) {
-  const [showSaveButton, setShowSaveButton] = useState(false);
+export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onSave, onUnsave, selectionMode = false, isSelected = false, onToggleSelection }: MarketRowProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const pressStartTime = useMotionValue(0);
-  const scale = useTransform(pressStartTime, [0, 500], [1, 0.97]);
-
-  const handlePressStart = () => {
-    if (market.is_locked) return;
-    pressStartTime.set(Date.now());
-  };
-
-  const handlePressEnd = () => {
-    if (market.is_locked) return;
-    const pressDuration = Date.now() - pressStartTime.get();
-    if (pressDuration > 400) {
-      setShowSaveButton(!showSaveButton);
-    }
-    pressStartTime.set(0);
-  };
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,17 +40,35 @@ export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onS
   return (
     <motion.div
       className="rounded-2xl overflow-hidden relative"
-      style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)", scale }}
+      style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}
       whileTap={{ scale: 0.99 }}
       onClick={market.is_locked ? onLockedClick : undefined}
-      onMouseDown={handlePressStart}
-      onMouseUp={handlePressEnd}
-      onTouchStart={handlePressStart}
-      onTouchEnd={handlePressEnd}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         <span className="text-sm font-bold text-white">{market.label}</span>
-        {market.is_locked ? (
+        {selectionMode ? (
+          <div className="flex items-center gap-2">
+            {matchId && !market.is_locked && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSelection?.(market.key);
+                }}
+                className="w-6 h-6 rounded-lg flex items-center justify-center transition-all"
+                style={{ 
+                  background: isSelected ? "#D4AF37" : "rgba(255,255,255,0.1)",
+                  border: isSelected ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.2)"
+                }}
+              >
+                {isSelected ? (
+                  <Bookmark size={14} fill="#000" color="#000" />
+                ) : (
+                  <Bookmark size={14} color="rgba(255,255,255,0.5)" />
+                )}
+              </button>
+            )}
+          </div>
+        ) : market.is_locked ? (
           <div className="flex items-center gap-1.5">
             <Lock size={12} style={{ color: "rgba(255,255,255,0.35)" }} />
             <span className="text-xs font-bold" style={{ color: "#FFD600" }}>PRO</span>
@@ -74,7 +78,7 @@ export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onS
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,135,0.1)", color: "#00FF87" }}>
               AI Pick ✓
             </span>
-            {showSaveButton && matchId && (
+            {matchId && (
               <button
                 onClick={handleSave}
                 disabled={isSaving}

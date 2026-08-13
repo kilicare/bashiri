@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getCards, createDebate, resolveDebate, deleteDebate } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
 import { Plus, X, Trash2 } from "lucide-react";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function AdminDebatesPage() {
   const [debates, setDebates] = useState<any[]>([]);
@@ -14,6 +15,8 @@ export default function AdminDebatesPage() {
   const [resolvingId, setResolvingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showResolveConfirm, setShowResolveConfirm] = useState(false);
+  const [resolveTarget, setResolveTarget] = useState<{ id: number; result: string } | null>(null);
 
   useEffect(() => {
     load();
@@ -39,9 +42,16 @@ export default function AdminDebatesPage() {
   }
 
   async function handleResolve(cardId: number, result: string) {
-    if (!confirm(`Una uhakika unataka kuweka "${result}" kama matokeo ya mwisho? Hali hii haiwezi kubadilishwa.`)) return;
-    await resolveDebate(cardId, result);
+    setResolveTarget({ id: cardId, result });
+    setShowResolveConfirm(true);
+  }
+
+  async function confirmResolve() {
+    if (!resolveTarget) return;
+    await resolveDebate(resolveTarget.id, resolveTarget.result);
     setResolvingId(null);
+    setShowResolveConfirm(false);
+    setResolveTarget(null);
     load();
   }
 
@@ -147,25 +157,29 @@ export default function AdminDebatesPage() {
       </div>
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="rounded-2xl p-6 max-w-sm w-full" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <h3 className="text-lg font-black text-white mb-2">Futa Debate?</h3>
-            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Una uhakika unataka kufuta debate hii? Hatua hii haiwezi kurudishwa.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <BashiriButton variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                Ghairi
-              </BashiriButton>
-              <BashiriButton
-                onClick={handleDeleteConfirm}
-                style={{ background: "#FF4757", borderColor: "#FF4757" }}
-              >
-                Futa
-              </BashiriButton>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteConfirm}
+          title="Futa Debate?"
+          message="Una uhakika unataka kufuta debate hii? Hatua hii haiwezi kurudishwa."
+          confirmText="Futa"
+          cancelText="Ghairi"
+          variant="danger"
+        />
+      )}
+
+      {showResolveConfirm && resolveTarget && (
+        <ConfirmModal
+          isOpen={showResolveConfirm}
+          onClose={() => setShowResolveConfirm(false)}
+          onConfirm={confirmResolve}
+          title="Weka Matokeo?"
+          message={`Una uhakika unataka kuweka "${resolveTarget.result}" kama matokeo ya mwisho? Hali hii haiwezi kubadilishwa.`}
+          confirmText="Ndiyo"
+          cancelText="Ghairi"
+          variant="warning"
+        />
       )}
     </div>
   );

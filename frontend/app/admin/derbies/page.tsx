@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getDerbies, createDerby, updateDerby, deleteDerby, getTeams, getMatches } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
 import { Plus, X, Trash2 } from "lucide-react";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function AdminDerbiesPage() {
   const [derbies, setDerbies] = useState<any[]>([]);
@@ -205,25 +206,16 @@ export default function AdminDerbiesPage() {
       </div>
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="rounded-2xl p-6 max-w-sm w-full" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <h3 className="text-lg font-black text-white mb-2">Futa Derby?</h3>
-            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Una uhakika unataka kufuta derby hii? Hatua hii haiwezi kurudishwa.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <BashiriButton variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                Ghairi
-              </BashiriButton>
-              <BashiriButton
-                onClick={handleDeleteConfirm}
-                style={{ background: "#FF4757", borderColor: "#FF4757" }}
-              >
-                Futa
-              </BashiriButton>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteConfirm}
+          title="Futa Derby?"
+          message="Una uhakika unataka kufuta derby hii? Hatua hii haiwezi kurudishwa."
+          confirmText="Futa"
+          cancelText="Ghairi"
+          variant="danger"
+        />
       )}
     </div>
   );

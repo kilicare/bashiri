@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getUserDetail, updateUser, manualActivateSubscription, deleteUser, resetUserPassword } from "@/lib/api/admin";
 import { BashiriButton } from "@/components/ui/Button";
 import { ArrowLeft, Trash2 } from "lucide-react";
+import { AlertModal } from "@/components/ui/AlertModal";
 
 export default function AdminUserDetailPage() {
   const router = useRouter();
@@ -15,6 +16,12 @@ export default function AdminUserDetailPage() {
   const [newPassword, setNewPassword] = useState("");
   const [resetting, setResetting] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; variant: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "info"
+  });
 
   useEffect(() => {
     getUserDetail(userId).then(setUser);
@@ -42,7 +49,12 @@ export default function AdminUserDetailPage() {
       await deleteUser(userId);
       router.push("/admin/users");
     } catch (error: any) {
-      alert(error.message || "Imeshindwa kufuta mtumiaji");
+      setAlertModal({
+        isOpen: true,
+        title: "Imeshindwa",
+        message: error.message || "Imeshindwa kufuta mtumiaji",
+        variant: "error"
+      });
     }
   }
 
@@ -171,6 +183,14 @@ export default function AdminUserDetailPage() {
           </BashiriButton>
         )}
       </div>
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        variant={alertModal.variant}
+      />
     </div>
   );
 }

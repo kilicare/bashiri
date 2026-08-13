@@ -103,11 +103,8 @@ def generate_daily_picks():
                     "is_big_match": match.is_big_match,
                 },
                 "ai_pick": best_free,
-                "expected_goals": prediction["expected_goals"],
                 "reasons": [
-                    f"AI confidence: {best_free['confidence']}% ({best_free['market_label']})",
-                    f"Expected goals: {prediction['expected_goals']['home_xg']} - {prediction['expected_goals']['away_xg']}",
-                    f"BTTS: {prediction['btts']['yes']}%",
+                    f"AI imetambua {best_free['option_label']} kwenye {best_free['market_label']}",
                 ],
             },
         )

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Trash2, Play, Heart, Eye, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { MicReaction } from "@/lib/api/mic";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 interface MicVideoCardProps {
   reaction: MicReaction;
@@ -120,45 +121,16 @@ export function MicVideoCard({ reaction, onDelete }: MicVideoCardProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/90 backdrop-blur-sm z-10 flex items-center justify-center p-4"
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="w-full max-w-sm bg-gray-900 rounded-3xl p-6 border border-white/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-bold text-white mb-2 text-center">
-              Futa Video?
-            </h3>
-            <p className="text-sm text-white/60 mb-6 text-center">
-              Una uhakika unataka kufuta video hii? Hatuwezi kurudisha baada ya kufuta.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 transition-colors"
-              >
-                Hapana
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 py-3 rounded-xl font-bold bg-red-500 text-white hover:bg-red-600 transition-colors"
-              >
-                Ndiyo, Futa
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="Futa Video?"
+        message="Una uhakika unataka kufuta video hii? Hatuwezi kurudisha baada ya kufuta."
+        confirmText="Ndiyo, Futa"
+        cancelText="Hapana"
+        variant="danger"
+      />
     </motion.div>
   );
 }

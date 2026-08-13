@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getSavedMarkets, generateSavedMarketsPDF } from "@/lib/api/predictions";
+import { getSavedMarkets, generateSavedMarketsPDF, unsaveMarket } from "@/lib/api/predictions";
 import { Spinner } from "@/components/ui/Spinner";
-import { Bookmark, Download, CheckCircle } from "lucide-react";
+import { Bookmark, Download, CheckCircle, Trash2 } from "lucide-react";
+import { AlertModal } from "@/components/ui/AlertModal";
 
 interface SavedMarket {
   id: number;
@@ -25,6 +26,15 @@ export default function SavedMarketsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [marketToDelete, setMarketToDelete] = useState<{ id: number; matchId: number; marketKey: string } | null>(null);
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; variant: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "info"
+  });
 
   // Convert market key to readable label
   const getMarketLabel = (key: string) => {
@@ -78,9 +88,41 @@ export default function SavedMarketsPage() {
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
+      setAlertModal({
+        isOpen: true,
+        title: "Imeshindwa",
+        message: "Failed to generate PDF. Please try again.",
+        variant: "error"
+      });
     } finally {
       setGeneratingPDF(false);
+    }
+  }
+
+  async function handleDelete(marketId: number, matchId: number, marketKey: string) {
+    setMarketToDelete({ id: marketId, matchId, marketKey });
+    setShowDeleteModal(true);
+  }
+
+  async function confirmDelete() {
+    if (!marketToDelete) return;
+    
+    setDeletingId(marketToDelete.id);
+    setShowDeleteModal(false);
+    try {
+      await unsaveMarket(marketToDelete.matchId, marketToDelete.marketKey);
+      setSavedMarkets(prev => prev.filter(m => m.id !== marketToDelete.id));
+    } catch (error) {
+      console.error("Failed to delete market:", error);
+      setAlertModal({
+        isOpen: true,
+        title: "Imeshindwa",
+        message: "Failed to delete market. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setDeletingId(null);
+      setMarketToDelete(null);
     }
   }
 
@@ -228,6 +270,17 @@ export default function SavedMarketsPage() {
                           </span>
                         )}
                       </div>
+                      <button
+                        onClick={() => handleDelete(market.id, market.match.id, market.market_key)}
+                        disabled={deletingId === market.id}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 disabled:opacity-50"
+                      >
+                        {deletingId === market.id ? (
+                          <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                        ) : (
+                          <Trash2 size={12} style={{ color: "rgba(255,255,255,0.4)" }} />
+                        )}
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -288,6 +341,61 @@ export default function SavedMarketsPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <div 
+            className="rounded-2xl p-6 max-w-sm w-full mx-4"
+            style={{ background: "#111111", border: "1px solid rgba(255, 100, 100, 0.3)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{ background: "rgba(255, 100, 100, 0.2)" }}
+              >
+                <Trash2 size={32} style={{ color: "#FF6464" }} />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Futa Soko?
+              </h3>
+              <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+                Unahitaji kufuta soko hili kutoka kwenye orodha yako ya saved markets?
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 py-3 rounded-xl font-bold transition-all"
+                  style={{ background: "rgba(255,255,255,0.1)", color: "white" }}
+                >
+                  Hapana
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 py-3 rounded-xl font-bold transition-all"
+                  style={{ background: "#FF6464", color: "#000" }}
+                >
+                  Ndiyo, Futa
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        variant={alertModal.variant}
+      />
     </div>
   );
 }
