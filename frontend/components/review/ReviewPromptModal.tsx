@@ -78,7 +78,7 @@ export function ReviewPromptModal({ isOpen, onClose, onWriteReview }: ReviewProm
                 Jisikie Huru Kuandika Review!
               </h3>
               <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Umepata mechi gap kwa kutumia app yetu? Tushirikishe uzoefu wako ili tuweze kuboresha huduma zaidi.
+                Umepata mechi ngapi kwa kutumia app yetu? Tushirikishe uzoefu wako ili tuweze kuboresha huduma zaidi.
               </p>
             </div>
 
