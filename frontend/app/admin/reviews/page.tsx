@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Star, Trash2, AlertTriangle } from "lucide-react";
+import { getAdminReviews, deleteAdminReview } from "@/lib/api/admin";
 
 interface Review {
   id: number;
@@ -11,31 +12,6 @@ interface Review {
   review_text: string;
   created_at: string;
   updated_at: string;
-}
-
-async function adminFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
-  const token = localStorage.getItem("admin_access");
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers as Record<string, string>),
-    },
-  });
-
-  if (!res.ok) {
-    let detail = `Error ${res.status}`;
-    try {
-      const body = await res.json();
-      detail = body.detail || JSON.stringify(body);
-    } catch {}
-    throw new Error(detail);
-  }
-
-  if (res.status === 204) return undefined as T;
-  return res.json();
 }
 
 export default function AdminReviewsPage() {
@@ -50,7 +26,7 @@ export default function AdminReviewsPage() {
 
   async function loadReviews() {
     try {
-      const data = await adminFetch<Review[]>("/reviews/admin/");
+      const data = await getAdminReviews();
       setReviews(data);
     } catch (error) {
       console.error("Failed to load reviews:", error);
@@ -61,10 +37,10 @@ export default function AdminReviewsPage() {
 
   async function handleDelete(reviewId: number) {
     if (!confirm("Una uhakika unataka kufuta review hii?")) return;
-    
+
     setDeletingId(reviewId);
     try {
-      await adminFetch(`/reviews/admin/${reviewId}/`, { method: "DELETE" });
+      await deleteAdminReview(reviewId);
       setReviews(prev => prev.filter(r => r.id !== reviewId));
     } catch (error) {
       console.error("Failed to delete review:", error);

@@ -238,6 +238,17 @@ export function getAdminContentReports() {
   return adminFetch("/dashboard/support/content-reports/");
 }
 
+// ============================================================
+// REVIEWS MANAGEMENT
+// ============================================================
+export function getAdminReviews() {
+  return adminFetch("/reviews/admin/");
+}
+
+export function deleteAdminReview(reviewId: number) {
+  return adminFetch(`/reviews/admin/${reviewId}/`, { method: "DELETE" });
+}
+
 export function resetUserPassword(userId: number, newPassword: string) {
   return adminFetch(`/dashboard/users/${userId}/reset-password/`, {
     method: "POST",
