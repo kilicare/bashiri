@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Star, Trash2, AlertTriangle } from "lucide-react";
-import { getAdminReviews, deleteAdminReview } from "@/lib/api/admin";
+import { ArrowLeft, Star, Trash2, AlertTriangle, CheckSquare, Square } from "lucide-react";
+import { getAdminReviews, deleteAdminReview, bulkDeleteAdminReviews } from "@/lib/api/admin";
 
 interface Review {
   id: number;
@@ -19,6 +19,9 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedReviews, setSelectedReviews] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     loadReviews();
@@ -36,8 +39,6 @@ export default function AdminReviewsPage() {
   }
 
   async function handleDelete(reviewId: number) {
-    if (!confirm("Una uhakika unataka kufuta review hii?")) return;
-
     setDeletingId(reviewId);
     try {
       await deleteAdminReview(reviewId);
@@ -46,6 +47,34 @@ export default function AdminReviewsPage() {
       console.error("Failed to delete review:", error);
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  function toggleReviewSelection(reviewId: number) {
+    setSelectedReviews(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(reviewId)) {
+        newSet.delete(reviewId);
+      } else {
+        newSet.add(reviewId);
+      }
+      return newSet;
+    });
+  }
+
+  async function handleBulkDelete() {
+    if (selectedReviews.size === 0) return;
+
+    setBulkDeleting(true);
+    try {
+      await bulkDeleteAdminReviews(Array.from(selectedReviews));
+      setReviews(prev => prev.filter(r => !selectedReviews.has(r.id)));
+      setSelectedReviews(new Set());
+      setSelectionMode(false);
+    } catch (error) {
+      console.error("Failed to bulk delete reviews:", error);
+    } finally {
+      setBulkDeleting(false);
     }
   }
 
@@ -77,10 +106,46 @@ export default function AdminReviewsPage() {
           </button>
           <h1 className="text-2xl font-black text-white">Reviews za Watumiaji</h1>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: "rgba(212, 175, 55, 0.2)" }}>
-          <span className="text-sm font-bold" style={{ color: "#D4AF37" }}>{reviews.length}</span>
-          <span className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>Reviews</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: "rgba(212, 175, 55, 0.2)" }}>
+            <span className="text-sm font-bold" style={{ color: "#D4AF37" }}>{reviews.length}</span>
+            <span className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>Reviews</span>
+          </div>
         </div>
+      </div>
+
+      {/* Selection controls */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => setSelectionMode(!selectionMode)}
+          className="text-sm font-bold px-3 py-1.5 rounded-lg transition-all"
+          style={{
+            background: selectionMode ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
+            color: selectionMode ? "#D4AF37" : "rgba(255,255,255,0.6)",
+            border: selectionMode ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)"
+          }}
+        >
+          {selectionMode ? "Cancel Selection" : "Select Reviews"}
+        </button>
+
+        {selectionMode && selectedReviews.size > 0 && (
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkDeleting}
+            className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all flex items-center gap-2"
+            style={{
+              background: bulkDeleting ? "rgba(212, 175, 55, 0.1)" : "#D4AF37",
+              color: bulkDeleting ? "rgba(212, 175, 55, 0.5)" : "#000"
+            }}
+          >
+            {bulkDeleting ? (
+              <div className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+            ) : (
+              <Trash2 size={14} />
+            )}
+            Delete {selectedReviews.size} Review{selectedReviews.size !== 1 ? 's' : ''}
+          </button>
+        )}
       </div>
 
       {reviews.length === 0 ? (
@@ -95,32 +160,55 @@ export default function AdminReviewsPage() {
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="rounded-2xl p-4 transition-all"
-              style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}
+              className={`rounded-2xl p-4 transition-all ${selectionMode ? 'cursor-pointer' : ''}`}
+              style={{ background: "#111111", border: selectedReviews.has(review.id) ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.06)" }}
+              onClick={() => selectionMode && toggleReviewSelection(review.id)}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-bold text-white">@{review.username}</span>
-                    <div className="flex gap-0.5">
-                      {renderStars(review.rating)}
-                    </div>
-                  </div>
-                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
-                    {review.review_text}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDelete(review.id)}
-                  disabled={deletingId === review.id}
-                  className="ml-4 w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 disabled:opacity-50"
-                >
-                  {deletingId === review.id ? (
-                    <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                  ) : (
-                    <Trash2 size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
+                <div className="flex items-start gap-3 flex-1">
+                  {selectionMode && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleReviewSelection(review.id);
+                      }}
+                      className="mt-1"
+                    >
+                      {selectedReviews.has(review.id) ? (
+                        <CheckSquare size={20} style={{ color: "#D4AF37" }} />
+                      ) : (
+                        <Square size={20} style={{ color: "rgba(255,255,255,0.4)" }} />
+                      )}
+                    </button>
                   )}
-                </button>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-bold text-white">@{review.username}</span>
+                      <div className="flex gap-0.5">
+                        {renderStars(review.rating)}
+                      </div>
+                    </div>
+                    <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
+                      {review.review_text}
+                    </p>
+                  </div>
+                </div>
+                {!selectionMode && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(review.id);
+                    }}
+                    disabled={deletingId === review.id}
+                    className="ml-4 w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 disabled:opacity-50"
+                  >
+                    {deletingId === review.id ? (
+                      <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    ) : (
+                      <Trash2 size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
+                    )}
+                  </button>
+                )}
               </div>
               <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
                 {new Date(review.created_at).toLocaleDateString('sw-TZ', {

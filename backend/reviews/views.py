@@ -46,3 +46,14 @@ class AdminReviewDetailView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Review.DoesNotExist:
             return Response({"error": "Review not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class AdminBulkDeleteView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        review_ids = request.data.get("review_ids", [])
+        if not review_ids:
+            return Response({"error": "No review IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        deleted_count = Review.objects.filter(id__in=review_ids).delete()[0]
+        return Response({"deleted_count": deleted_count}, status=status.HTTP_200_OK)

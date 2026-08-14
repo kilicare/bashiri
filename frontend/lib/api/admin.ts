@@ -249,6 +249,13 @@ export function deleteAdminReview(reviewId: number) {
   return adminFetch(`/reviews/admin/${reviewId}/`, { method: "DELETE" });
 }
 
+export function bulkDeleteAdminReviews(reviewIds: number[]) {
+  return adminFetch("/reviews/admin/bulk-delete/", { 
+    method: "POST", 
+    body: JSON.stringify({ review_ids: reviewIds }) 
+  });
+}
+
 export function resetUserPassword(userId: number, newPassword: string) {
   return adminFetch(`/dashboard/users/${userId}/reset-password/`, {
     method: "POST",
