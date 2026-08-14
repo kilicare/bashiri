@@ -50,13 +50,13 @@ export function StreamingText({
   }, [text, speed, isComplete, onComplete]);
 
   return (
-    <span>
+    <span className="break-words overflow-wrap-anywhere">
       {displayedText}
       {isStreaming && (
         <motion.span
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 0.8, repeat: Infinity }}
-          className="inline-block w-2 h-4 ml-1"
+          className="inline-block w-2 h-4 ml-1 flex-shrink-0"
           style={{ background: "var(--brand-primary)" }}
         />
       )}

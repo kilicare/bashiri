@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getFixtures, getLeagues, Match, League } from "@/lib/api/predictions";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Calendar, ChevronDown, ArrowLeft } from "lucide-react";
+import { MatchOddsCard } from "@/components/predictions/MatchOddsCard";
 
 export default function CreatePredictionStep1() {
   const router = useRouter();
@@ -179,10 +180,9 @@ export default function CreatePredictionStep1() {
               <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{league}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {grouped[league].map((m) => (
-                  <button
+                  <div
                     key={m.id}
-                    onClick={() => router.push(`/create/${m.id}/overview`)}
-                    className="w-full rounded-2xl p-4 flex flex-col items-start gap-2 relative overflow-hidden"
+                    className="w-full rounded-2xl p-4 flex flex-col items-start gap-2 relative overflow-hidden cursor-pointer pr-12"
                     style={{
                       background: "#111111",
                       border: "1px solid rgba(255,255,255,0.06)",
@@ -192,6 +192,7 @@ export default function CreatePredictionStep1() {
                       `,
                       backgroundSize: "16px 16px, 100% 100%",
                     }}
+                    onClick={() => router.push(`/create/${m.id}/overview`)}
                   >
                     <div className="w-full flex items-center justify-between">
                       <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
@@ -204,7 +205,15 @@ export default function CreatePredictionStep1() {
                         {m.stage_display}{m.group_name ? ` • ${m.group_name}` : ""}
                       </span>
                     )}
-                  </button>
+                    
+                    {/* Integrated Odds Card */}
+                    <MatchOddsCard 
+                      matchId={m.id} 
+                      homeTeam={m.home_team.name} 
+                      awayTeam={m.away_team.name}
+                      compact={true}
+                    />
+                  </div>
                 ))}
               </div>
             </div>

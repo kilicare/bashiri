@@ -56,7 +56,7 @@ export function FormCard({ teamName, results }: FormCardProps) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut", delay: 0.2 }}
-      className="rounded-2xl p-4 border"
+      className="rounded-2xl p-4 border w-full overflow-hidden"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
@@ -75,8 +75,9 @@ export function FormCard({ teamName, results }: FormCardProps) {
 
       {/* Team Name */}
       <div 
-        className="font-bold text-sm mb-3"
+        className="font-bold text-sm mb-3 truncate"
         style={{ color: "var(--text-primary)" }}
+        title={teamName}
       >
         {teamName}
       </div>

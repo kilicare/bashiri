@@ -8,6 +8,7 @@ import json
 import os
 from functools import lru_cache
 from scipy.stats import poisson
+from difflib import SequenceMatcher
 
 # Njia ya faili la JSON kulingana na muundo wako
 MODEL_DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "bashiri_prediction_models.json")
@@ -25,6 +26,76 @@ def load_models():
 def sanitize_parameter(value: float, min_val: float = 0.05, max_val: float = 6.0) -> float:
     """Inahakikisha parameter ziko ndani ya mipaka salama - kwa ajili ya Eredivisie na ligi nyingine"""
     return max(min_val, min(max_val, value))
+
+
+def find_best_team_match(search_name: str, available_teams: list, threshold: float = 0.7) -> tuple:
+    """
+    Tafuta timu inayofana zaidi kwa kutumia fuzzy string matching.
+    Returns (matched_team_name, similarity_score) tuple.
+    """
+    search_name_lower = search_name.lower().strip()
+    
+    # Common team name abbreviations
+    abbreviations = {
+        'man city': 'manchester city',
+        'man utd': 'manchester united',
+        'manchester utd': 'manchester united',
+        'man united': 'manchester united',
+        'spurs': 'tottenham',
+        'real madrid': 'real madrid',
+        'barca': 'barcelona',
+        'fc barcelona': 'barcelona',
+        'inter': 'inter milan',
+        'ac milan': 'milan',
+        'bayern': 'bayern munich',
+        'dortmund': 'borussia dortmund',
+        'juve': 'juventus',
+        'ajax': 'ajax',
+        'psg': 'paris saint-germain',
+        'psg': 'paris',
+        'west ham': 'west ham united',
+        'newcastle': 'newcastle united',
+        'wolves': 'wolverhampton',
+        'brighton': 'brighton & hove albion',
+        'hove': 'brighton & hove albion',
+    }
+    
+    # Check if search name is an abbreviation
+    if search_name_lower in abbreviations:
+        search_name_lower = abbreviations[search_name_lower]
+    
+    best_match = None
+    best_score = 0.0
+    
+    for team_name in available_teams:
+        team_name_lower = team_name.lower().strip()
+        
+        # Check for exact match first
+        if search_name_lower == team_name_lower:
+            return team_name, 1.0
+        
+        # Calculate similarity using SequenceMatcher
+        similarity = SequenceMatcher(None, search_name_lower, team_name_lower).ratio()
+        
+        # Bonus for containing the search term
+        if search_name_lower in team_name_lower or team_name_lower in search_name_lower:
+            similarity += 0.15
+        
+        # Bonus for matching key words (city, united, etc)
+        search_words = set(search_name_lower.split())
+        team_words = set(team_name_lower.split())
+        common_words = search_words & team_words
+        if common_words:
+            similarity += 0.1 * len(common_words)
+        
+        if similarity > best_score:
+            best_score = similarity
+            best_match = team_name
+    
+    if best_score >= threshold:
+        return best_match, best_score
+    else:
+        return None, best_score
 
 def get_available_leagues():
     """Inarudisha orodha ya ligi zote zilizopo kwenye model JSON kwa ajili ya dynamic loading"""
@@ -160,6 +231,32 @@ def predict_all_markets(home_team, away_team, team_params, home_advantage, leagu
 
 
 def predict_fixture(league_code: str, home_team: str, away_team: str):
-    """Function kuu itakayoitwa na Django views/views.py au api.py"""
-    team_params, home_advantage, league_avg_goals = get_league_params(league_code)
+    """
+    Function kuu itakayoitwa na Django views/views.py au api.py
+    Sasa inatum fuzzy matching kwa majina ya timu ili kuhimili spelling errors.
+    """
+    try:
+        team_params, home_advantage, league_avg_goals = get_league_params(league_code)
+    except ValueError as e:
+        raise
+    
+    # Check if teams exist in the model with exact match
+    if home_team not in team_params or away_team not in team_params:
+        # Try fuzzy matching for missing teams
+        available_teams = list(team_params.keys())
+        
+        if home_team not in team_params:
+            matched_home, home_score = find_best_team_match(home_team, available_teams)
+            if matched_home:
+                home_team = matched_home
+            else:
+                raise ValueError(f"Timu '{home_team}' haipatikani kwenye model hii. Karibu zaidi spelling au check ligi.")
+        
+        if away_team not in team_params:
+            matched_away, away_score = find_best_team_match(away_team, available_teams)
+            if matched_away:
+                away_team = matched_away
+            else:
+                raise ValueError(f"Timu '{away_team}' haipatikani kwenye model hii. Karibu zaidi spelling au check ligi.")
+    
     return predict_all_markets(home_team, away_team, team_params, home_advantage, league_avg_goals)

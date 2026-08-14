@@ -1,14 +1,15 @@
 """chat/tools.py — Wrapper functions za Groq function-calling."""
 
 from django.db.models import Q
-from predictions.ml.poisson_model import predict_fixture
+from predictions.ml.poisson_model import predict_fixture, find_best_team_match
 from predictions.services import team_form, head_to_head
 from predictions.models import Team, Match, ActiveDerby, AITrackRecordSnapshot
 
 
 def tool_predict_fixture(league_code: str, home_team: str, away_team: str) -> dict:
-    """Wrapper rahisi ya predict_fixture."""
+    """Wrapper rahisi ya predict_fixture with fuzzy matching."""
     try:
+        # predict_fixture already has fuzzy matching built-in
         result = predict_fixture(league_code, home_team, away_team)
         return {
             "success": True,
@@ -24,7 +25,16 @@ def tool_predict_fixture(league_code: str, home_team: str, away_team: str) -> di
 def tool_team_form(team_name: str) -> dict:
     """Tafuta timu kwa jina na rudisha form yake."""
     try:
-        team = Team.objects.filter(name__icontains=team_name).first()
+        # Try fuzzy matching first
+        all_teams = list(Team.objects.values_list("name", flat=True))
+        matched_name, match_score = find_best_team_match(team_name, all_teams)
+        
+        if matched_name:
+            team = Team.objects.filter(name=matched_name).first()
+        else:
+            # Fallback to icontains if fuzzy matching fails
+            team = Team.objects.filter(name__icontains=team_name).first()
+        
         if not team:
             return {
                 "success": False,
@@ -50,8 +60,21 @@ def tool_team_form(team_name: str) -> dict:
 def tool_head_to_head(team1_name: str, team2_name: str) -> dict:
     """Tafuta timu mbili na rudisha H2H history."""
     try:
-        team1 = Team.objects.filter(name__icontains=team1_name).first()
-        team2 = Team.objects.filter(name__icontains=team2_name).first()
+        # Try fuzzy matching for both teams
+        all_teams = list(Team.objects.values_list("name", flat=True))
+        
+        matched_team1, score1 = find_best_team_match(team1_name, all_teams)
+        matched_team2, score2 = find_best_team_match(team2_name, all_teams)
+        
+        if matched_team1:
+            team1 = Team.objects.filter(name=matched_team1).first()
+        else:
+            team1 = Team.objects.filter(name__icontains=team1_name).first()
+        
+        if matched_team2:
+            team2 = Team.objects.filter(name=matched_team2).first()
+        else:
+            team2 = Team.objects.filter(name__icontains=team2_name).first()
         
         if not team1:
             return {
@@ -70,7 +93,7 @@ def tool_head_to_head(team1_name: str, team2_name: str) -> dict:
             "data": {
                 "team1_name": team1.name,
                 "team2_name": team2.name,
-                **h2h_data,
+                "matches": h2h_data,  # h2h_data is a list
             },
         }
     except Exception as e:
@@ -169,8 +192,15 @@ def tool_search_matches(query: str, status: str = None) -> dict:
     try:
         from django.utils import timezone
         
-        # Tafuta timu kwa jina
-        teams = Team.objects.filter(name__icontains=query)
+        # Try fuzzy matching first with lower threshold for chat bot
+        all_teams = list(Team.objects.values_list("name", flat=True))
+        matched_name, match_score = find_best_team_match(query, all_teams, threshold=0.5)
+        
+        if matched_name:
+            teams = Team.objects.filter(name=matched_name)
+        else:
+            # Fallback to icontains if fuzzy matching fails
+            teams = Team.objects.filter(name__icontains=query)
         
         if not teams.exists():
             return {

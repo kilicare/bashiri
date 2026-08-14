@@ -17,20 +17,22 @@ interface AIResponseContainerProps {
 
 export function AIResponseContainer({ sections, children }: AIResponseContainerProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       {sections.map((section, index) => (
         <motion.div
           key={section.id}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.1 }}
+          className="w-full overflow-hidden"
         >
           {section.icon && (
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3 min-w-0">
               {section.icon}
               <h4 
-                className="font-bold text-sm"
+                className="font-bold text-sm truncate"
                 style={{ color: "var(--text-primary)" }}
+                title={section.title}
               >
                 {section.title}
               </h4>
@@ -38,13 +40,16 @@ export function AIResponseContainer({ sections, children }: AIResponseContainerP
           )}
           {!section.icon && (
             <h4 
-              className="font-bold text-sm mb-3"
+              className="font-bold text-sm mb-3 truncate"
               style={{ color: "var(--text-primary)" }}
+              title={section.title}
             >
               {section.title}
             </h4>
           )}
-          {section.content}
+          <div className="w-full overflow-hidden">
+            {section.content}
+          </div>
         </motion.div>
       ))}
       
@@ -53,6 +58,7 @@ export function AIResponseContainer({ sections, children }: AIResponseContainerP
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut", delay: sections.length * 0.1 }}
+          className="w-full overflow-hidden"
         >
           {children}
         </motion.div>

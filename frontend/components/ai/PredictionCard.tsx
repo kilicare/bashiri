@@ -19,7 +19,7 @@ export function PredictionCard({ prediction, confidence, teams }: PredictionCard
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="rounded-2xl p-4 border"
+      className="rounded-2xl p-4 border w-full overflow-hidden"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
@@ -46,8 +46,9 @@ export function PredictionCard({ prediction, confidence, teams }: PredictionCard
         {teams ? (
           <div className="space-y-2">
             <div 
-              className="text-lg font-black"
+              className="text-lg font-black truncate"
               style={{ color: "var(--text-primary)" }}
+              title={teams.home}
             >
               {teams.home}
             </div>
@@ -58,13 +59,14 @@ export function PredictionCard({ prediction, confidence, teams }: PredictionCard
               vs
             </div>
             <div 
-              className="text-lg font-black"
+              className="text-lg font-black truncate"
               style={{ color: "var(--text-primary)" }}
+              title={teams.away}
             >
               {teams.away}
             </div>
             <div 
-              className="text-xl font-black mt-3"
+              className="text-xl font-black mt-3 break-words"
               style={{ color: "var(--brand-primary)" }}
             >
               {prediction}
@@ -72,7 +74,7 @@ export function PredictionCard({ prediction, confidence, teams }: PredictionCard
           </div>
         ) : (
           <div 
-            className="text-xl font-black"
+            className="text-xl font-black break-words"
             style={{ color: "var(--brand-primary)" }}
           >
             {prediction}

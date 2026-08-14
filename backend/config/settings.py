@@ -203,6 +203,7 @@ CACHES = {
 }
 
 FOOTBALL_DATA_API_KEY = config("FOOTBALL_DATA_API_KEY", default="")
+ODDS_API_KEY = config("ODDS_API_KEY", default="")
 GROQ_API_KEY = config("GROQ_API_KEY", default="")
 MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY", default="")
 MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET", default="")
@@ -210,6 +211,17 @@ MPESA_SHORTCODE = config("MPESA_SHORTCODE", default="")
 MPESA_PASSKEY = config("MPESA_PASSKEY", default="")
 MPESA_ENV = config("MPESA_ENV", default="sandbox")
 MPESA_CALLBACK_BASE_URL = config("MPESA_CALLBACK_BASE_URL", default="https://your-production-domain.com")
+
+# Tigo Pesa Payment Gateway
+TIGO_CLIENT_ID = config("TIGO_CLIENT_ID", default="")
+TIGO_CLIENT_SECRET = config("TIGO_CLIENT_SECRET", default="")
+TIGO_MERCHANT_ACCOUNT = config("TIGO_MERCHANT_ACCOUNT", default="")
+TIGO_MERCHANT_PIN = config("TIGO_MERCHANT_PIN", default="")
+TIGO_MERCHANT_ID = config("TIGO_MERCHANT_ID", default="")
+TIGO_ENV = config("TIGO_ENV", default="sandbox")
+TIGO_CALLBACK_URL = config("TIGO_CALLBACK_URL", default="http://localhost:8000/api/payments/tigo/callback/")
+TIGO_REDIRECT_URL = config("TIGO_REDIRECT_URL", default="http://localhost:3000/payment/complete")
+
 SMS_API_KEY = config("SMS_API_KEY", default="")
 SMS_USERNAME = config("SMS_USERNAME", default="sandbox")
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")

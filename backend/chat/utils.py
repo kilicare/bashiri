@@ -27,8 +27,8 @@ TOOLS = [
                         "enum": ["EPL", "LaLiga", "Bundesliga", "Ligue1"],
                         "description": "Kodi ya ligi (EPL kwa Premier League, LaLiga kwa La Liga, Bundesliga, Ligue1)",
                     },
-                    "home_team": {"type": "string", "description": "Jina kamili la timu ya nyumbani (mfano: Manchester City, Chelsea)"},
-                    "away_team": {"type": "string", "description": "Jina kamili la timu ya ugenini (mfano: Arsenal, Liverpool)"},
+                    "home_team": {"type": "string", "description": "Jina la timu ya nyumbani (mfano: Manchester City, Chelsea, Man City, Liverpool). System inatambua abbreviations na spelling errors."},
+                    "away_team": {"type": "string", "description": "Jina la timu ya ugenini (mfano: Arsenal, Liverpool, Spurs, Man Utd). System inatambua abbreviations na spelling errors."},
                 },
                 "required": ["league_code", "home_team", "away_team"],
             },
@@ -44,7 +44,7 @@ TOOLS = [
                 "properties": {
                     "team_name": {
                         "type": "string",
-                        "description": "Jina kamili la timu moja tu (mfano: Manchester City, Simba, Arsenal)",
+                        "description": "Jina la timu moja tu (mfano: Manchester City, Simba, Arsenal, Man City, Liverpool). System inatambua abbreviations na spelling errors.",
                     },
                 },
                 "required": ["team_name"],
@@ -61,11 +61,11 @@ TOOLS = [
                 "properties": {
                     "team1_name": {
                         "type": "string",
-                        "description": "Jina kamili la timu ya kwanza",
+                        "description": "Jina la timu ya kwanza (mfano: Manchester City, Man City, Liverpool). System inatambua abbreviations na spelling errors.",
                     },
                     "team2_name": {
                         "type": "string",
-                        "description": "Jina kamili la timu ya pili",
+                        "description": "Jina la timu ya pili (mfano: Arsenal, Spurs, Chelsea). System inatambua abbreviations na spelling errors.",
                     },
                 },
                 "required": ["team1_name", "team2_name"],
@@ -131,7 +131,9 @@ SYSTEM_PROMPT = (
     "KILA mara mtu anauliza kuhusu prediction, form, head-to-head, track record, derby, au kutafuta mechi, "
     "LAZIMA uitie tool inayofaa. "
     "KATIKA hali yoyote - USIBUNI data yoyote. USIBUNI asilimia. USIBUNI matokeo. "
-    "Ikiwa hakuna tool inayofaa kwa swali, jibu kwa Kiswahili tu bila kubuni data."
+    "Ikiwa hakuna tool inayofaa kwa swali, jibu kwa Kiswahili tu bila kubuni data. "
+    "IMPORTANT: System inatambua fuzzy matching kwa majina ya timu - unaweza kutumia abbreviations (Man City, Spurs, Man Utd) "
+    "na spelling errors (Livrpool, Chelse) zote zitatambuliwa vizuri."
 )
 
 

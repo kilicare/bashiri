@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 
 from .models import Subscription, Transaction
 from .mpesa import stk_push
+from .tigo import authorize_payment
 from .serializers import SubscriptionSerializer, TransactionSerializer
 
 logger = logging.getLogger(__name__)
@@ -166,3 +167,90 @@ class MyPaymentHistoryView(APIView):
             "transactions": TransactionSerializer(transactions, many=True).data,
             "subscriptions": SubscriptionSerializer(subscriptions, many=True).data,
         })
+
+
+class InitiateTigoSubscriptionView(APIView):
+    """POST /api/payments/tigo/subscribe/ — body: {"plan": "weekly"|"monthly"}"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        plan = request.data.get("plan")
+        if plan not in ("weekly", "monthly"):
+            return Response({"detail": "plan lazima iwe 'weekly' au 'monthly'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        amount = settings.BASHIRI["SUBSCRIPTION_PRICES"][f"{plan}_tzs"]
+        phone_number = request.user.phone_number
+        first_name = request.user.username or ""
+        last_name = ""
+        email = ""
+
+        transaction = Transaction.objects.create(
+            user=request.user, plan=plan, amount_tzs=amount, phone_number=phone_number,
+        )
+
+        try:
+            tigo_response = authorize_payment(
+                phone_number=phone_number,
+                amount=amount,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                transaction_ref_id=f"BASHIRI-{transaction.id}",
+            )
+        except Exception as exc:
+            logger.error(f"Tigo Pesa authorization imeshindwa: {exc}")
+            transaction.status = "FAILED"
+            transaction.result_desc = str(exc)
+            transaction.save(update_fields=["status", "result_desc"])
+            return Response(
+                {"detail": "Imeshindwa kutuma ombi la malipo. Jaribu tena."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        transaction.tigo_transaction_ref_id = tigo_response.get("transactionRefId", "")
+        transaction.tigo_redirect_url = tigo_response.get("redirectUrl", "")
+        transaction.tigo_auth_code = tigo_response.get("authCode", "")
+        transaction.save(update_fields=["tigo_transaction_ref_id", "tigo_redirect_url", "tigo_auth_code"])
+
+        return Response({
+            "redirect_url": transaction.tigo_redirect_url,
+            "transaction_ref_id": transaction.tigo_transaction_ref_id,
+            "detail": "Umeelekezwa kwenye Tigo Pesa kukamilisha malipo.",
+        })
+
+
+class TigoCallbackView(APIView):
+    """
+    POST /api/payments/tigo/callback/ — Tigo Pesa callback
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        transaction_ref_id = request.data.get("transactionRefId")
+        result_code = request.data.get("resultCode")
+        result_desc = request.data.get("resultDesc", "")
+
+        if not transaction_ref_id:
+            return Response({"resultCode": 1, "resultDesc": "Ignored - no transactionRefId"})
+
+        try:
+            txn = Transaction.objects.get(tigo_transaction_ref_id=transaction_ref_id)
+        except Transaction.DoesNotExist:
+            logger.warning(f"Callback kwa transaction isiyojulikana: {transaction_ref_id}")
+            return Response({"resultCode": 1, "resultDesc": "Ignored - unknown transaction"})
+
+        # Idempotency
+        if txn.status != "PENDING":
+            return Response({"resultCode": 0, "resultDesc": "Already processed"})
+
+        if result_code == 0 or result_code == "0000":
+            txn.status = "SUCCESS"
+            txn.result_desc = result_desc
+            txn.save(update_fields=["status", "result_desc"])
+            _activate_subscription(txn)
+        else:
+            txn.status = "FAILED"
+            txn.result_desc = result_desc
+            txn.save(update_fields=["status", "result_desc"])
+
+        return Response({"resultCode": 0, "resultDesc": "Accepted"})

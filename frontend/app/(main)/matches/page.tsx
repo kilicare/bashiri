@@ -8,6 +8,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { MatchOddsCard } from "@/components/predictions/MatchOddsCard";
 
 function formatMatchDate(kickoffAt: string): string {
   const date = new Date(kickoffAt);
@@ -21,7 +22,7 @@ function formatMatchDate(kickoffAt: string): string {
 
 export default function MatchesPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"fixtures" | "live" | "finished">("fixtures");
+  const [tab, setTab] = useState<"fixtures" | "live" | "finished" | "live-odds">("fixtures");
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -38,6 +39,10 @@ export default function MatchesPage() {
   }, []);
 
   useEffect(() => {
+    if (tab === "live-odds") {
+      router.push("/live-odds");
+      return;
+    }
     setLoading(true);
     setOffset(0);
     if (tab === "fixtures") {
@@ -61,7 +66,7 @@ export default function MatchesPage() {
         setLoading(false);
       });
     }
-  }, [tab, selectedDate, selectedLeague]);
+  }, [tab, selectedDate, selectedLeague, router]);
 
   // Poll live matches every 15 seconds when on live tab
   useEffect(() => {
@@ -93,14 +98,14 @@ export default function MatchesPage() {
 
   return (
     <div>
-      <div className="px-5 pt-safe pt-10 pb-3" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+      <div className="px-5 pt-safe pt-10 pb-3 max-w-7xl mx-auto" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => router.back()} aria-label="Rudi nyuma">
             <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
           </button>
           <h1 className="text-2xl font-black text-white">Matches</h1>
         </div>
-        <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4" style={{ background: "#151515" }}>
+        <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4 max-w-2xl mx-auto sm:mx-0" style={{ background: "#151515" }}>
           <Search size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
           <input
             className="bg-transparent outline-none text-sm text-white flex-1"
@@ -123,69 +128,71 @@ export default function MatchesPage() {
         
         {/* Date picker for fixtures and finished tabs */}
         {(tab === "fixtures" || tab === "finished") && (
-          <div className="mb-4">
+          <div className="mb-4 max-w-xs mx-auto sm:mx-0">
             <DatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
           </div>
         )}
 
         {/* League filter dropdown */}
-        <div className="mb-4 relative">
-          <button
-            onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl"
-            style={{ background: "#151515" }}
-          >
-            <span className="text-sm font-bold text-white">
-              {selectedLeague ? leagues.find(l => l.code === selectedLeague)?.name : "All Leagues"}
-            </span>
-            <ChevronDown size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
-          </button>
-          
-          {showLeagueDropdown && (
-            <div className="absolute top-full left-0 right-0 mt-2 p-2 rounded-2xl z-50 max-h-60 overflow-y-auto"
-                 style={{ background: "#151515", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <button
-                onClick={() => { setSelectedLeague(""); setShowLeagueDropdown(false); }}
-                className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-white/5 transition-colors"
-              >
-                All Leagues
-              </button>
-              {leagues.map((league) => (
+        {tab !== "live-odds" && (
+          <div className="mb-4 relative max-w-md mx-auto sm:mx-0">
+            <button
+              onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl"
+              style={{ background: "#151515" }}
+            >
+              <span className="text-sm font-bold text-white">
+                {selectedLeague ? leagues.find(l => l.code === selectedLeague)?.name : "All Leagues"}
+              </span>
+              <ChevronDown size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
+            </button>
+            
+            {showLeagueDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-2 p-2 rounded-2xl z-50 max-h-60 overflow-y-auto"
+                   style={{ background: "#151515", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <button
-                  key={league.code}
-                  onClick={() => { setSelectedLeague(league.code); setShowLeagueDropdown(false); }}
-                  className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold transition-colors"
-                  style={{ 
-                    color: selectedLeague === league.code ? "var(--brand-accent)" : "rgba(255,255,255,0.6)",
-                    background: selectedLeague === league.code ? "rgba(207,175,123,0.1)" : "transparent"
-                  }}
+                  onClick={() => { setSelectedLeague(""); setShowLeagueDropdown(false); }}
+                  className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-white/5 transition-colors"
                 >
-                  {league.name}
+                  All Leagues
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+                {leagues.map((league) => (
+                  <button
+                    key={league.code}
+                    onClick={() => { setSelectedLeague(league.code); setShowLeagueDropdown(false); }}
+                    className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+                    style={{ 
+                      color: selectedLeague === league.code ? "var(--brand-accent)" : "rgba(255,255,255,0.6)",
+                      background: selectedLeague === league.code ? "rgba(207,175,123,0.1)" : "transparent"
+                    }}
+                  >
+                    {league.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         
-        <div className="flex gap-2 flex-wrap">
-          {(["fixtures", "live", "finished"] as const).map((t) => (
+        <div className="flex gap-2 flex-wrap max-w-lg mx-auto sm:max-w-none justify-center sm:justify-start">
+          {(["fixtures", "live", "finished", "live-odds"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className="px-4 py-2 rounded-full text-sm font-bold"
+              className="px-4 py-2 rounded-full text-sm font-bold sm:flex-none sm:w-28"
               style={{
                 background: tab === t ? "var(--brand-accent)" : "rgba(255,255,255,0.06)",
                 color: tab === t ? "#000" : "rgba(255,255,255,0.5)",
               }}
             >
-              {t === "fixtures" ? "Fixtures" : t === "live" ? "Live" : "Finished"}
+              {t === "fixtures" ? "Fixtures" : t === "live" ? "Live" : t === "finished" ? "Finished" : "Live Odds"}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="px-5 pb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="px-5 pb-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {loading ? (
             [1, 2, 3].map((i) => <CardSkeleton key={i} />)
           ) : matches.length === 0 ? (
@@ -198,10 +205,10 @@ export default function MatchesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <GlassCard hover texture className="p-4">
-                  <button
+                <GlassCard hover texture className="p-4 relative">
+                  <div
                     onClick={() => router.push(`/create/${m.id}/overview`)}
-                    className="w-full text-left"
+                    className="w-full text-left cursor-pointer pr-12"
                   >
                     <div className="flex flex-col gap-4">
                       <div className="flex items-start justify-between gap-3">
@@ -246,7 +253,15 @@ export default function MatchesPage() {
                         </div>
                       )}
                     </div>
-                  </button>
+                    
+                    {/* Integrated Odds Card */}
+                    <MatchOddsCard 
+                      matchId={m.id} 
+                      homeTeam={m.home_team.name} 
+                      awayTeam={m.away_team.name}
+                      compact={true}
+                    />
+                  </div>
                 </GlassCard>
               </motion.div>
             ))

@@ -202,3 +202,106 @@ class AITrackRecordSnapshot(models.Model):
 
     def __str__(self):
         return f"AI Track Record Snapshot ({self.generated_at:%Y-%m-%d %H:%M})"
+
+
+class OddsBookmaker(models.Model):
+    """Live odds from bookmakers for matches."""
+    MARKET_CHOICES = [
+        ("1X2", "1X2 (Home/Draw/Away)"),
+        ("OVER_UNDER_2_5", "Over/Under 2.5 Goals"),
+        ("BTTS", "Both Teams to Score"),
+        ("DOUBLE_CHANCE", "Double Chance"),
+    ]
+    
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="odds_bookmakers")
+    bookmaker_name = models.CharField(max_length=100, help_text="e.g., Bet365, DraftKings")
+    market_type = models.CharField(max_length=20, choices=MARKET_CHOICES, default="1X2")
+    home_win_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    draw_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    away_win_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    over_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="For OVER_UNDER markets")
+    under_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="For OVER_UNDER markets")
+    btts_yes_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="For BTTS market")
+    btts_no_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="For BTTS market")
+    last_updated = models.DateTimeField(auto_now=True)
+    is_live = models.BooleanField(default=False, help_text="True if odds are for live matches")
+    
+    class Meta:
+        db_table = "predictions_oddsbookmaker"
+        ordering = ["-last_updated"]
+        indexes = [
+            models.Index(fields=["match", "market_type"]),
+            models.Index(fields=["bookmaker_name"]),
+            models.Index(fields=["-last_updated"]),
+        ]
+    
+    def __str__(self):
+        return f"{self.bookmaker_name} - {self.match} ({self.market_type})"
+
+
+class OddsUpdate(models.Model):
+    """Historical tracking of odds changes for analysis."""
+    bookmaker_odds = models.ForeignKey(OddsBookmaker, on_delete=models.CASCADE, related_name="history")
+    home_win_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    draw_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    away_win_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    over_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    under_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    btts_yes_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    btts_no_odds = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = "predictions_oddsupdate"
+        ordering = ["-timestamp"]
+    
+    def __str__(self):
+        return f"Odds update for {self.bookmaker_odds} at {self.timestamp}"
+
+
+class TeamStanding(models.Model):
+    """Current team standings from Football Data Org."""
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="standings")
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name="team_standings")
+    position = models.PositiveSmallIntegerField()
+    matches_played = models.PositiveSmallIntegerField()
+    won = models.PositiveSmallIntegerField()
+    draw = models.PositiveSmallIntegerField()
+    lost = models.PositiveSmallIntegerField()
+    goals_for = models.PositiveSmallIntegerField()
+    goals_against = models.PositiveSmallIntegerField()
+    goal_difference = models.IntegerField()
+    points = models.PositiveSmallIntegerField()
+    form = models.CharField(max_length=10, blank=True, help_text="Last 5 matches: W, D, L, W, D")
+    form_rating = models.FloatField(default=50.0, help_text="Form rating 0-100 based on recent results")
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "predictions_teamstanding"
+        unique_together = ["team", "league"]
+        ordering = ["position"]
+    
+    def __str__(self):
+        return f"{self.team.name} - Position {self.position} ({self.points} pts)"
+
+
+class HeadToHead(models.Model):
+    """Head-to-head history between teams."""
+    home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="h2h_home")
+    away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="h2h_away")
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name="h2h_league")
+    total_matches = models.PositiveSmallIntegerField(default=0)
+    home_wins = models.PositiveSmallIntegerField(default=0)
+    draws = models.PositiveSmallIntegerField(default=0)
+    away_wins = models.PositiveSmallIntegerField(default=0)
+    home_goals = models.PositiveSmallIntegerField(default=0)
+    away_goals = models.PositiveSmallIntegerField(default=0)
+    last_5_matches = models.JSONField(default=list, help_text="Last 5 H2H matches with results")
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "predictions_headtohead"
+        unique_together = ["home_team", "away_team", "league"]
+    
+    def __str__(self):
+        return f"{self.home_team} vs {self.away_team}: {self.home_wins}-{self.draws}-{self.away_wins}"

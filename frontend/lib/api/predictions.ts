@@ -213,3 +213,65 @@ export interface League {
 export function getLeagues() {
   return apiClient<League[]>("/predictions/leagues/", { skipAuth: true });
 }
+
+// Odds API types
+export interface OddsBookmaker {
+  id: number;
+  match: Match;
+  bookmaker_name: string;
+  market_type: string;
+  market_label: string;
+  home_win_odds: number | string | null;
+  draw_odds: number | string | null;
+  away_win_odds: number | string | null;
+  over_odds: number | string | null;
+  under_odds: number | string | null;
+  btts_yes_odds: number | string | null;
+  btts_no_odds: number | string | null;
+  last_updated: string;
+  is_live: boolean;
+}
+
+export interface MatchOddsResponse {
+  match: {
+    id: number;
+    home_team: string;
+    away_team: string;
+    kickoff_at: string;
+    status: string;
+  };
+  odds: OddsBookmaker[];
+  history: Array<{
+    bookmaker: string;
+    market_type: string;
+    home_win_odds: number | null;
+    draw_odds: number | null;
+    away_win_odds: number | null;
+    timestamp: string;
+  }>;
+}
+
+export interface Bookmaker {
+  name: string;
+  leagues: string[];
+}
+
+export function getOdds(league?: string, status?: string, lang?: string) {
+  const params = new URLSearchParams();
+  if (league) params.append("league", league);
+  if (status) params.append("status", status);
+  if (lang) params.append("lang", lang);
+  const query = params.toString();
+  return apiClient<OddsBookmaker[]>(`/predictions/odds/${query ? '?' + query : ''}`, { skipAuth: true });
+}
+
+export function getMatchOdds(matchId: number, lang?: string) {
+  const params = new URLSearchParams();
+  if (lang) params.append("lang", lang);
+  const query = params.toString();
+  return apiClient<MatchOddsResponse>(`/predictions/matches/${matchId}/odds/${query ? '?' + query : ''}`, { skipAuth: true });
+}
+
+export function getBookmakers() {
+  return apiClient<Bookmaker[]>("/predictions/bookmakers/", { skipAuth: true });
+}

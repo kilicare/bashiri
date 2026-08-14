@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { Toaster } from "sonner";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "Bashiri — AI Sports Predictions",
@@ -37,21 +38,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="sw">
       <body className="safe-area-shell">
-        {children}
-        <ServiceWorkerRegister />
-        <Toaster
-          theme="dark"
-          position="top-center"
-          richColors
-          toastOptions={{
-            style: {
-              background: "#151515",
-              border: "1px solid rgba(255,71,87,0.35)",
-              color: "#FFFFFF",
-              fontSize: "13px",
-            },
-          }}
-        />
+        <QueryProvider>
+          {children}
+          <ServiceWorkerRegister />
+          <Toaster
+            theme="dark"
+            position="top-center"
+            richColors
+            toastOptions={{
+              style: {
+                background: "#151515",
+                border: "1px solid rgba(255,71,87,0.35)",
+                color: "#FFFFFF",
+                fontSize: "13px",
+              },
+            }}
+          />
+        </QueryProvider>
       </body>
     </html>
   );

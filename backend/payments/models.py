@@ -45,6 +45,10 @@ class Transaction(models.Model):
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="PENDING")
     mpesa_receipt_number = models.CharField(max_length=50, blank=True, default="")
     result_desc = models.CharField(max_length=255, blank=True, default="")
+    # Tigo Pesa fields
+    tigo_transaction_ref_id = models.CharField(max_length=100, blank=True, default="")
+    tigo_redirect_url = models.URLField(max_length=500, blank=True, default="")
+    tigo_auth_code = models.CharField(max_length=100, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

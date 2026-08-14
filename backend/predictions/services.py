@@ -239,11 +239,99 @@ def head_to_head(home_team_id, away_team_id, n=5):
     return [
         {
             "date": m.kickoff_at.date().isoformat(),
-            "home_team": m.home_team.name, "away_team": m.away_team.name,
-            "home_score": m.home_score, "away_score": m.away_score,
+            "home_team": m.home_team.name,
+            "away_team": m.away_team.name,
+            "home_score": m.home_score,
+            "away_score": m.away_score,
+            "result": "H" if m.home_score > m.away_score else ("A" if m.home_score < m.away_score else "D"),
         }
         for m in qs
     ]
+
+
+def get_enhanced_team_data(team_id: int, league_id: int) -> dict:
+    """
+    Get enhanced team data including current standings and form.
+    Returns comprehensive team data for AI predictions.
+    """
+    from .models import Team, TeamStanding
+    
+    try:
+        team = Team.objects.get(id=team_id)
+        standing = TeamStanding.objects.filter(team_id=team_id, league_id=league_id).first()
+        
+        return {
+            "team_id": team.id,
+            "team_name": team.name,
+            "crest_url": team.crest_url,
+            "standing": {
+                "position": standing.position if standing else None,
+                "points": standing.points if standing else None,
+                "form_rating": standing.form_rating if standing else 50.0,
+                "form": standing.form if standing else None,
+                "goals_for": standing.goals_for if standing else None,
+                "goals_against": standing.goals_against if standing else None,
+                "goal_difference": standing.goal_difference if standing else None,
+            } if standing else None
+        }
+    except Team.DoesNotExist:
+        return None
+
+
+def get_enhanced_h2h_data(home_team_id: int, away_team_id: int, league_id: int) -> dict:
+    """
+    Get enhanced head-to-head data from the HeadToHead model.
+    Returns H2H statistics for AI predictions.
+    """
+    from .models import HeadToHead
+    
+    try:
+        h2h = HeadToHead.objects.filter(
+            Q(home_team_id=home_team_id, away_team_id=away_team_id, league_id=league_id) |
+            Q(home_team_id=away_team_id, away_team_id=home_team_id, league_id=league_id)
+        ).first()
+        
+        if h2h:
+            return {
+                "total_matches": h2h.total_matches,
+                "home_wins": h2h.home_wins,
+                "draws": h2h.draws,
+                "away_wins": h2h.away_wins,
+                "home_goals": h2h.home_goals,
+                "away_goals": h2h.away_goals,
+                "last_5_matches": h2h.last_5_matches,
+                "home_win_rate": round((h2h.home_wins / h2h.total_matches) * 100, 1) if h2h.total_matches > 0 else 0,
+                "draw_rate": round((h2h.draws / h2h.total_matches) * 100, 1) if h2h.total_matches > 0 else 0,
+                "away_win_rate": round((h2h.away_wins / h2h.total_matches) * 100, 1) if h2h.total_matches > 0 else 0,
+            }
+        return None
+    except Exception:
+        return None
+
+
+def build_enhanced_prediction_dashboard(match, viewer_is_subscriber: bool):
+    """
+    Enhanced AI Prediction Dashboard with team standings and H2H data.
+    Includes all 9 markets with enriched context.
+    """
+    # Get base prediction
+    dashboard = build_prediction_dashboard(match, viewer_is_subscriber)
+    
+    # Add enhanced team data
+    home_data = get_enhanced_team_data(match.home_team_id, match.league_id)
+    away_data = get_enhanced_team_data(match.away_team_id, match.league_id)
+    
+    # Add H2H data
+    h2h_data = get_enhanced_h2h_data(match.home_team_id, match.away_team_id, match.league_id)
+    
+    # Enhance dashboard with additional context
+    dashboard["team_context"] = {
+        "home_team": home_data,
+        "away_team": away_data,
+        "head_to_head": h2h_data,
+    }
+    
+    return dashboard
 
 
 def get_ai_recommended_option(match, market_key: str):

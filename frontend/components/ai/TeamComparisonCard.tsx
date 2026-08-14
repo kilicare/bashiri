@@ -45,7 +45,7 @@ export function TeamComparisonCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut", delay: 0.1 }}
-      className="rounded-2xl p-4 border"
+      className="rounded-2xl p-4 border w-full overflow-hidden"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
@@ -65,10 +65,11 @@ export function TeamComparisonCard({
       {/* Comparison Grid */}
       <div className="grid grid-cols-3 gap-4">
         {/* Home Team */}
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-0">
           <div 
             className="font-bold text-sm truncate"
             style={{ color: "var(--text-primary)" }}
+            title={homeTeam}
           >
             {homeTeam}
           </div>
@@ -116,10 +117,11 @@ export function TeamComparisonCard({
         </div>
 
         {/* Away Team */}
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-0">
           <div 
             className="font-bold text-sm truncate text-right"
             style={{ color: "var(--text-primary)" }}
+            title={awayTeam}
           >
             {awayTeam}
           </div>

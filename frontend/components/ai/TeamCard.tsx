@@ -50,7 +50,7 @@ export function TeamCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="rounded-2xl p-4 border"
+      className="rounded-2xl p-4 border w-full overflow-hidden"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
@@ -58,17 +58,18 @@ export function TeamCard({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <div 
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ background: "rgba(212, 175, 55, 0.1)" }}
           >
             <Shield size={18} style={{ color: "var(--brand-primary)" }} />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <div 
-              className="text-sm font-bold"
+              className="text-sm font-bold truncate"
               style={{ color: "var(--text-primary)" }}
+              title={teamName}
             >
               {teamName}
             </div>

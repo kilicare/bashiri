@@ -8,9 +8,10 @@ from django.conf import settings
 from django.core.management import call_command
 from django.db.models import Q
 from django.utils import timezone
+import requests
 
 from .ml.poisson_model import predict_fixture
-from .models import Match
+from .models import Match, League, Team, TeamStanding, HeadToHead
 from .sync_service import STATUS_MAP
 
 logger = logging.getLogger(__name__)
@@ -388,3 +389,276 @@ def generate_ai_track_record_snapshot():
         AITrackRecordSnapshot.objects.filter(id__in=old_ids).delete()
 
     return f"AI Track Record snapshot: mechi {finished_matches.count()} zimechambuliwa"
+
+
+@shared_task
+def fetch_live_odds_task():
+    """
+    Fetch live odds using mock service for all active leagues.
+    Updates odds in database and cache.
+    Celery Beat: every 5 minutes.
+    """
+    from django.core.cache import cache
+    from .odds_mock_service import generate_all_mock_odds
+    
+    try:
+        logger.info("Starting live odds fetch task (mock service)")
+        total_updated = generate_all_mock_odds(is_live=True)
+        
+        # Invalidate odds cache
+        cache.delete("odds_list_*")
+        
+        logger.info(f"Live odds fetch completed: {total_updated} mock odds entries updated")
+        
+        # Update timestamp in cache
+        cache.set("odds_last_updated", timezone.now().isoformat(), timeout=300)
+        
+        return f"fetch_live_odds_task: {total_updated} mock odds entries updated"
+        
+    except Exception as e:
+        logger.error(f"Error in fetch_live_odds_task: {e}")
+        return f"fetch_live_odds_task: failed - {str(e)}"
+
+
+@shared_task
+def fetch_upcoming_odds_task():
+    """
+    Fetch upcoming odds using mock service for all active leagues.
+    Updates odds in database and cache.
+    Celery Beat: every 15 minutes.
+    """
+    from django.core.cache import cache
+    from .odds_mock_service import generate_all_mock_odds
+    
+    try:
+        logger.info("Starting upcoming odds fetch task (mock service)")
+        total_updated = generate_all_mock_odds(is_live=False)
+        
+        # Invalidate odds cache
+        cache.delete("odds_list_*")
+        
+        logger.info(f"Upcoming odds fetch completed: {total_updated} mock odds entries updated")
+        
+        # Update timestamp in cache
+        cache.set("odds_last_updated", timezone.now().isoformat(), timeout=900)
+        
+        return f"fetch_upcoming_odds_task: {total_updated} mock odds entries updated"
+        
+    except Exception as e:
+        logger.error(f"Error in fetch_upcoming_odds_task: {e}")
+        return f"fetch_upcoming_odds_task: failed - {str(e)}"
+
+
+@shared_task
+def fetch_team_standings_task():
+    """
+    Fetch current team standings from Football Data Org.
+    Updates TeamStanding model for all leagues.
+    Celery Beat: daily at 00:00 UTC.
+    """
+    try:
+        logger.info("Starting team standings fetch task")
+        
+        headers = {"X-Auth-Token": settings.FOOTBALL_DATA_API_KEY}
+        leagues = League.objects.filter(is_active=True)
+        
+        total_updated = 0
+        
+        for league in leagues:
+            try:
+                # Get standings from Football Data Org
+                url = f"https://api.football-data.org/v4/competitions/{league.code}/standings"
+                response = requests.get(url, headers=headers, timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    standings = data.get("standings", [{}])[0].get("table", [])
+                    
+                    for standing in standings:
+                        team = Team.objects.filter(
+                            external_id=standing["team"]["id"],
+                            league=league
+                        ).first()
+                        
+                        if team:
+                            # Calculate form rating based on last 5 matches
+                            form = standing.get("form", "")
+                            form_rating = calculate_form_rating(form)
+                            
+                            TeamStanding.objects.update_or_create(
+                                team=team,
+                                league=league,
+                                defaults={
+                                    "position": standing["position"],
+                                    "matches_played": standing["playedGames"],
+                                    "won": standing["won"],
+                                    "draw": standing["draw"],
+                                    "lost": standing["lost"],
+                                    "goals_for": standing["goalsFor"],
+                                    "goals_against": standing["goalsAgainst"],
+                                    "goal_difference": standing["goalDifference"],
+                                    "points": standing["points"],
+                                    "form": form,
+                                    "form_rating": form_rating,
+                                }
+                            )
+                            total_updated += 1
+                            
+                # Rate limiting between leagues
+                time.sleep(6.5)
+                
+            except Exception as e:
+                logger.error(f"Error fetching standings for {league.name}: {e}")
+                continue
+        
+        logger.info(f"Team standings fetch completed: {total_updated} standings updated")
+        return f"fetch_team_standings_task: {total_updated} standings updated"
+        
+    except Exception as e:
+        logger.error(f"Error in fetch_team_standings_task: {e}")
+        return f"fetch_team_standings_task: failed - {str(e)}"
+
+
+@shared_task  
+def fetch_head_to_head_task():
+    """
+    Fetch head-to-head history between teams.
+    Updates HeadToHead model for recent matches.
+    Celery Beat: daily at 01:00 UTC.
+    """
+    try:
+        logger.info("Starting head-to-head fetch task")
+        
+        headers = {"X-Auth-Token": settings.FOOTBALL_DATA_API_KEY}
+        
+        # Get recent finished matches for H2H analysis
+        date_from = (timezone.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+        date_to = timezone.now().strftime("%Y-%m-%d")
+        
+        leagues = League.objects.filter(is_active=True)
+        total_updated = 0
+        
+        for league in leagues:
+            try:
+                url = f"https://api.football-data.org/v4/competitions/{league.code}/matches"
+                params = {"dateFrom": date_from, "dateTo": date_to, "status": "FINISHED"}
+                response = requests.get(url, headers=headers, params=params, timeout=15)
+                
+                if response.status_code == 200:
+                    matches = response.json().get("matches", [])
+                    
+                    # Process matches for H2H data
+                    h2h_data = {}
+                    
+                    for match in matches:
+                        home_team_id = match["homeTeam"]["id"]
+                        away_team_id = match["awayTeam"]["id"]
+                        
+                        # Create unique key for team pair (sorted to avoid duplicates)
+                        team_pair = tuple(sorted([home_team_id, away_team_id]))
+                        
+                        if team_pair not in h2h_data:
+                            h2h_data[team_pair] = {
+                                "total_matches": 0,
+                                "home_wins": 0,
+                                "draws": 0,
+                                "away_wins": 0,
+                                "home_goals": 0,
+                                "away_goals": 0,
+                                "last_5_matches": []
+                            }
+                        
+                        # Update H2H stats
+                        h2h = h2h_data[team_pair]
+                        h2h["total_matches"] += 1
+                        
+                        if match["score"]["fullTime"]["home"] > match["score"]["fullTime"]["away"]:
+                            if home_team_id == team_pair[0]:
+                                h2h["home_wins"] += 1
+                            else:
+                                h2h["away_wins"] += 1
+                        elif match["score"]["fullTime"]["home"] < match["score"]["fullTime"]["away"]:
+                            if away_team_id == team_pair[0]:
+                                h2h["home_wins"] += 1
+                            else:
+                                h2h["away_wins"] += 1
+                        else:
+                            h2h["draws"] += 1
+                        
+                        h2h["home_goals"] += match["score"]["fullTime"]["home"]
+                        h2h["away_goals"] += match["score"]["fullTime"]["away"]
+                        
+                        # Add to last 5 matches
+                        match_result = "W" if (
+                            (home_team_id == team_pair[0] and match["score"]["fullTime"]["home"] > match["score"]["fullTime"]["away"]) or
+                            (away_team_id == team_pair[0] and match["score"]["fullTime"]["home"] < match["score"]["fullTime"]["away"])
+                        ) else "L" if match["score"]["fullTime"]["home"] == match["score"]["fullTime"]["away"] else "D"
+                        
+                        h2h["last_5_matches"].append({
+                            "date": match["utcDate"],
+                            "result": match_result,
+                            "score": f"{match['score']['fullTime']['home']}-{match['score']['fullTime']['away']}"
+                        })
+                        
+                        # Keep only last 5 matches
+                        if len(h2h["last_5_matches"]) > 5:
+                            h2h["last_5_matches"] = h2h["last_5_matches"][-5:]
+                    
+                    # Save H2H data to database
+                    for team_pair, h2h in h2h_data.items():
+                        home_team = Team.objects.filter(external_id=team_pair[0], league=league).first()
+                        away_team = Team.objects.filter(external_id=team_pair[1], league=league).first()
+                        
+                        if home_team and away_team:
+                            HeadToHead.objects.update_or_create(
+                                home_team=home_team,
+                                away_team=away_team,
+                                league=league,
+                                defaults={
+                                    "total_matches": h2h["total_matches"],
+                                    "home_wins": h2h["home_wins"],
+                                    "draws": h2h["draws"],
+                                    "away_wins": h2h["away_wins"],
+                                    "home_goals": h2h["home_goals"],
+                                    "away_goals": h2h["away_goals"],
+                                    "last_5_matches": h2h["last_5_matches"],
+                                }
+                            )
+                            total_updated += 1
+                
+                # Rate limiting between leagues
+                time.sleep(6.5)
+                
+            except Exception as e:
+                logger.error(f"Error fetching H2H for {league.name}: {e}")
+                continue
+        
+        logger.info(f"Head-to-head fetch completed: {total_updated} H2H records updated")
+        return f"fetch_head_to_head_task: {total_updated} H2H records updated"
+        
+    except Exception as e:
+        logger.error(f"Error in fetch_head_to_head_task: {e}")
+        return f"fetch_head_to_head_task: failed - {str(e)}"
+
+
+def calculate_form_rating(form_string: str) -> float:
+    """
+    Calculate form rating (0-100) based on last 5 matches form string.
+    W = 100 points, D = 50 points, L = 0 points.
+    """
+    if not form_string:
+        return 50.0
+    
+    total = 0
+    count = 0
+    
+    for char in form_string.upper():
+        if char == 'W':
+            total += 100
+        elif char == 'D':
+            total += 50
+        elif char == 'L':
+            total += 0
+        count += 1
+    
+    return (total / count) if count > 0 else 50.0

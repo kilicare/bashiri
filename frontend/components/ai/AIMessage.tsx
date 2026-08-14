@@ -162,7 +162,7 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
       case "active_derby":
         if (!data.data.active) {
           return (
-            <div className="mt-4 p-4 rounded-2xl border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            <div className="mt-4 p-4 rounded-2xl border w-full overflow-hidden" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
               <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 Hakuna Derby inayoendelea sasa.
               </div>
@@ -174,14 +174,14 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
             {data.data.derbies.map((derby: any) => (
               <div
                 key={derby.id}
-                className="p-4 rounded-2xl border cursor-pointer transition-all hover:border-opacity-50"
+                className="p-4 rounded-2xl border cursor-pointer transition-all hover:border-opacity-50 w-full overflow-hidden"
                 style={{ background: "var(--surface)", borderColor: derby.theme_accent_color || "var(--border)" }}
                 onClick={() => router.push(`/create/${derby.match_id}/predict`)}
               >
-                <h3 className="font-bold text-sm mb-2" style={{ color: "var(--text-primary)" }}>{derby.derby_name}</h3>
-                <div className="flex items-center justify-between text-sm">
-                  <span style={{ color: "var(--text-secondary)" }}>{derby.home_team} vs {derby.away_team}</span>
-                  <span className="font-bold" style={{ color: "var(--brand-primary)" }}>→</span>
+                <h3 className="font-bold text-sm mb-2 truncate" style={{ color: "var(--text-primary)" }} title={derby.derby_name}>{derby.derby_name}</h3>
+                <div className="flex items-center justify-between text-sm gap-2">
+                  <span className="truncate" style={{ color: "var(--text-secondary)" }} title={`${derby.home_team} vs ${derby.away_team}`}>{derby.home_team} vs {derby.away_team}</span>
+                  <span className="font-bold flex-shrink-0" style={{ color: "var(--brand-primary)" }}>→</span>
                 </div>
               </div>
             ))}
@@ -194,19 +194,19 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
             {data.data.matches.map((match: any) => (
               <div
                 key={match.id}
-                className="p-4 rounded-2xl border cursor-pointer transition-all"
+                className="p-4 rounded-2xl border cursor-pointer transition-all w-full overflow-hidden"
                 style={{ background: "var(--surface)", borderColor: "var(--border)" }}
                 onClick={() => router.push(`/create/${match.id}/predict`)}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <div className="text-sm font-bold truncate" style={{ color: "var(--text-primary)" }} title={`${match.home_team} vs ${match.away_team}`}>
                     {match.home_team} vs {match.away_team}
                   </div>
-                  <div className="text-xs px-2 py-1 rounded-lg" style={{ background: "var(--glass-bg)", color: "var(--text-secondary)" }}>
+                  <div className="text-xs px-2 py-1 rounded-lg flex-shrink-0" style={{ background: "var(--glass-bg)", color: "var(--text-secondary)" }}>
                     {match.status}
                   </div>
                 </div>
-                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <div className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
                   {new Date(match.kickoff_at).toLocaleString()}
                 </div>
               </div>
@@ -247,9 +247,9 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
         </div>
 
         {/* Message Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div
-            className="rounded-3xl px-4 py-3 max-w-[85%] md:max-w-[70%] text-sm leading-relaxed relative group"
+            className="rounded-3xl px-4 py-3 max-w-[85%] md:max-w-[70%] text-sm leading-relaxed relative group overflow-hidden"
             style={{
               background: "var(--surface)",
               color: "var(--text-primary)",

@@ -13,9 +13,9 @@ from rest_framework.throttling import AnonRateThrottle
 
 from core.cache_utils import cache_response
 
-from .models import ActiveDerby, Match, SavedMatch, SavedMarket
-from .serializers import ActiveDerbySerializer, MatchListSerializer, SavedMatchSerializer, SavedMarketSerializer
-from .services import UnknownTeamError, build_prediction_dashboard, build_match_analysis, head_to_head, team_form
+from .models import ActiveDerby, Match, OddsBookmaker, SavedMatch, SavedMarket, TeamStanding, HeadToHead
+from .serializers import ActiveDerbySerializer, MatchListSerializer, OddsBookmakerSerializer, SavedMatchSerializer, SavedMarketSerializer, TeamStandingSerializer, HeadToHeadSerializer
+from .services import UnknownTeamError, build_prediction_dashboard, build_match_analysis, head_to_head, team_form, build_enhanced_prediction_dashboard, get_enhanced_team_data, get_enhanced_h2h_data
 
 
 class NoThrottle(AnonRateThrottle):
@@ -254,11 +254,20 @@ class MatchOverviewView(APIView):
         match = get_object_or_404(
             Match.objects.select_related("league", "home_team", "away_team"), pk=match_id
         )
+        
+        # Get enhanced team data and H2H
+        home_data = get_enhanced_team_data(match.home_team_id, match.league_id)
+        away_data = get_enhanced_team_data(match.away_team_id, match.league_id)
+        h2h_data = get_enhanced_h2h_data(match.home_team_id, match.away_team_id, match.league_id)
+        
         data = {
             "match": MatchListSerializer(match).data,
             "home_form": team_form(match.home_team_id, exclude_match_id=match.id),
             "away_form": team_form(match.away_team_id, exclude_match_id=match.id),
             "head_to_head": head_to_head(match.home_team_id, match.away_team_id),
+            "home_team_context": home_data,
+            "away_team_context": away_data,
+            "enhanced_h2h": h2h_data,
         }
         cache.set(cache_key, data, timeout=120)  # 2 minutes cache
         
@@ -266,7 +275,7 @@ class MatchOverviewView(APIView):
 
 
 class MatchDashboardView(APIView):
-    """GET /matches/{id}/dashboard/ — Hatua 3, CORE FEATURE."""
+    """GET /matches/{id}/dashboard/ — Hatua 3, CORE FEATURE with enhanced data."""
     permission_classes = [AllowAny]
 
     def get(self, request, match_id):
@@ -277,7 +286,7 @@ class MatchDashboardView(APIView):
         is_subscriber = bool(user and user.is_authenticated and getattr(user, "is_subscription_active", False))
 
         try:
-            dashboard = build_prediction_dashboard(match, is_subscriber)
+            dashboard = build_enhanced_prediction_dashboard(match, is_subscriber)
         except UnknownTeamError:
             return Response(
                 {"detail": "AI Prediction bado haipatikani kwa mechi hii — timu haina data ya kutosha."},
@@ -775,3 +784,204 @@ class CommandSearchView(APIView):
             "teams": TeamSerializer(teams, many=True).data,
             "leagues": LeagueSerializer(leagues, many=True).data,
         })
+
+
+class TeamStandingsView(APIView):
+    """GET /api/predictions/standings/ — Get current team standings."""
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        league_code = request.query_params.get("league")
+        
+        standings = TeamStanding.objects.select_related("team", "league")
+        
+        if league_code:
+            standings = standings.filter(league__code=league_code)
+        
+        standings = standings.order_by("league", "position")
+        
+        return Response(TeamStandingSerializer(standings, many=True).data)
+
+
+class HeadToHeadView(APIView):
+    """GET /api/predictions/h2h/ — Get head-to-head history between teams."""
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        home_team_id = request.query_params.get("home_team")
+        away_team_id = request.query_params.get("away_team")
+        league_code = request.query_params.get("league")
+        
+        if not home_team_id or not away_team_id:
+            return Response(
+                {"detail": "home_team and away_team parameters are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        h2h = HeadToHead.objects.select_related("home_team", "away_team", "league")
+        
+        if league_code:
+            h2h = h2h.filter(league__code=league_code)
+        
+        # Check both team orderings
+        h2h = h2h.filter(
+            Q(home_team_id=home_team_id, away_team_id=away_team_id) |
+            Q(home_team_id=away_team_id, away_team_id=home_team_id)
+        ).first()
+        
+        if not h2h:
+            return Response(
+                {"detail": "No head-to-head data found for these teams"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        return Response(HeadToHeadSerializer(h2h).data)
+
+
+class OddsListView(APIView):
+    """GET /api/predictions/odds/ — Get odds for matches with filtering."""
+    permission_classes = [AllowAny]
+    throttle_classes = [NoThrottle]
+
+    def get(self, request):
+        from django.core.cache import cache
+        
+        # Get query parameters
+        league = request.query_params.get("league")
+        status = request.query_params.get("status", "upcoming")  # upcoming, live, all
+        lang = request.query_params.get("lang", "en")
+        
+        # Build cache key
+        cache_key = f"odds_list_{league}_{status}_{lang}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+        
+        # Build query
+        queryset = OddsBookmaker.objects.select_related(
+            "match", "match__league", "match__home_team", "match__away_team"
+        )
+        
+        if league:
+            queryset = queryset.filter(match__league__code=league)
+        
+        if status == "live":
+            queryset = queryset.filter(match__status="LIVE", is_live=True)
+        elif status == "upcoming":
+            queryset = queryset.filter(match__status="SCHEDULED", is_live=False)
+        # else: all
+        
+        queryset = queryset.order_by("-last_updated")[:100]
+        
+        # Serialize with language context
+        from .serializers import OddsBookmakerSerializer
+        serializer = OddsBookmakerSerializer(queryset, many=True, context={"lang": lang})
+        data = serializer.data
+        
+        # Cache for 5 minutes
+        cache.set(cache_key, data, timeout=300)
+        
+        return Response(data)
+
+
+class MatchOddsView(APIView):
+    """GET /api/predictions/matches/{match_id}/odds/ — Get odds for a specific match."""
+    permission_classes = [AllowAny]
+    throttle_classes = [NoThrottle]
+
+    def get(self, request, match_id):
+        from django.core.cache import cache
+        
+        lang = request.query_params.get("lang", "en")
+        cache_key = f"match_odds_{match_id}_{lang}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+        
+        try:
+            match = Match.objects.get(id=match_id)
+        except Match.DoesNotExist:
+            return Response({"detail": "Match not found"}, status=404)
+        
+        queryset = OddsBookmaker.objects.filter(match=match).select_related(
+            "match", "match__league", "match__home_team", "match__away_team"
+        ).order_by("-last_updated")
+        
+        from .serializers import OddsBookmakerSerializer
+        serializer = OddsBookmakerSerializer(queryset, many=True, context={"lang": lang})
+        data = serializer.data
+        
+        # Include odds history (last 10 updates)
+        from .models import OddsUpdate
+        history = OddsUpdate.objects.filter(
+            bookmaker_odds__match=match
+        ).select_related("bookmaker_odds").order_by("-timestamp")[:10]
+        
+        # Simple history serialization
+        history_data = []
+        for update in history:
+            history_data.append({
+                "bookmaker": update.bookmaker_odds.bookmaker_name,
+                "market_type": update.bookmaker_odds.market_type,
+                "home_win_odds": float(update.home_win_odds) if update.home_win_odds else None,
+                "draw_odds": float(update.draw_odds) if update.draw_odds else None,
+                "away_win_odds": float(update.away_win_odds) if update.away_win_odds else None,
+                "timestamp": update.timestamp.isoformat(),
+            })
+        
+        response_data = {
+            "match": {
+                "id": match.id,
+                "home_team": match.home_team.name,
+                "away_team": match.away_team.name,
+                "kickoff_at": match.kickoff_at.isoformat(),
+                "status": match.status,
+            },
+            "odds": data,
+            "history": history_data,
+        }
+        
+        # Cache for 5 minutes
+        cache.set(cache_key, response_data, timeout=300)
+        
+        return Response(response_data)
+
+
+class BookmakersView(APIView):
+    """GET /api/predictions/bookmakers/ — Get list of bookmakers and their supported leagues."""
+    permission_classes = [AllowAny]
+    throttle_classes = [NoThrottle]
+
+    def get(self, request):
+        from django.core.cache import cache
+        from .models import OddsBookmaker
+        
+        cache_key = "bookmakers_list"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
+        
+        # Get unique bookmakers and their leagues
+        bookmakers = OddsBookmaker.objects.values(
+            "bookmaker_name"
+        ).distinct().order_by("bookmaker_name")
+        
+        bookmaker_data = []
+        for bm in bookmakers:
+            bookmaker_name = bm["bookmaker_name"]
+            leagues = OddsBookmaker.objects.filter(
+                bookmaker_name=bookmaker_name
+            ).values_list("match__league__name", flat=True).distinct()
+            
+            bookmaker_data.append({
+                "name": bookmaker_name,
+                "leagues": list(leagues),
+            })
+        
+        # Cache for 1 hour
+        cache.set(cache_key, bookmaker_data, timeout=3600)
+        
+        return Response(bookmaker_data)

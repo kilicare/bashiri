@@ -10,7 +10,7 @@ from django_celery_beat.models import CrontabSchedule, PeriodicTask, IntervalSch
 
 
 def make_task(name, task, cron_kwargs):
-    schedule, _ = CrontabSchedule.objects.get_or_create(**cron_kwargs)
+    schedule, created = CrontabSchedule.objects.get_or_create(**cron_kwargs)
     obj, created = PeriodicTask.objects.get_or_create(name=name, defaults={"crontab": schedule, "task": task})
     if not created:
         obj.crontab = schedule
@@ -57,6 +57,12 @@ make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_rec
 
 # AI Picks — kila siku asubuhi
 make_task("Generate Daily Picks", "predictions.tasks.generate_daily_picks", {"minute": "0", "hour": "6"})
+
+# Odds API tasks - Live odds every 5 minutes
+make_interval_task("Fetch Live Odds", "predictions.tasks.fetch_live_odds_task", 5)
+
+# Odds API tasks - Upcoming odds every 15 minutes
+make_interval_task("Fetch Upcoming Odds", "predictions.tasks.fetch_upcoming_odds_task", 15)
 
 # Feed tasks
 make_task("Generate Result Recaps", "feed.tasks.generate_result_recaps", {"minute": "*/30", "hour": "*"})
