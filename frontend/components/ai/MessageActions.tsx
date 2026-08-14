@@ -1,7 +1,8 @@
 "use client";
 
-import { Copy } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 interface MessageActionsProps {
   onCopy?: () => void;
@@ -9,7 +10,16 @@ interface MessageActionsProps {
 }
 
 export function MessageActions({ onCopy, show = false }: MessageActionsProps) {
-  if (!show) return null;
+  const [copied, setCopied] = useState(false);
+
+  // Always show copy button for mobile accessibility
+  if (!onCopy) return null;
+
+  const handleCopy = () => {
+    onCopy();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+  };
 
   return (
     <motion.div
@@ -19,23 +29,27 @@ export function MessageActions({ onCopy, show = false }: MessageActionsProps) {
     >
       <motion.button
         whileTap={{ scale: 0.95 }}
-        onClick={onCopy}
+        onClick={handleCopy}
         className="p-2 rounded-lg transition-all"
         style={{
-          background: "var(--glass-bg)",
-          color: "var(--text-secondary)",
+          background: copied ? "var(--success)" : "var(--glass-bg)",
+          color: copied ? "#fff" : "var(--text-secondary)",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = "var(--glass-bg-hover)";
-          e.currentTarget.style.color = "var(--text-primary)";
+          if (!copied) {
+            e.currentTarget.style.background = "var(--glass-bg-hover)";
+            e.currentTarget.style.color = "var(--text-primary)";
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = "var(--glass-bg)";
-          e.currentTarget.style.color = "var(--text-secondary)";
+          if (!copied) {
+            e.currentTarget.style.background = "var(--glass-bg)";
+            e.currentTarget.style.color = "var(--text-secondary)";
+          }
         }}
-        aria-label="Copy message"
+        aria-label={copied ? "Copied!" : "Copy message"}
       >
-        <Copy size={14} />
+        {copied ? <Check size={14} /> : <Copy size={14} />}
       </motion.button>
     </motion.div>
   );

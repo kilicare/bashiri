@@ -220,7 +220,7 @@ export default function MatchRoomPage() {
 
         {error && <p className="px-4 pt-2 text-xs font-medium text-cyan-400 sm:px-5">{error}</p>}
 
-        <div ref={messageListRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-3 sm:px-5">
+        <div ref={messageListRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-6 sm:px-5">
           <div className="mx-auto flex max-w-2xl flex-col gap-3">
             {messages.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-white/10 bg-white/5 px-4 py-8 text-center text-sm text-white/60">
@@ -271,7 +271,7 @@ export default function MatchRoomPage() {
           </button>
         )}
 
-        <div className="shrink-0 border-t border-white/10 bg-[var(--background)]/95 px-4 py-3 pb-safe sm:px-5">
+        <div className="shrink-0 border-t border-white/10 bg-[var(--background)]/95 px-4 py-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
           <div className="mx-auto flex max-w-2xl items-center gap-2 rounded-[24px] border border-white/10 bg-[#131313] p-2 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
             <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70" aria-label="Emoji">
               <Smile size={18} />

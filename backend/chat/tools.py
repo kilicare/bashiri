@@ -42,12 +42,69 @@ def tool_team_form(team_name: str) -> dict:
             }
         
         form_data = team_form(team.id)
+        
+        # Calculate attack/defense/form stats from recent matches
+        matches = form_data.get("matches", [])
+        if matches:
+            # Calculate attack based on goals scored
+            total_goals = sum(m["team_goals"] for m in matches)
+            attack = min(100, max(0, (total_goals / len(matches)) * 20))  # Scale to 0-100
+            
+            # Calculate defense based on goals conceded
+            total_conceded = sum(m["opponent_goals"] for m in matches)
+            defense = min(100, max(0, 100 - (total_conceded / len(matches)) * 20))  # Scale to 0-100
+            
+            # Calculate form based on wins/draws/losses
+            wins = sum(1 for m in matches if m["result"] == "W")
+            draws = sum(1 for m in matches if m["result"] == "D")
+            form = min(100, max(0, ((wins * 3 + draws) / (len(matches) * 3)) * 100))
+            
+            # Calculate momentum direction and intensity
+            recent_results = [m["result"] for m in matches]
+            points_recent = [3 if r == "W" else 1 if r == "D" else 0 for r in recent_results]
+            
+            # Determine momentum direction
+            if len(points_recent) >= 2:
+                first_half = sum(points_recent[:len(points_recent)//2])
+                second_half = sum(points_recent[len(points_recent)//2:])
+                if second_half > first_half:
+                    momentum_direction = "up"
+                elif second_half < first_half:
+                    momentum_direction = "down"
+                else:
+                    momentum_direction = "neutral"
+            else:
+                momentum_direction = "neutral"
+            
+            # Calculate momentum intensity (1-10) based on point difference
+            if len(points_recent) >= 2:
+                first_half = sum(points_recent[:len(points_recent)//2])
+                second_half = sum(points_recent[len(points_recent)//2:])
+                intensity = min(10, max(1, abs(second_half - first_half) + 1))
+            else:
+                intensity = 5
+            
+        else:
+            attack = 50
+            defense = 50
+            form = 50
+            momentum_direction = "neutral"
+            intensity = 5
+        
         return {
             "success": True,
             "data": {
                 "team_name": team.name,
                 "team_crest": team.crest_url,
-                **form_data,
+                "sequence": form_data.get("sequence", ""),
+                "attack": round(attack),
+                "defense": round(defense),
+                "form": round(form),
+                "matches": matches,
+                "momentum": {
+                    "direction": momentum_direction,
+                    "intensity": intensity,
+                }
             },
         }
     except Exception as e:

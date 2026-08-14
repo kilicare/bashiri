@@ -116,11 +116,13 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
                 results={data.data.sequence.split('') as ("W" | "D" | "L")[]}
               />
             )}
-            <MomentumIndicator
-              team={data.data.team_name}
-              direction={data.data.momentum || "neutral"}
-              intensity={data.data.momentum_intensity || 5}
-            />
+            {data.data.momentum && (
+              <MomentumIndicator
+                team={data.data.team_name}
+                direction={data.data.momentum.direction || "neutral"}
+                intensity={data.data.momentum.intensity || 5}
+              />
+            )}
           </div>
         );
 
@@ -305,7 +307,7 @@ export const AIMessage = memo(function AIMessage({ content, timestamp, state = "
               </div>
             )}
           </div>
-          <MessageActions show={showActions && state === "complete"} onCopy={handleCopy} />
+          <MessageActions onCopy={handleCopy} />
           <MessageToolbar 
             show={showActions && state === "complete"} 
             onHelpful={handleHelpful}
