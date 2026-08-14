@@ -81,10 +81,10 @@ export default function ReviewPage() {
           style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           <h2 className="text-lg font-bold text-white mb-2">
-            Je, Unavyopenda App Yetu?
+            Je, unafurahia App Yetu?
           </h2>
           <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
-            Tafadhali pangi uzoefu wako kwa kutumia app ya Bashiri
+            Tafadhali tathmini uzoefu wako unapotumia app ya Bashiri
           </p>
 
           {/* Star Rating */}

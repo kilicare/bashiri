@@ -9,7 +9,7 @@ import { ConfidenceLegend } from "@/components/predictions/ConfidenceLegend";
 import { SubscriptionSheet } from "@/components/predictions/SubscriptionSheet";
 import { Spinner } from "@/components/ui/Spinner";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Bookmark, CheckSquare, Square, ArrowRight, ArrowLeft } from "lucide-react";
+import { Bookmark, CheckSquare, Square, ArrowRight, ArrowLeft, Trophy } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
@@ -28,17 +28,33 @@ export default function PredictDashboardPage() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedMarkets, setSelectedMarkets] = useState<Set<string>>(new Set());
   const [bulkSaving, setBulkSaving] = useState(false);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
   const isSubscriptionActive = useAuthStore((s) => s.user?.is_subscription_active ?? false);
   const prevSubscriptionActive = useRef(isSubscriptionActive);
 
   useEffect(() => {
-    getMatchDashboard(matchId).then(setDashboard);
+    loadDashboard();
     loadSavedMarkets();
   }, [matchId]);
 
+  async function loadDashboard() {
+    try {
+      setPredictionError(null);
+      const data = await getMatchDashboard(matchId);
+      setDashboard(data);
+    } catch (error: any) {
+      console.error("Failed to load dashboard:", error);
+      if (error.message && error.message.includes("insufficient data")) {
+        setPredictionError("AI Prediction bado haipatikani kwa mechi hii — timu haina data ya kutosha.");
+      } else {
+        setPredictionError("AI Prediction bado haipatikani kwa mechi hii — timu haina data ya kutosha.");
+      }
+    }
+  }
+
   useEffect(() => {
     if (isSubscriptionActive && !prevSubscriptionActive.current) {
-      getMatchDashboard(matchId).then(setDashboard).catch(() => {});
+      loadDashboard();
     }
     prevSubscriptionActive.current = isSubscriptionActive;
   }, [isSubscriptionActive, matchId]);
@@ -114,6 +130,38 @@ export default function PredictDashboardPage() {
     } finally {
       setBulkSaving(false);
     }
+  }
+
+  if (predictionError) {
+    return (
+      <div className="px-5 pt-safe pt-10 pb-8" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => router.back()} aria-label="Rudi nyuma">
+            <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
+          </button>
+          <h1 className="text-xl font-black text-white">Prediction</h1>
+        </div>
+        
+        <div className="rounded-2xl p-6 text-center" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(212, 175, 55, 0.1)" }}>
+            <Trophy size={32} style={{ color: "#D4AF37" }} />
+          </div>
+          <h2 className="text-lg font-bold text-white mb-3">
+            AI Prediction Haipatikani
+          </h2>
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+            {predictionError}
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="w-full py-3 rounded-xl font-bold transition-all"
+            style={{ background: "#D4AF37", color: "#000" }}
+          >
+            Rudi Nyuma
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!dashboard) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;

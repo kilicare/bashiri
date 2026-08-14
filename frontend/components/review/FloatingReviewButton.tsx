@@ -21,7 +21,7 @@ export function FloatingReviewButton({ onClick }: FloatingReviewButtonProps) {
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1.2, duration: 0.4 }}
-      className="fixed bottom-8 right-4 z-40"
+      className="fixed bottom-32 right-4 z-40"
       aria-label="Andika review"
     >
       {/* Glow Effect */}

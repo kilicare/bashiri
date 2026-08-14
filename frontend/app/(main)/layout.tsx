@@ -25,8 +25,8 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
         <AuthRequiredSheet />
         <InstallPromptSheet />
         <CommandPaletteProvider />
-        <FloatingWhatsAppButton />
         <FloatingReviewButton onClick={() => router.push("/review")} />
+        <FloatingWhatsAppButton />
       </div>
     </PWAInstallProvider>
   );

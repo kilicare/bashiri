@@ -75,10 +75,10 @@ export function ReviewPromptModal({ isOpen, onClose, onWriteReview }: ReviewProm
               </motion.div>
               
               <h3 className="text-xl font-bold text-white mb-2">
-                Jisikie Huru Kuandika Review!
+                Je, unafurahia App Yetu?
               </h3>
               <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Umepata mechi ngapi kwa kutumia app yetu? Tushirikishe uzoefu wako ili tuweze kuboresha huduma zaidi.
+                Tafadhali tathmini uzoefu wako unapotumia app ya Bashiri
               </p>
             </div>
 
