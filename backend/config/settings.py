@@ -138,6 +138,10 @@ CACHES = {
         "LOCATION": config("REDIS_URL", default="redis://redis:6379/2"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": 10,
+                "retry_on_timeout": True,
+            },
         },
         "KEY_PREFIX": "bashiri",
         "TIMEOUT": 3600,  # Default 1 hour
@@ -195,12 +199,9 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": config("CACHE_REDIS_URL", default="redis://redis:6379/2"),
-    }
-}
+# Celery broker connection pool settings
+CELERY_BROKER_CONNECTION_LIMIT = 10
+CELERY_BROKER_POOL_LIMIT = 10
 
 FOOTBALL_DATA_API_KEY = config("FOOTBALL_DATA_API_KEY", default="")
 ODDS_API_KEY = config("ODDS_API_KEY", default="")
@@ -317,6 +318,10 @@ CHANNEL_LAYERS = {
             "hosts": [config("CHANNELS_REDIS_URL", default="redis://redis:6379/1")],
             "capacity": 1500,
             "expiry": 10,
+            "connection_pool_kwargs": {
+                "max_connections": 10,
+                "retry_on_timeout": True,
+            },
         },
     },
 }
