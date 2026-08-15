@@ -333,12 +333,16 @@ def generate_mic_winner_cards():
     from mic.models import MicReaction
     from mic.views import FanOfMatchView
     from predictions.models import Match
+    from django.conf import settings
 
-    # Get matches finished in the last 1 month that have mic reactions
-    one_month_ago = timezone.now() - timedelta(days=30)
+    # Use the same 7-day window as compute_fan_of_match for consistency
+    window_days = settings.BASHIRI.get("MIC_FAN_OF_MATCH_WINDOW_DAYS", 7)
+    cutoff = timezone.now() - timedelta(days=window_days)
+    
+    # Get matches finished more than 7 days ago that have mic reactions
     finished_matches = Match.objects.filter(
         status="FINISHED",
-        updated_at__gte=one_month_ago
+        updated_at__lte=cutoff
     ).filter(
         mic_reactions__isnull=False
     ).distinct().select_related("home_team", "away_team", "league")
