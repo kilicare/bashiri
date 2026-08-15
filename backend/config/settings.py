@@ -318,10 +318,6 @@ CHANNEL_LAYERS = {
             "hosts": [config("CHANNELS_REDIS_URL", default="redis://redis:6379/1")],
             "capacity": 1500,
             "expiry": 10,
-            "connection_pool_kwargs": {
-                "max_connections": 10,
-                "retry_on_timeout": True,
-            },
         },
     },
 }
