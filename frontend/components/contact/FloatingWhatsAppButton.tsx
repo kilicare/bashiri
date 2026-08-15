@@ -42,7 +42,7 @@ export function FloatingWhatsAppButton() {
 
       {/* Button */}
       <div
-        className="relative w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm"
+        className="relative w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm"
         style={{
           background: "rgba(17, 18, 24, 0.8)",
           border: "2px solid rgba(37, 211, 102, 0.6)",
@@ -53,8 +53,8 @@ export function FloatingWhatsAppButton() {
       >
         {/* WhatsApp SVG Icon */}
         <svg
-          width="20"
-          height="20"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="currentColor"
           style={{ color: "#25D366" }}

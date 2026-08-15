@@ -43,7 +43,7 @@ export function FloatingReviewButton({ onClick }: FloatingReviewButtonProps) {
 
       {/* Button */}
       <div
-        className="relative w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm"
+        className="relative w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm"
         style={{
           background: "rgba(17, 18, 24, 0.8)",
           border: "2px solid rgba(212, 175, 55, 0.6)",
@@ -52,7 +52,7 @@ export function FloatingReviewButton({ onClick }: FloatingReviewButtonProps) {
             : "0 0 20px rgba(212, 175, 55, 0.3), 0 0 40px rgba(212, 175, 55, 0.2)",
         }}
       >
-        <MessageSquare size={18} style={{ color: "#D4AF37" }} />
+        <MessageSquare size={14} style={{ color: "#D4AF37" }} />
       </div>
 
       {/* Tooltip */}

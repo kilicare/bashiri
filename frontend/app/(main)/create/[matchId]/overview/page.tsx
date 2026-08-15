@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getMatchOverview } from "@/lib/api/predictions";
 import { BashiriButton } from "@/components/ui/Button";
+import { BookButton } from "@/components/ui/BookButton";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
@@ -182,9 +183,7 @@ export default function MatchOverviewPage() {
 
           {/* CTA Button */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <BashiriButton className="w-full" size="lg" onClick={() => router.push(`/create/${matchId}/predict`)}>
-              Ona Predictions →
-            </BashiriButton>
+            <BookButton onClick={() => router.push(`/create/${matchId}/predict`)} />
           </motion.div>
         </div>
       </div>
