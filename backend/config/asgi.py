@@ -6,6 +6,8 @@ kwa protocol router moja.
 import os
 
 from django.core.asgi import get_asgi_application
+from django.conf import settings
+from django.contrib.staticfiles.handlers import ASGIStaticFilesHandler
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
@@ -17,6 +19,10 @@ from channels.security.websocket import AllowedHostsOriginValidator  # noqa: E40
 
 from matchroom.middleware import JWTAuthMiddlewareStack  # noqa: E402
 import matchroom.routing  # noqa: E402
+
+# Wrap Django ASGI app with static files handler for production
+if not settings.DEBUG:
+    django_asgi_app = ASGIStaticFilesHandler(django_asgi_app)
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
