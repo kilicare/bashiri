@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { getFeed, Card } from "@/lib/api/feed";
 import { CardSkeleton } from "@/components/ui/Skeleton";
+import { BookButton } from "@/components/ui/BookButton";
 import { PredictionTutorial } from "@/components/predictions/PredictionTutorial";
 import { AIPickCard } from "./cards/AIPickCard";
 import { LiveMatchCard } from "./cards/LiveMatchCard";
@@ -13,6 +14,7 @@ import { AIWeeklyReportCard } from "./cards/AIWeeklyReportCard";
 import { DidYouKnowCard } from "./cards/DidYouKnowCard";
 import { DebateCard } from "./cards/DebateCard";
 import { MicWinnerCard } from "./cards/MicWinnerCard";
+import { ChevronDown } from "lucide-react";
 
 function renderCard(card: Card) {
   switch (card.type) {
@@ -103,13 +105,9 @@ export function FeedContainer() {
         ))}
       </div>
       {hasMore && (
-        <button
-          onClick={() => loadMore()}
-          className="w-full py-4 text-sm font-medium rounded-2xl mt-8 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
-          style={{ color: "var(--brand-primary)", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)" }}
-        >
+        <BookButton onClick={() => loadMore()} icon={ChevronDown}>
           Pakia Zaidi
-        </button>
+        </BookButton>
       )}
       {showTutorial && <PredictionTutorial onClose={() => setShowTutorial(false)} />}
     </div>

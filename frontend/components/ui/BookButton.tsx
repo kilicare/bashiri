@@ -1,18 +1,31 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Sparkles, ChevronRight } from "lucide-react";
+import { LucideIcon, ChevronRight, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { ReactNode } from "react";
 
 interface BookButtonProps {
   onClick: () => void;
+  children: ReactNode;
+  icon?: LucideIcon;
   className?: string;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
-export function BookButton({ onClick, className = "" }: BookButtonProps) {
+export function BookButton({ 
+  onClick, 
+  children, 
+  icon: Icon, 
+  className = "", 
+  loading = false,
+  disabled = false
+}: BookButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
 
   const handleClick = () => {
+    if (loading || disabled) return;
     setIsOpening(true);
     setTimeout(() => {
       setIsOpening(false);
@@ -25,31 +38,33 @@ export function BookButton({ onClick, className = "" }: BookButtonProps) {
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`relative group w-full h-16 z-10 ${className}`}
+      whileHover={{ scale: loading || disabled ? 1 : 1.02 }}
+      whileTap={{ scale: loading || disabled ? 1 : 0.98 }}
+      className={`relative group w-full h-10 sm:h-12 z-10 ${className}`}
       style={{
         perspective: "1000px",
       }}
+      disabled={loading || disabled}
     >
       {/* Book Container */}
       <motion.div
         className="relative w-full h-full rounded-2xl overflow-hidden"
         animate={{
-          rotateY: isHovered ? -15 : 0,
+          rotateY: isHovered && !loading && !disabled ? -15 : 0,
         }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
         style={{
           transformStyle: "preserve-3d",
           background: "linear-gradient(135deg, #0D4F3E 0%, #1A7A5C 25%, #2E8B6E 50%, #4CAF50 75%, #66BB6A 100%)",
           boxShadow: "0 10px 40px rgba(46, 125, 50, 0.4), 0 0 80px rgba(76, 175, 80, 0.2)",
+          opacity: disabled ? 0.5 : 1,
         }}
       >
         {/* Shimmer Effect */}
         <motion.div
           className="absolute inset-0 z-0"
           animate={{
-            background: isHovered 
+            background: (isHovered && !loading && !disabled) 
               ? "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)"
               : "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)",
           }}
@@ -71,8 +86,8 @@ export function BookButton({ onClick, className = "" }: BookButtonProps) {
         <motion.div
           className="absolute inset-0 rounded-l-2xl"
           animate={{
-            rotateY: isOpening ? -80 : (isHovered ? -45 : 0),
-            translateX: isOpening ? -30 : (isHovered ? -12 : 0),
+            rotateY: isOpening ? -80 : (isHovered && !loading && !disabled ? -45 : 0),
+            translateX: isOpening ? -30 : (isHovered && !loading && !disabled ? -12 : 0),
           }}
           transition={{ duration: isOpening ? 0.6 : 0.4, ease: "easeInOut" }}
           style={{
@@ -110,8 +125,8 @@ export function BookButton({ onClick, className = "" }: BookButtonProps) {
         <motion.div
           className="relative rounded-r-2xl"
           animate={{
-            rotateY: isOpening ? 30 : (isHovered ? 15 : 0),
-            translateX: isOpening ? 20 : (isHovered ? 12 : 0),
+            rotateY: isOpening ? 30 : (isHovered && !loading && !disabled ? 15 : 0),
+            translateX: isOpening ? 20 : (isHovered && !loading && !disabled ? 12 : 0),
           }}
           transition={{ duration: isOpening ? 0.6 : 0.4, ease: "easeInOut" }}
           style={{
@@ -149,7 +164,7 @@ export function BookButton({ onClick, className = "" }: BookButtonProps) {
         <motion.div
           className="absolute inset-0 flex items-center justify-center gap-3 rounded-2xl z-30"
           animate={{
-            opacity: isOpening ? 0 : (isHovered ? 0.95 : 1),
+            opacity: isOpening ? 0 : (isHovered && !loading && !disabled ? 0.95 : 1),
             scale: isOpening ? 0.8 : 1,
           }}
           transition={{ duration: 0.3 }}
@@ -158,38 +173,33 @@ export function BookButton({ onClick, className = "" }: BookButtonProps) {
             backdropFilter: "blur(4px)",
           }}
         >
-          <BookOpen
-            size={24}
-            className="text-white"
-            style={{
+          {loading ? (
+            <Loader2 size={18} className="text-white animate-spin" style={{
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
-            }}
-          />
-          <span className="text-white font-bold text-lg tracking-wide" style={{
-            textShadow: "0 2px 4px rgba(0,0,0,0.4)",
-          }}>
-            Ona Predictions
-          </span>
-          <motion.div
-            animate={{
-              rotate: isHovered ? 360 : 0,
-              scale: isHovered ? 1.2 : 1,
-            }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-          >
-            <Sparkles
-              size={20}
-              className="text-white"
-              style={{
-                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
-              }}
-            />
-          </motion.div>
+            }} />
+          ) : (
+            <>
+              {Icon && (
+                <Icon
+                  size={18}
+                  className="text-white"
+                  style={{
+                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
+                  }}
+                />
+              )}
+              <span className="text-white font-bold text-sm sm:text-base tracking-wide" style={{
+                textShadow: "0 2px 4px rgba(0,0,0,0.4)",
+              }}>
+                {children}
+              </span>
+            </>
+          )}
         </motion.div>
 
         {/* Opening Animation - Pages Inside */}
         <AnimatePresence>
-          {isOpening && (
+          {isOpening && !loading && !disabled && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -216,8 +226,8 @@ export function BookButton({ onClick, className = "" }: BookButtonProps) {
         <motion.div
           className="absolute inset-0 rounded-2xl z-0"
           animate={{
-            opacity: isOpening ? 1 : (isHovered ? 1 : 0.5),
-            scale: isOpening ? 1.3 : (isHovered ? 1.15 : 1),
+            opacity: isOpening ? 1 : (isHovered && !loading && !disabled ? 1 : 0.5),
+            scale: isOpening ? 1.3 : (isHovered && !loading && !disabled ? 1.15 : 1),
           }}
           transition={{ duration: isOpening ? 0.6 : 0.4 }}
           style={{
@@ -227,7 +237,7 @@ export function BookButton({ onClick, className = "" }: BookButtonProps) {
         />
 
         {/* Particles */}
-        {(isHovered || isOpening) && (
+        {(isHovered || isOpening) && !loading && !disabled && (
           <>
             {[...Array(10)].map((_, i) => (
               <motion.div

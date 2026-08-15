@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getFixtures, getLeagues, Match, League } from "@/lib/api/predictions";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Calendar, ChevronDown, ArrowLeft } from "lucide-react";
+import { BookButton } from "@/components/ui/BookButton";
+import { Calendar, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon } from "lucide-react";
 import { MatchOddsCard } from "@/components/predictions/MatchOddsCard";
 
 export default function CreatePredictionStep1() {
@@ -224,25 +225,9 @@ export default function CreatePredictionStep1() {
       {/* Load More Button */}
       {hasMore && (
         <div className="flex justify-center py-8">
-          <button
-            onClick={handleLoadMore}
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all disabled:opacity-50 shadow-lg"
-            style={{
-              background: "#D4AF37",
-              color: "#000",
-              boxShadow: "0 4px 20px rgba(212, 175, 55, 0.4)"
-            }}
-          >
-            {loading ? (
-              <div className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
-            ) : (
-              <>
-                <ChevronDown size={16} />
-                Pakia Zaidi
-              </>
-            )}
-          </button>
+          <BookButton onClick={handleLoadMore} icon={LoadMoreIcon} loading={loading} disabled={loading}>
+            Pakia Zaidi
+          </BookButton>
         </div>
       )}
     </div>

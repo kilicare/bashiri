@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getFixtures, getLiveMatches, getFinishedMatches, searchMatches, Match, getLeagues, League } from "@/lib/api/predictions";
-import { Search, ChevronDown, ArrowLeft } from "lucide-react";
+import { Search, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { BookButton } from "@/components/ui/BookButton";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -268,13 +269,9 @@ export default function MatchesPage() {
           )}
         </div>
         {tab === "finished" && hasMore && !loading && (
-          <button
-            onClick={loadMoreFinished}
-            className="w-full py-3 text-sm font-bold rounded-2xl mt-4"
-            style={{ color: "var(--brand-accent)", background: "rgba(207,175,123,0.06)" }}
-          >
+          <BookButton onClick={loadMoreFinished} icon={LoadMoreIcon}>
             Pakia Zaidi
-          </button>
+          </BookButton>
         )}
       </div>
     </div>

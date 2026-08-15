@@ -9,7 +9,7 @@ import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
-import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft, ChevronDown } from "lucide-react";
+import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft, ChevronDown, BookOpen } from "lucide-react";
 
 export default function MatchOverviewPage() {
   const router = useRouter();
@@ -183,7 +183,9 @@ export default function MatchOverviewPage() {
 
           {/* CTA Button */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <BookButton onClick={() => router.push(`/create/${matchId}/predict`)} />
+            <BookButton onClick={() => router.push(`/create/${matchId}/predict`)} icon={BookOpen}>
+              Ona Predictions
+            </BookButton>
           </motion.div>
         </div>
       </div>
