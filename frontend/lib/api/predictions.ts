@@ -53,13 +53,17 @@ export function searchMatches(q: string, date?: string, league?: string) {
   if (league) params.append("league", league);
   return apiClient<{ results: Match[] }>(`/predictions/search/?${params}`, { skipAuth: true });
 }
-export function getMatchOverview(matchId: number) {
+export function getMatchOverview(matchId: number, formRange?: number, h2hRange?: number) {
+  const params = new URLSearchParams();
+  if (formRange) params.append("form_range", formRange.toString());
+  if (h2hRange) params.append("h2h_range", h2hRange.toString());
+  const query = params.toString();
   return apiClient<{
     match: Match;
     home_form: { sequence: string; avg_goals_scored: number; matches: any[] };
     away_form: { sequence: string; avg_goals_scored: number; matches: any[] };
     head_to_head: { date: string; home_team: string; away_team: string; home_score: number; away_score: number }[];
-  }>(`/predictions/matches/${matchId}/overview/`, { skipAuth: true });
+  }>(`/predictions/matches/${matchId}/overview/${query ? '?' + query : ''}`, { skipAuth: true });
 }
 
 export interface MarketOption {

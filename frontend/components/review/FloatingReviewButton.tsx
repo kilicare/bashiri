@@ -21,7 +21,7 @@ export function FloatingReviewButton({ onClick }: FloatingReviewButtonProps) {
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1.2, duration: 0.4 }}
-      className="fixed bottom-32 right-4 z-40"
+      className="fixed bottom-32 left-4 z-40"
       aria-label="Andika review"
     >
       {/* Glow Effect */}
@@ -58,10 +58,10 @@ export function FloatingReviewButton({ onClick }: FloatingReviewButtonProps) {
       {/* Tooltip */}
       {isHovered && (
         <motion.div
-          initial={{ opacity: 0, x: 10 }}
+          initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 10 }}
-          className="absolute right-16 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg whitespace-nowrap"
+          exit={{ opacity: 0, x: -10 }}
+          className="absolute left-16 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg whitespace-nowrap"
           style={{
             background: "rgba(17, 18, 24, 0.9)",
             border: "1px solid rgba(255, 255, 255, 0.1)",

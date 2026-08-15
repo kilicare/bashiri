@@ -8,17 +8,19 @@ import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
-import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft } from "lucide-react";
+import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft, ChevronDown } from "lucide-react";
 
 export default function MatchOverviewPage() {
   const router = useRouter();
   const params = useParams();
   const matchId = Number(params.matchId);
   const [data, setData] = useState<any>(null);
+  const [formRange, setFormRange] = useState(5);
+  const [h2hRange, setH2hRange] = useState(5);
 
   useEffect(() => {
-    getMatchOverview(matchId).then(setData);
-  }, [matchId]);
+    getMatchOverview(matchId, formRange, h2hRange).then(setData);
+  }, [matchId, formRange, h2hRange]);
 
   if (!data) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
 
@@ -70,9 +72,21 @@ export default function MatchOverviewPage() {
           {/* Form Guide */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <PremiumCard variant="gradient" hover texture className="mb-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Trophy size={16} className="text-[#00FF87]" />
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Trophy size={16} className="text-[#00FF87]" />
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
+                </div>
+                <select 
+                  value={formRange}
+                  onChange={(e) => setFormRange(Number(e.target.value))}
+                  className="bg-[#050508]/90 text-white text-xs rounded px-2 py-1 border border-white/20 focus:outline-none focus:border-[#00FF87]"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 {/* Home Team Form */}
@@ -81,9 +95,9 @@ export default function MatchOverviewPage() {
                     <div className="w-2 h-2 rounded-full bg-[#00FF87]" />
                     <p className="text-sm font-bold text-white">{match.home_team.name}</p>
                   </div>
-                  <p className="text-xl sm:text-2xl font-black tracking-widest mb-3" style={{ color: "#00FF87" }}>{home_form.sequence || "—"}</p>
+                  <p className="text-xl sm:text-2xl font-black tracking-widest mb-3 break-all" style={{ color: "#00FF87" }}>{home_form.sequence || "—"}</p>
                   {home_form.matches && home_form.matches.length > 0 && (
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                       {home_form.matches.map((m: any, i: number) => (
                         <div key={i} className="flex items-center gap-2 sm:gap-3 text-xs bg-white/5 rounded-lg p-2">
                           <span className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded text-[10px] sm:text-[11px] font-bold ${
@@ -107,9 +121,9 @@ export default function MatchOverviewPage() {
                     <div className="w-2 h-2 rounded-full bg-[#FFD600]" />
                     <p className="text-sm font-bold text-white">{match.away_team.name}</p>
                   </div>
-                  <p className="text-xl sm:text-2xl font-black tracking-widest mb-3" style={{ color: "#FFD600" }}>{away_form.sequence || "—"}</p>
+                  <p className="text-xl sm:text-2xl font-black tracking-widest mb-3 break-all" style={{ color: "#FFD600" }}>{away_form.sequence || "—"}</p>
                   {away_form.matches && away_form.matches.length > 0 && (
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                       {away_form.matches.map((m: any, i: number) => (
                         <div key={i} className="flex items-center gap-2 sm:gap-3 text-xs bg-white/5 rounded-lg p-2">
                           <span className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded text-[10px] sm:text-[11px] font-bold ${
@@ -133,20 +147,32 @@ export default function MatchOverviewPage() {
           {/* Head to Head */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <PremiumCard variant="gold" hover texture className="mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp size={16} className="text-[#FFD600]" />
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Head to Head</p>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={16} className="text-[#FFD600]" />
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Head to Head</p>
+                </div>
+                <select 
+                  value={h2hRange}
+                  onChange={(e) => setH2hRange(Number(e.target.value))}
+                  className="bg-[#050508]/90 text-white text-xs rounded px-2 py-1 border border-white/20 focus:outline-none focus:border-[#FFD600]"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
               </div>
               {head_to_head.length === 0 ? (
                 <div className="text-center py-6">
                   <p className="text-sm text-white/40">Hakuna historia ya mechi kati ya timu hizi.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
                   {head_to_head.map((h: any, i: number) => (
                     <div key={i} className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs bg-white/5 rounded-lg p-3 gap-2">
                       <span className="text-white/50 font-medium">{h.date}</span>
-                      <span className="text-white font-bold text-center sm:text-right">{h.home_team} <span className="text-[#FFD600]">{h.home_score}-{h.away_score}</span> {h.away_team}</span>
+                      <span className="text-white font-bold text-center sm:text-right break-all">{h.home_team} <span className="text-[#FFD600]">{h.home_score}-{h.away_score}</span> {h.away_team}</span>
                     </div>
                   ))}
                 </div>

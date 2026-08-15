@@ -244,8 +244,12 @@ class MatchOverviewView(APIView):
     def get(self, request, match_id):
         from django.core.cache import cache
 
+        # Get range parameters from query string (default to 5)
+        form_range = int(request.query_params.get("form_range", 5))
+        h2h_range = int(request.query_params.get("h2h_range", 5))
+
         # Cache overview for 2 minutes (match data changes infrequently)
-        cache_key = f"match_overview_{match_id}"
+        cache_key = f"match_overview_{match_id}_{form_range}_{h2h_range}"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
@@ -262,9 +266,9 @@ class MatchOverviewView(APIView):
         
         data = {
             "match": MatchListSerializer(match).data,
-            "home_form": team_form(match.home_team_id, exclude_match_id=match.id),
-            "away_form": team_form(match.away_team_id, exclude_match_id=match.id),
-            "head_to_head": head_to_head(match.home_team_id, match.away_team_id),
+            "home_form": team_form(match.home_team_id, exclude_match_id=match.id, n=form_range),
+            "away_form": team_form(match.away_team_id, exclude_match_id=match.id, n=form_range),
+            "head_to_head": head_to_head(match.home_team_id, match.away_team_id, n=h2h_range),
             "home_team_context": home_data,
             "away_team_context": away_data,
             "enhanced_h2h": h2h_data,
