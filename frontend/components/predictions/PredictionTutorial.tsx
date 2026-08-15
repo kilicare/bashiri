@@ -8,7 +8,12 @@ interface PredictionTutorialProps {
 }
 
 export function PredictionTutorial({ onClose }: PredictionTutorialProps) {
-  const [isOpening, setIsOpening] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(onClose, 600); // Wait for closing animation to complete
+  };
 
   return (
     <AnimatePresence>
@@ -24,9 +29,9 @@ export function PredictionTutorial({ onClose }: PredictionTutorialProps) {
           {/* Book Container */}
           <motion.div
             initial={{ rotateY: -90 }}
-            animate={{ rotateY: isOpening ? 0 : -90 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            onAnimationComplete={() => setIsOpening(false)}
+            animate={{ rotateY: isClosing ? -90 : 0 }}
+            exit={{ rotateY: -90 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
             className="bg-[#111111] rounded-3xl max-h-[90vh] overflow-y-auto border border-white/10"
             style={{
               transformStyle: "preserve-3d",
@@ -59,7 +64,7 @@ export function PredictionTutorial({ onClose }: PredictionTutorialProps) {
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5, duration: 0.3 }}
-                onClick={onClose} 
+                onClick={handleClose} 
                 className="p-2 rounded-full hover:bg-white/10"
               >
                 <X size={20} className="text-white/60" />
@@ -251,7 +256,7 @@ export function PredictionTutorial({ onClose }: PredictionTutorialProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1.3, duration: 0.4 }}
-                onClick={onClose}
+                onClick={handleClose}
                 className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] text-black font-semibold text-base"
               >
                 Nimeelewa, Nitaanza

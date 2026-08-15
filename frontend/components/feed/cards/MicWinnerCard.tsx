@@ -72,7 +72,7 @@ export function MicWinnerCard({ cardId, data }: { cardId: number; data: any }) {
           <img 
             src={winner.thumbnail_url} 
             alt="Winner video" 
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+            className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
             onError={() => setImageError(true)}
             loading="lazy"
           />

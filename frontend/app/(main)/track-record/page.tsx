@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { getAITrackRecord, AITrackRecord, League } from "@/lib/api/predictions";
 import { getLeagues } from "@/lib/api/settings";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { ArrowLeft } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Area, AreaChart } from "recharts";
+import { ArrowLeft, TrendingUp } from "lucide-react";
 
 const MARKET_LABELS: Record<string, string> = {
   "1X2": "Matokeo ya Mechi", DOUBLE_CHANCE: "Double Chance", DRAW_NO_BET: "Draw No Bet",
@@ -104,15 +104,58 @@ export default function AITrackRecordPage() {
 
           {data.weekly_trend.length > 0 && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Mwelekeo wa Wiki 8 za Mwisho (1X2)</p>
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp size={16} style={{ color: "var(--brand-primary)" }} />
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Mwelekeo wa Wiki 8 za Mwisho (1X2)</p>
+              </div>
               <div className="rounded-2xl p-4" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <ResponsiveContainer width="100%" height={160}>
-                  <LineChart data={data.weekly_trend}>
-                    <XAxis dataKey="week_start" tick={{ fontSize: 9, fill: "rgba(255,255,255,0.4)" }} />
-                    <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: "rgba(255,255,255,0.4)" }} />
-                    <Tooltip contentStyle={{ background: "#151515", border: "1px solid rgba(255,255,255,0.1)" }} />
-                    <Line type="monotone" dataKey="accuracy_percentage" stroke="var(--success)" strokeWidth={2} dot={{ fill: "var(--success)", r: 3 }} />
-                  </LineChart>
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={data.weekly_trend}>
+                    <defs>
+                      <linearGradient id="accuracyGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid 
+                      strokeDasharray="3 3" 
+                      vertical={true}
+                      horizontal={true}
+                      stroke="rgba(255,255,255,0.05)"
+                    />
+                    <XAxis 
+                      dataKey="week_start" 
+                      tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }}
+                      tickFormatter={(value) => new Date(value).toLocaleDateString('sw-TZ', { day: 'numeric', month: 'short' })}
+                    />
+                    <YAxis 
+                      domain={[0, 100]} 
+                      tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }}
+                      tickFormatter={(value) => `${value}%`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        background: "rgba(17, 17, 17, 0.95)", 
+                        border: "1px solid rgba(212, 175, 55, 0.2)",
+                        borderRadius: "8px",
+                        padding: "12px",
+                        fontSize: "12px"
+                      }}
+                      labelStyle={{ color: "rgba(255,255,255,0.7)" }}
+                      formatter={(value: any) => [`${value.toFixed(1)}%`, 'Usahihi']}
+                      labelFormatter={(value) => new Date(value).toLocaleDateString('sw-TZ', { weekday: 'long', day: 'numeric', month: 'short' })}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="accuracy_percentage" 
+                      stroke="var(--brand-primary)" 
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#accuracyGradient)"
+                      dot={{ fill: "var(--brand-primary)", r: 4, strokeWidth: 2, stroke: "#111111" }}
+                      activeDot={{ r: 6, stroke: "var(--brand-accent)", strokeWidth: 2 }}
+                    />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
