@@ -38,7 +38,11 @@ export default function AITrackRecordPage() {
         { key: "EPL", label: "EPL" },
         { key: "LaLiga", label: "La Liga" },
         { key: "Bundesliga", label: "Bundesliga" },
-        { key: "Ligue1", label: "Ligue 1" }
+        { key: "Ligue1", label: "Ligue 1" },
+        { key: "Serie A", label: "Serie A" },
+        { key: "Championship", label: "Championship" },
+        { key: "UEFA Champions League", label: "UEFA Champions League" },
+        { key: "Campeonato Brasileiro Série A", label: "Campeonato Brasileiro Série A" }
       ]);
     });
   }, []);

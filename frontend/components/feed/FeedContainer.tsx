@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { getFeed, Card } from "@/lib/api/feed";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { BookButton } from "@/components/ui/BookButton";
@@ -14,7 +14,7 @@ import { AIWeeklyReportCard } from "./cards/AIWeeklyReportCard";
 import { DidYouKnowCard } from "./cards/DidYouKnowCard";
 import { DebateCard } from "./cards/DebateCard";
 import { MicWinnerCard } from "./cards/MicWinnerCard";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 
 function renderCard(card: Card) {
   switch (card.type) {
@@ -38,6 +38,13 @@ export function FeedContainer() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  
+  const feedRef = useRef<HTMLDivElement>(null);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastRefreshTimeRef = useRef<number>(0);
 
   async function loadMore(reset = false) {
     const currentOffset = reset ? 0 : offset;
@@ -48,14 +55,86 @@ export function FeedContainer() {
     setLoading(false);
   }
 
+  // Smart refresh: append new data without reset
+  const smartRefresh = useCallback(async () => {
+    // Only refresh if feed is visible and page is active
+    if (!isVisible || !isPageVisible) return;
+    
+    // Debounce: don't refresh if we just refreshed (within 10 seconds)
+    const now = Date.now();
+    if (now - lastRefreshTimeRef.current < 10000) return;
+    
+    setIsRefreshing(true);
+    lastRefreshTimeRef.current = now;
+    
+    try {
+      // Fetch latest items and prepend them if they're new
+      const data = await getFeed(10, 0);
+      
+      setCards(prevCards => {
+        const existingIds = new Set(prevCards.map(card => card.id));
+        const newCards = data.results.filter(card => !existingIds.has(card.id));
+        
+        if (newCards.length > 0) {
+          return [...newCards, ...prevCards];
+        }
+        return prevCards;
+      });
+    } catch (error) {
+      console.error('Smart refresh failed:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isVisible, isPageVisible]);
+
+  // Intersection Observer for visibility detection
   useEffect(() => {
-    loadMore(true);
-    // Poll for updates every 15 seconds
-    const interval = setInterval(() => {
-      loadMore(true);
-    }, 15000);
-    return () => clearInterval(interval);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 } // Trigger when 10% visible
+    );
+
+    if (feedRef.current) {
+      observer.observe(feedRef.current);
+    }
+
+    return () => observer.disconnect();
   }, []);
+
+  // Page Visibility API
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Smart polling with conditions
+  useEffect(() => {
+    const poll = () => {
+      if (isVisible && isPageVisible) {
+        smartRefresh();
+      }
+    };
+
+    // Initial load
+    loadMore(true);
+
+    // Set up smart polling (every 30 seconds instead of 15)
+    const interval = setInterval(poll, 30000);
+
+    return () => {
+      clearInterval(interval);
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, [isVisible, isPageVisible]);
 
   if (loading) {
     return (
@@ -83,7 +162,7 @@ export function FeedContainer() {
   }
 
   return (
-    <div className="py-6">
+    <div ref={feedRef} className="py-6">
       <div className="mb-8 relative z-10">
         <button
           type="button"
@@ -99,6 +178,25 @@ export function FeedContainer() {
           📚 Jifunze kuhusu market predictions
         </button>
       </div>
+      
+      {/* Manual Refresh Button */}
+      <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          onClick={smartRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(207,175,123,0.08))",
+            border: "1px solid rgba(212,175,55,0.25)",
+            color: "var(--text-primary)",
+          }}
+        >
+          <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+          {isRefreshing ? "Inashaji..." : "Sasisha"}
+        </button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card) => (
           <div key={card.id}>{renderCard(card)}</div>

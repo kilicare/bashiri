@@ -17,6 +17,9 @@ const leagueNames: Record<string, string> = {
   "BL1": "Bundesliga",
   "FL1": "Ligue 1",
   "SA": "Serie A",
+  "ELC": "Championship",
+  "CL": "UEFA Champions League",
+  "BSA": "Campeonato Brasileiro Série A",
 };
 
 export function LeagueCard({ id, name, logo, color, selected, onSelect }: LeagueCardProps) {

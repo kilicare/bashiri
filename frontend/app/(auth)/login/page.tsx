@@ -46,7 +46,12 @@ export default function LoginPage() {
     try {
       const data = await login(phone, password);
       setSession(data.access, data.refresh, data.user);
-      router.push(consumeReturnTo() || "/home");
+      // Redirect to onboarding if profile is not complete
+      if (!data.profile_complete) {
+        router.push(consumeReturnTo() || "/onboarding");
+      } else {
+        router.push(consumeReturnTo() || "/home");
+      }
     } catch (e: any) {
       setError(e.message || "Hitilafu wakati wa kuingia");
       if (isNetworkError(e)) showNetworkErrorToast();
@@ -99,7 +104,12 @@ export default function LoginPage() {
         date_of_birth: dob,
       });
       setSession(data.access, data.refresh, data.user);
-      router.push(consumeReturnTo() || "/onboarding");
+      // Redirect to onboarding if profile is not complete
+      if (!data.profile_complete) {
+        router.push(consumeReturnTo() || "/onboarding");
+      } else {
+        router.push(consumeReturnTo() || "/home");
+      }
     } catch (e: any) {
       const errorMessage = e.message || "Hitilafu wakati wa kusajili";
       // If error is about username, go back to step 1

@@ -41,6 +41,9 @@ export default function SavedMarketsPage() {
     message: "",
     variant: "info"
   });
+  const [selectedMarkets, setSelectedMarkets] = useState<Set<number>>(new Set());
+  const [showMultiDeleteModal, setShowMultiDeleteModal] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
 
   // Convert market key to readable label
   const getMarketLabel = (key: string) => {
@@ -205,6 +208,73 @@ export default function SavedMarketsPage() {
     }
   }
 
+  function toggleSelectMode() {
+    setIsSelectMode(!isSelectMode);
+    setSelectedMarkets(new Set());
+  }
+
+  function toggleMarketSelection(marketId: number) {
+    setSelectedMarkets(prev => {
+      const next = new Set(prev);
+      if (next.has(marketId)) {
+        next.delete(marketId);
+      } else {
+        next.add(marketId);
+      }
+      return next;
+    });
+  }
+
+  function selectAllMarkets() {
+    const allIds = currentMarkets.map(m => m.id);
+    setSelectedMarkets(new Set(allIds));
+  }
+
+  function deselectAllMarkets() {
+    setSelectedMarkets(new Set());
+  }
+
+  async function confirmMultiDelete() {
+    if (selectedMarkets.size === 0) return;
+    
+    setShowMultiDeleteModal(false);
+    setDeletingId(-1); // Use -1 to indicate bulk operation
+    
+    try {
+      // Delete all selected markets
+      const deletePromises = Array.from(selectedMarkets).map(async (marketId) => {
+        const market = savedMarkets.find(m => m.id === marketId);
+        if (market) {
+          await unsaveMarket(market.match.id, market.market_key);
+        }
+      });
+      
+      await Promise.all(deletePromises);
+      
+      // Update local state
+      setSavedMarkets(prev => prev.filter(m => !selectedMarkets.has(m.id)));
+      setSelectedMarkets(new Set());
+      setIsSelectMode(false);
+      
+      setAlertModal({
+        isOpen: true,
+        title: "Imefanikiwa!",
+        message: `${selectedMarkets.size} masoko yamefutwa kikamilifu.`,
+        variant: "success"
+      });
+    } catch (error) {
+      console.error("Failed to delete markets:", error);
+      setAlertModal({
+        isOpen: true,
+        title: "Imeshindwa",
+        message: "Failed to delete markets. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   // Group markets by type based on actual market keys from backend
   const marketGroups = {
     all: savedMarkets,
@@ -288,28 +358,73 @@ export default function SavedMarketsPage() {
 
         {/* Generate and Share Buttons */}
         <div className="mt-4 flex gap-2">
-          <button
-            onClick={handleGeneratePDF}
-            disabled={generatingPDF || currentMarkets.length === 0}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: "rgba(212, 175, 55, 0.15)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)" }}
-          >
-            {generatingPDF ? (
-              <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-            ) : (
-              <Download size={14} />
-            )}
-            {generatingPDF ? "..." : "PDF"}
-          </button>
-          <button
-            onClick={handleShare}
-            disabled={currentMarkets.length === 0}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: "rgba(212, 175, 55, 0.15)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)" }}
-          >
-            <Share2 size={14} />
-            Share
-          </button>
+          {isSelectMode ? (
+            <>
+              <button
+                onClick={selectAllMarkets}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10"
+                style={{ background: "rgba(0, 255, 135, 0.15)", color: "#00FF87", border: "1px solid rgba(0, 255, 135, 0.3)" }}
+              >
+                Chagua Zote
+              </button>
+              <button
+                onClick={deselectAllMarkets}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10"
+                style={{ background: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.2)" }}
+              >
+                Ghairi Zote
+              </button>
+              {selectedMarkets.size > 0 && (
+                <button
+                  onClick={() => setShowMultiDeleteModal(true)}
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10"
+                  style={{ background: "rgba(255, 100, 100, 0.15)", color: "#FF6464", border: "1px solid rgba(255, 100, 100, 0.3)" }}
+                >
+                  <Trash2 size={14} />
+                  Futa ({selectedMarkets.size})
+                </button>
+              )}
+              <button
+                onClick={toggleSelectMode}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10"
+                style={{ background: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.2)" }}
+              >
+                Katisha
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={toggleSelectMode}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10"
+                style={{ background: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.2)" }}
+              >
+                Chagua
+              </button>
+              <button
+                onClick={handleGeneratePDF}
+                disabled={generatingPDF || currentMarkets.length === 0}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "rgba(212, 175, 55, 0.15)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+              >
+                {generatingPDF ? (
+                  <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                ) : (
+                  <Download size={14} />
+                )}
+                {generatingPDF ? "..." : "PDF"}
+              </button>
+              <button
+                onClick={handleShare}
+                disabled={currentMarkets.length === 0}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "rgba(212, 175, 55, 0.15)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)" }}
+              >
+                <Share2 size={14} />
+                Share
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -348,10 +463,18 @@ export default function SavedMarketsPage() {
                   {markets.map((market) => (
                     <div
                       key={market.id}
-                      className="flex items-center justify-between p-2 rounded-lg"
-                      style={{ background: "rgba(255,255,255,0.03)" }}
+                      className={`flex items-center justify-between p-2 rounded-lg transition-all ${isSelectMode ? 'cursor-pointer hover:bg-white/5' : ''}`}
+                      style={{ background: isSelectMode && selectedMarkets.has(market.id) ? "rgba(212, 175, 55, 0.1)" : "rgba(255,255,255,0.03)" }}
+                      onClick={() => isSelectMode && toggleMarketSelection(market.id)}
                     >
                       <div className="flex items-center gap-2">
+                        {isSelectMode && (
+                          <div className={`w-5 h-5 rounded-lg flex items-center justify-center border-2 transition-all ${selectedMarkets.has(market.id) ? 'bg-[#D4AF37] border-[#D4AF37]' : 'border-white/30'}`}>
+                            {selectedMarkets.has(market.id) && (
+                              <div className="w-3 h-3 rounded-full bg-black" />
+                            )}
+                          </div>
+                        )}
                         <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(212, 175, 55, 0.2)", color: "#D4AF37" }}>
                           {getMarketLabel(market.market_key)}
                         </span>
@@ -361,17 +484,22 @@ export default function SavedMarketsPage() {
                           </span>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleDelete(market.id, market.match.id, market.market_key)}
-                        disabled={deletingId === market.id}
-                        className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 disabled:opacity-50"
-                      >
-                        {deletingId === market.id ? (
-                          <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                        ) : (
-                          <Trash2 size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
-                        )}
-                      </button>
+                      {!isSelectMode && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(market.id, market.match.id, market.market_key);
+                          }}
+                          disabled={deletingId === market.id}
+                          className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                          {deletingId === market.id ? (
+                            <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                          ) : (
+                            <Trash2 size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
+                          )}
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -618,6 +746,52 @@ export default function SavedMarketsPage() {
               >
                 Ghairi
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Multi-Delete Confirmation Modal */}
+      {showMultiDeleteModal && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+          onClick={() => setShowMultiDeleteModal(false)}
+        >
+          <div 
+            className="rounded-2xl p-6 max-w-sm w-full mx-4"
+            style={{ background: "#111111", border: "1px solid rgba(255, 100, 100, 0.3)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{ background: "rgba(255, 100, 100, 0.2)" }}
+              >
+                <Trash2 size={32} style={{ color: "#FF6464" }} />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Futa Masoko?
+              </h3>
+              <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+                Unahitaji kufuta {selectedMarkets.size} masoko kutoka kwenye orodha yako ya saved markets?
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowMultiDeleteModal(false)}
+                  className="flex-1 py-3 rounded-xl font-bold transition-all"
+                  style={{ background: "rgba(255,255,255,0.1)", color: "white" }}
+                >
+                  Hapana
+                </button>
+                <button
+                  onClick={confirmMultiDelete}
+                  className="flex-1 py-3 rounded-xl font-bold transition-all"
+                  style={{ background: "#FF6464", color: "#000" }}
+                >
+                  Ndiyo, Futa
+                </button>
+              </div>
             </div>
           </div>
         </div>

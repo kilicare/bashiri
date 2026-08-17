@@ -35,6 +35,8 @@ LEAGUE_SEED = [
     {"code": "FL1", "name": "Ligue 1", "poisson_key": "Ligue1"},
     {"code": "SA", "name": "Serie A", "poisson_key": "Serie A"},
     {"code": "ELC", "name": "Championship", "poisson_key": "Championship"},
+    {"code": "CL", "name": "UEFA Champions League", "poisson_key": "UEFA Champions League"},
+    {"code": "BSA", "name": "Campeonato Brasileiro Série A", "poisson_key": "Campeonato Brasileiro Série A"},
 ]
 
 
