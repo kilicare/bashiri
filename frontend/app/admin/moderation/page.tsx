@@ -16,10 +16,10 @@ export default function AdminModerationPage() {
   }, []);
 
   function loadMic() {
-    getMicReactionsAdmin().then(setMicReactions);
+    getMicReactionsAdmin().then((data) => setMicReactions(data as unknown as any[]));
   }
   function loadReports() {
-    getAdminContentReports().then(setContentReports);
+    getAdminContentReports().then((data) => setContentReports(data as unknown as any[]));
   }
 
   async function handleToggleMic(id: number) {

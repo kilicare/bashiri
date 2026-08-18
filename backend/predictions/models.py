@@ -166,6 +166,24 @@ class AIPerformance(models.Model):
     high_confidence_predictions = models.PositiveIntegerField(default=0, help_text="Predictions with confidence >= 70%")
     high_confidence_correct = models.PositiveIntegerField(default=0, help_text="Correct high confidence predictions")
     high_confidence_accuracy = models.FloatField(default=0.0)
+    
+    # Market-specific tracking
+    predictions_1x2 = models.PositiveIntegerField(default=0, help_text="Total 1X2 predictions")
+    correct_1x2 = models.PositiveIntegerField(default=0, help_text="Correct 1X2 predictions")
+    accuracy_1x2 = models.FloatField(default=0.0, help_text="1X2 accuracy percentage")
+    
+    predictions_btts = models.PositiveIntegerField(default=0, help_text="Total BTTS predictions")
+    correct_btts = models.PositiveIntegerField(default=0, help_text="Correct BTTS predictions")
+    accuracy_btts = models.FloatField(default=0.0, help_text="BTTS accuracy percentage")
+    
+    predictions_over_under = models.PositiveIntegerField(default=0, help_text="Total Over/Under predictions")
+    correct_over_under = models.PositiveIntegerField(default=0, help_text="Correct Over/Under predictions")
+    accuracy_over_under = models.FloatField(default=0.0, help_text="Over/Under accuracy percentage")
+    
+    # Streak tracking
+    current_streak = models.PositiveSmallIntegerField(default=0, help_text="Current correct prediction streak")
+    best_streak = models.PositiveSmallIntegerField(default=0, help_text="Best correct prediction streak")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -182,7 +200,16 @@ class AIPerformance(models.Model):
             self.accuracy_percentage = round((self.correct_predictions / self.total_predictions) * 100, 1)
         if self.high_confidence_predictions > 0:
             self.high_confidence_accuracy = round((self.high_confidence_correct / self.high_confidence_predictions) * 100, 1)
-        self.save(update_fields=["accuracy_percentage", "high_confidence_accuracy"])
+        
+        # Calculate market-specific accuracy
+        if self.predictions_1x2 > 0:
+            self.accuracy_1x2 = round((self.correct_1x2 / self.predictions_1x2) * 100, 1)
+        if self.predictions_btts > 0:
+            self.accuracy_btts = round((self.correct_btts / self.predictions_btts) * 100, 1)
+        if self.predictions_over_under > 0:
+            self.accuracy_over_under = round((self.correct_over_under / self.predictions_over_under) * 100, 1)
+        
+        self.save(update_fields=["accuracy_percentage", "high_confidence_accuracy", "accuracy_1x2", "accuracy_btts", "accuracy_over_under"])
 
 
 class AITrackRecordSnapshot(models.Model):

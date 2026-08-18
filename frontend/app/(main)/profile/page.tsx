@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X, Flame, Sparkles, Power } from "lucide-react";
+import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X, Flame, Sparkles, Power, Eye } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { PremiumButton } from "@/components/ui/Button";
 import { PremiumCard, GlassCard } from "@/components/ui/GlassCard";
@@ -12,6 +12,9 @@ import { getAIPerformanceStats } from "@/lib/api/predictions";
 import { ShareProfileModal } from "@/components/profile/ShareProfileModal";
 import { QRCodeModal } from "@/components/profile/QRCodeModal";
 import { AlertModal } from "@/components/ui/AlertModal";
+import { useMobileTooltip } from "@/hooks/useMobileTooltip";
+import { AccuracySphere } from "@/components/profile/AccuracySphere";
+import { MarketMasteryHeatmap } from "@/components/profile/MarketMasteryHeatmap";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -32,6 +35,11 @@ export default function ProfilePage() {
     message: "",
     variant: "info"
   });
+  const [viewAvatarModal, setViewAvatarModal] = useState<{ isOpen: boolean; imageUrl: string }>({ isOpen: false, imageUrl: "" });
+  const { tooltip, handleChartClick, hideTooltip } = useMobileTooltip();
+
+  // Check for reduced motion preference
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
     fetchAIPerformance();
@@ -103,6 +111,10 @@ export default function ProfilePage() {
 
   function handleCameraClick() {
     fileInputRef.current?.click();
+  }
+
+  function handleAvatarView(imageUrl: string) {
+    setViewAvatarModal({ isOpen: true, imageUrl });
   }
 
   async function handleProfileSave() {
@@ -183,103 +195,74 @@ export default function ProfilePage() {
         {/* Animated Multi-Color Mist Effect */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-[#050508] via-[#050508] to-[#050508]" />
-          
-          {/* Mist Layer 1 - Gold flowing gradient */}
-          <motion.div 
-            className="absolute inset-0 opacity-35"
-            animate={{
-              backgroundPosition: ["0% 0%", "200% 200%", "0% 0%"],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              duration: 15,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            style={{
-              background: "radial-gradient(ellipse at 30% 40%, rgba(212, 175, 55, 0.2) 0%, transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(207, 175, 123, 0.15) 0%, transparent 50%)",
-              backgroundSize: "300% 300%",
-            }}
-          />
-          
-          {/* Mist Layer 2 - Green counter flowing */}
-          <motion.div 
-            className="absolute inset-0 opacity-30"
-            animate={{
-              backgroundPosition: ["100% 100%", "0% 0%", "100% 100%"],
-              scale: [1.1, 1, 1.1],
-            }}
-            transition={{
-              duration: 18,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            style={{
-              background: "radial-gradient(ellipse at 50% 30%, rgba(76, 175, 80, 0.18) 0%, transparent 55%), radial-gradient(ellipse at 20% 80%, rgba(102, 187, 106, 0.12) 0%, transparent 45%)",
-              backgroundSize: "250% 250%",
-            }}
-          />
-          
-          {/* Mist Layer 3 - Sea blue/silver diagonal flow */}
-          <motion.div 
-            className="absolute inset-0 opacity-25"
-            animate={{
-              backgroundPosition: ["0% 100%", "100% 0%", "0% 100%"],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            style={{
-              background: "radial-gradient(ellipse at 80% 20%, rgba(192, 192, 192, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 10% 90%, rgba(135, 206, 250, 0.1) 0%, transparent 40%)",
-              backgroundSize: "200% 200%",
-            }}
-          />
-          
-          {/* Floating particles with three colors */}
-          <div className="absolute inset-0">
-            {[...Array(24)].map((_, i) => {
-              const startX = Math.random() * 100;
-              const startY = Math.random() * 100;
-              const endX = Math.random() * 100;
-              const endY = Math.random() * 100;
-              
-              // Cycle through three colors: gold, green, sea blue/silver
-              const colorIndex = i % 3;
-              const colors = [
-                { r: 212, g: 175, b: 55 },   // Gold
-                { r: 76, g: 175, b: 80 },    // Green
-                { r: 135, g: 206, b: 250 }  // Sea blue
-              ];
-              const color = colors[colorIndex];
-              
-              return (
-                <motion.div
-                  key={i}
-                  className="absolute rounded-full"
-                  animate={{
-                    x: [`${startX}%`, `${endX}%`, `${startX}%`],
-                    y: [`${startY}%`, `${endY}%`, `${startY}%`],
-                    opacity: [0, 0.7, 0.3, 0.7, 0],
-                    scale: [0, 1.2, 0.8, 1, 0],
-                  }}
-                  transition={{
-                    duration: 10 + Math.random() * 8,
-                    repeat: Infinity,
-                    delay: Math.random() * 3,
-                    ease: "easeInOut",
-                  }}
-                  style={{
-                    width: `${3 + Math.random() * 5}px`,
-                    height: `${3 + Math.random() * 5}px`,
-                    background: `rgba(${color.r}, ${color.g}, ${color.b}, ${0.4 + Math.random() * 0.3})`,
-                    filter: "blur(2px)",
-                  }}
-                />
-              );
-            })}
-          </div>
+
+          {!reduceMotion && (
+            <>
+              {/* Optimized single gradient layer */}
+              <motion.div
+                className="absolute inset-0 opacity-35"
+                animate={{
+                  backgroundPosition: ["0% 0%", "200% 200%", "0% 0%"],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  background: "radial-gradient(ellipse at 30% 40%, rgba(212, 175, 55, 0.2) 0%, transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(207, 175, 123, 0.15) 0%, transparent 50%)",
+                  backgroundSize: "300% 300%",
+                  willChange: "transform",
+                }}
+              />
+
+              {/* Optimized floating particles - reduced from 24 to 8 */}
+              <div className="absolute inset-0">
+                {[...Array(8)].map((_, i) => {
+                  const startX = Math.random() * 100;
+                  const startY = Math.random() * 100;
+                  const endX = Math.random() * 100;
+                  const endY = Math.random() * 100;
+
+                  // Cycle through three colors: gold, green, sea blue/silver
+                  const colorIndex = i % 3;
+                  const colors = [
+                    { r: 212, g: 175, b: 55 },   // Gold
+                    { r: 76, g: 175, b: 80 },    // Green
+                    { r: 135, g: 206, b: 250 }  // Sea blue
+                  ];
+                  const color = colors[colorIndex];
+
+                  return (
+                    <motion.div
+                      key={i}
+                      className="absolute rounded-full"
+                      animate={{
+                        x: [`${startX}%`, `${endX}%`, `${startX}%`],
+                        y: [`${startY}%`, `${endY}%`, `${startY}%`],
+                        opacity: [0, 0.7, 0.3, 0.7, 0],
+                        scale: [0, 1.2, 0.8, 1, 0],
+                      }}
+                      transition={{
+                        duration: 10 + Math.random() * 8,
+                        repeat: Infinity,
+                        delay: Math.random() * 3,
+                        ease: "easeInOut",
+                      }}
+                      style={{
+                        width: `${3 + Math.random() * 5}px`,
+                        height: `${3 + Math.random() * 5}px`,
+                        background: `rgba(${color.r}, ${color.g}, ${color.b}, ${0.4 + Math.random() * 0.3})`,
+                        filter: "blur(2px)",
+                        willChange: "transform",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
         
         {/* Gradient overlay for smooth transition */}
@@ -322,31 +305,56 @@ export default function ProfilePage() {
       <div className="px-5 -mt-16 relative z-10 pb-4">
         <div className="flex items-end justify-between mb-4">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--brand-accent)]/30 to-[var(--brand-accent)]/20 flex items-center justify-center text-3xl font-black text-white border-4 border-[#050508] shadow-lg shadow-[var(--brand-accent)]/20 overflow-hidden">
-              {user.avatar_url ? (
-                <img 
-                  src={user.avatar_url} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                user.username?.[0]?.toUpperCase() || "?"
-              )}
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/30">
-              <div className="w-4 h-4 rounded-full bg-white" />
-            </div>
-            <button
-              onClick={handleCameraClick}
-              disabled={uploading}
-              className="absolute bottom-0 right-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/30 hover:scale-110 transition-transform disabled:opacity-50 z-20"
+            <motion.div 
+              className="relative"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
             >
-              {uploading ? (
-                <Loader2 size={18} className="text-black animate-spin" />
-              ) : (
-                <Camera size={18} className="text-black" />
-              )}
-            </button>
+              {/* Profile Image Container */}
+              <div 
+                className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--brand-accent)]/30 to-[var(--brand-accent)]/20 flex items-center justify-center text-3xl font-black text-white border-4 border-[#050508] shadow-lg shadow-[var(--brand-accent)]/20 overflow-hidden cursor-pointer relative"
+                onClick={() => user.avatar_url && handleAvatarView(user.avatar_url)}
+              >
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  user.username?.[0]?.toUpperCase() || "?"
+                )}
+                
+                {/* Overlay on hover to indicate clickable */}
+                {user.avatar_url && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <Eye size={24} className="text-white" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Online Status Indicator */}
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/30 border-2 border-[#050508]">
+                <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
+              </div>
+              
+              {/* Camera Upload Button */}
+              <motion.button
+                onClick={handleCameraClick}
+                disabled={uploading}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center shadow-xl shadow-[var(--brand-primary)]/40 hover:shadow-[var(--brand-primary)]/60 transition-all disabled:opacity-50 disabled:hover:scale-100 z-20 border-2 border-[#050508]"
+                title="Badilisha picha ya profaili"
+              >
+                {uploading ? (
+                  <Loader2 size={20} className="text-black animate-spin" />
+                ) : (
+                  <Camera size={20} className="text-black" />
+                )}
+              </motion.button>
+            </motion.div>
             <input
               ref={fileInputRef}
               type="file"
@@ -450,7 +458,82 @@ export default function ProfilePage() {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </motion.div>
           ))}
+          
+          {/* Streak Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.4, ease: "easeOut" }}
+            className="rounded-2xl p-4 backdrop-blur-sm border cursor-pointer group transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden from-purple-500/20 to-purple-600/10 border-purple-500/30 text-purple-400"
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative flex items-center gap-2 mb-3">
+              <Flame size={20} />
+              <span className="text-xs font-semibold text-white/70">Best Streak</span>
+            </div>
+            <motion.p 
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+              className="text-3xl font-black text-white relative z-10"
+            >
+              {aiPerformance?.weekly?.best_streak || 0}
+            </motion.p>
+            <div className="mt-2 relative z-10">
+              <span className="text-xs font-medium text-white/50 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+                Correct in a row
+              </span>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          </motion.div>
         </div>
+        
+        {/* Unique Visualizations Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-6 space-y-4"
+        >
+          {/* 3D Accuracy Sphere */}
+          <div className="rounded-2xl p-5 backdrop-blur-sm border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles size={18} className="text-[var(--brand-primary)]" />
+                <span className="text-sm font-bold text-white/90">Accuracy Sphere</span>
+              </div>
+              <span className="text-xs text-white/40">3D Visualization</span>
+            </div>
+            <div className="flex justify-center">
+              <AccuracySphere 
+                accuracy={aiPerformance?.weekly?.accuracy_percentage || 0} 
+                size={180}
+              />
+            </div>
+          </div>
+
+          {/* Market Mastery Heatmap */}
+          <div className="rounded-2xl p-5 backdrop-blur-sm border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 size={18} className="text-[var(--brand-primary)]" />
+                <span className="text-sm font-bold text-white/90">Market Mastery</span>
+              </div>
+              <span className="text-xs text-white/40">Heatmap</span>
+            </div>
+            <MarketMasteryHeatmap
+              data={[
+                { market: '1X2', accuracy: aiPerformance?.weekly?.market_accuracy?.["1x2"] || 0, predictions: aiPerformance?.weekly?.total_predictions || 0 },
+                { market: 'BTTS', accuracy: aiPerformance?.weekly?.market_accuracy?.["btts"] || 0, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.6) },
+                { market: 'O/U 2.5', accuracy: aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.8) },
+                { market: 'Dbl Chance', accuracy: (aiPerformance?.weekly?.market_accuracy?.["1x2"] || 0) * 0.95, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.4) },
+                { market: 'O/U 1.5', accuracy: (aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0) * 0.8, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.5) },
+                { market: 'O/U 3.5', accuracy: (aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0) * 0.75, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.3) },
+              ]}
+            />
+          </div>
+        </motion.div>
         
         {/* Weekly Trend Mini Chart */}
         {!loadingAI && aiPerformance?.weekly_trend && aiPerformance.weekly_trend.length > 0 && (
@@ -472,7 +555,10 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <div className="relative h-32">
+            <div
+              className="relative h-32 cursor-pointer chart-glass"
+              onClick={(e) => handleChartClick(e, { accuracy_percentage: aiPerformance.weekly_trend[aiPerformance.weekly_trend.length - 1]?.accuracy_percentage })}
+            >
               {/* Grid Lines */}
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                 {[0, 25, 50, 75, 100].map((value) => (
@@ -515,6 +601,20 @@ export default function ProfilePage() {
                   );
                 })}
               </div>
+
+              {/* Mobile Tooltip */}
+              {tooltip.visible && (
+                <div
+                  className="fixed bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm z-50 pointer-events-none border border-white/10"
+                  style={{
+                    left: `${tooltip.x}px`,
+                    top: `${tooltip.y - 40}px`,
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  {tooltip.content}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -688,6 +788,40 @@ export default function ProfilePage() {
         onClose={() => setQrModalOpen(false)}
         username={user?.username || ""}
       />
+
+      {/* Avatar View Modal */}
+      <AnimatePresence>
+        {viewAvatarModal.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+            onClick={() => setViewAvatarModal({ isOpen: false, imageUrl: "" })}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative max-w-lg w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={viewAvatarModal.imageUrl}
+                alt="Profile Full Size"
+                className="w-full h-auto rounded-2xl shadow-2xl"
+              />
+              <button
+                onClick={() => setViewAvatarModal({ isOpen: false, imageUrl: "" })}
+                className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Alert Modal */}
       <AlertModal

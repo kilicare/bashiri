@@ -46,14 +46,14 @@ export default function LoginPage() {
     try {
       const data = await login(phone, password);
       setSession(data.access, data.refresh, data.user);
-      // Redirect to onboarding if profile is not complete
+      // Redirect to onboarding if profile is not complete, otherwise home
       if (!data.profile_complete) {
         router.push(consumeReturnTo() || "/onboarding");
       } else {
         router.push(consumeReturnTo() || "/home");
       }
-    } catch (e: any) {
-      setError(e.message || "Hitilafu wakati wa kuingia");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Hitilafu wakati wa kuingia");
       if (isNetworkError(e)) showNetworkErrorToast();
     } finally {
       setLoading(false);
@@ -104,14 +104,10 @@ export default function LoginPage() {
         date_of_birth: dob,
       });
       setSession(data.access, data.refresh, data.user);
-      // Redirect to onboarding if profile is not complete
-      if (!data.profile_complete) {
-        router.push(consumeReturnTo() || "/onboarding");
-      } else {
-        router.push(consumeReturnTo() || "/home");
-      }
-    } catch (e: any) {
-      const errorMessage = e.message || "Hitilafu wakati wa kusajili";
+      // Always redirect to onboarding for new registrations
+      router.push(consumeReturnTo() || "/onboarding");
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "Hitilafu wakati wa kusajili";
       // If error is about username, go back to step 1
       if (errorMessage.toLowerCase().includes("username") || errorMessage.toLowerCase().includes("inatumika")) {
         setRegisterStep(1);

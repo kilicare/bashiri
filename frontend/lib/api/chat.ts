@@ -6,7 +6,7 @@ export function sendChatMessage(message: string, sessionKey?: string) {
     remaining_today: number;
     tool_result?: {
       tool_name: string;
-      data: any;
+      data: Record<string, unknown>;
     };
   }>("/chat/", {
     method: "POST",

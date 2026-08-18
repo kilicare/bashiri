@@ -81,7 +81,7 @@ export default function SavedMarketsPage() {
     
     setGeneratingPDF(true);
     try {
-      const blob = await generateSavedMarketsPDF(activeTab);
+      const blob = await generateSavedMarketsPDF(activeTab) as unknown as Blob;
       
       // Create URL for preview
       const url = window.URL.createObjectURL(blob);

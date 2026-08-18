@@ -38,7 +38,7 @@ async function refreshAdminAccessToken(): Promise<string | null> {
   return adminRefreshPromise;
 }
 
-async function adminFetch<T = any>(
+async function adminFetch<T = Record<string, unknown>>(
   endpoint: string,
   options: RequestInit = {},
   _isRetry = false
@@ -128,12 +128,12 @@ export function getMatches(params: { status?: string; league?: string } = {}) {
   if (params.league) query.set("league", params.league);
   return adminFetch(`/dashboard/matches/?${query.toString()}`);
 }
-export function updateMatch(id: number, payload: any) {
+export function updateMatch(id: number, payload: { status?: string; home_score?: number; away_score?: number }) {
   return adminFetch(`/dashboard/matches/${id}/`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 
 export function getTransactions(params: { status?: string; offset?: number } = {}) {
-  const query = new URLSearchParams(params as any);
+  const query = new URLSearchParams(params as Record<string, string>);
   return adminFetch(`/dashboard/transactions/?${query.toString()}`);
 }
 export function manualActivateSubscription(payload: { user_id: number; plan: string; reason: string }) {
@@ -170,7 +170,15 @@ export function createDerby(payload: {
 }) {
   return adminFetch("/dashboard/derbies/", { method: "POST", body: JSON.stringify(payload) });
 }
-export function updateDerby(id: number, payload: any) {
+export function updateDerby(id: number, payload: Partial<{
+  home_team: number;
+  away_team: number;
+  derby_name: string;
+  starts_at: string;
+  ends_at: string;
+  theme_accent_color: string;
+  banner_text: string;
+}>) {
   return adminFetch(`/dashboard/derbies/${id}/`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 export function deleteDerby(id: number) {

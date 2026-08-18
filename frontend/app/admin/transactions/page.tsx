@@ -14,7 +14,7 @@ export default function AdminTransactionsPage() {
   const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
-    getTransactions({ status: statusFilter || undefined }).then((data) => setTransactions(data.results));
+    getTransactions({ status: statusFilter || undefined }).then((data) => setTransactions((data as any).results as unknown as any[]));
   }, [statusFilter]);
 
   return (

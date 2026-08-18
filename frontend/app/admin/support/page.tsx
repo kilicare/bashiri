@@ -14,7 +14,7 @@ export default function AdminSupportPage() {
   const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
-    getAdminTickets({ status: statusFilter || undefined }).then(setTickets);
+    getAdminTickets({ status: statusFilter || undefined }).then((data) => setTickets(data as unknown as any[]));
   }, [statusFilter]);
 
   return (

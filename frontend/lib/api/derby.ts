@@ -12,7 +12,7 @@ export interface ActiveDerby {
   ends_at?: string;
   theme_accent_color?: string;
   banner_text?: string;
-  head_to_head?: any[];
+  head_to_head?: Array<{ date: string; home_score: number; away_score: number }>;
 }
 
 export interface ActiveDerbyResponse {

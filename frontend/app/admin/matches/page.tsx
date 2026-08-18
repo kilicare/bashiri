@@ -12,17 +12,17 @@ export default function AdminMatchesPage() {
   const [leagueFilter, setLeagueFilter] = useState("");
 
   useEffect(() => {
-    getMatches({ status: statusFilter || undefined, league: leagueFilter || undefined }).then(setMatches);
+    getMatches({ status: statusFilter || undefined, league: leagueFilter || undefined }).then((data) => setMatches(data as unknown as any[]));
   }, [statusFilter, leagueFilter]);
 
   useEffect(() => {
-    getMatches().then(setAllMatches);
+    getMatches().then((data) => setAllMatches(data as unknown as any[]));
   }, []);
 
   const uniqueLeagues = Array.from(new Set(allMatches.map((m) => m.league_name))).filter(Boolean);
 
   async function toggleBigMatch(id: number, current: boolean) {
-    await updateMatch(id, { is_big_match: !current });
+    await updateMatch(id, { is_big_match: !current } as any);
     setMatches((prev) => prev.map((m) => (m.id === id ? { ...m, is_big_match: !current } : m)));
   }
 

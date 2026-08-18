@@ -65,7 +65,7 @@ make_interval_task("Fetch Live Odds", "predictions.tasks.fetch_live_odds_task", 
 make_interval_task("Fetch Upcoming Odds", "predictions.tasks.fetch_upcoming_odds_task", 15)
 
 # Feed tasks
-make_task("Generate Result Recaps", "feed.tasks.generate_result_recaps", {"minute": "*/30", "hour": "*"})
+make_interval_task("Generate Result Recaps", "feed.tasks.generate_result_recaps", 15)
 make_task("Generate Stat Cards", "feed.tasks.generate_stat_cards", {"minute": "0", "hour": "5"})
 make_task("Generate Poll Cards", "feed.tasks.generate_poll_cards", {"minute": "0", "hour": "5"})
 make_interval_task_seconds("Update Live Match Cards", "feed.tasks.update_live_match_cards", 30)

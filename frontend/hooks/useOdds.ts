@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOdds, getMatchOdds, getBookmakers, type OddsBookmaker, type MatchOddsResponse, type Bookmaker } from "@/lib/api/predictions";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getOdds, getMatchOdds, getBookmakers } from "@/lib/api/predictions";
 
 export function useOdds(league?: string, status?: string, lang?: string) {
   return useQuery({

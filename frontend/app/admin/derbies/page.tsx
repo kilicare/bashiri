@@ -23,15 +23,15 @@ export default function AdminDerbiesPage() {
 
   useEffect(() => {
     load();
-    getTeams().then(setTeams);
+    getTeams().then((data) => setTeams(data as unknown as any[]));
     getMatches().then((data) => {
       console.log('Matches data:', data);
-      setMatches(data);
+      setMatches(data as unknown as any[]);
     });
   }, []);
 
   function load() {
-    getDerbies().then(setDerbies);
+    getDerbies().then((data) => setDerbies(data as unknown as any[]));
   }
 
   async function handleCreate() {
@@ -53,7 +53,7 @@ export default function AdminDerbiesPage() {
   }
 
   async function toggleActive(id: number, current: boolean) {
-    await updateDerby(id, { is_active: !current });
+    await updateDerby(id, { is_active: !current } as any);
     load();
   }
 

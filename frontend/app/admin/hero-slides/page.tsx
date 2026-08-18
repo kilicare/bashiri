@@ -121,7 +121,7 @@ export default function AdminHeroSlidesPage() {
               {uploading ? "Inapakia..." : <><Upload size={16} /> {form.image_url ? "Badilisha Picha" : "Pakia Picha"}</>}
             </button>
             {form.image_url && (
-              <img src={form.image_url} alt="preview" className="w-full h-32 object-cover rounded-xl mt-2" />
+              <img src={form.image_url} alt="preview" className="w-full h-32 object-cover rounded-xl mt-2" loading="lazy" />
             )}
           </div>
 
@@ -156,7 +156,7 @@ export default function AdminHeroSlidesPage() {
       <div className="space-y-3">
         {slides.map((slide) => (
           <div key={slide.id} className="rounded-2xl overflow-hidden flex" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <img src={slide.image_url} alt={slide.title} className="w-28 h-24 object-cover" />
+            <img src={slide.image_url} alt={slide.title} className="w-28 h-24 object-cover" loading="lazy" />
             <div className="flex-1 p-4">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm font-bold text-white">{slide.title}</p>

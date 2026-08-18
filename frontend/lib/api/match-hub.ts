@@ -10,13 +10,13 @@ export interface MatchHubBadges {
 
 export async function getMatchHubBadges(matchId: number): Promise<MatchHubBadges> {
   const [roomHistory, micReactions, micStatus] = await Promise.all([
-    apiClient<{ room_state: string; messages: any[] }>(`/matchroom/${matchId}/history/`, { skipAuth: true }),
-    apiClient<any[]>(`/mic/${matchId}/`, { skipAuth: true }).catch(() => []),
+    apiClient<{ room_state: string; messages: Array<{ id: number; username: string; content: string }> }>(`/matchroom/${matchId}/history/`, { skipAuth: true }),
+    apiClient<Array<{ id: number; reaction: string; created_at: string }>>(`/mic/${matchId}/`, { skipAuth: true }).catch(() => []),
     apiClient<{ can_post: boolean }>(`/mic/${matchId}/can-post/`, { skipAuth: true }).catch(() => ({ can_post: false })),
   ]);
 
   return {
-    room_state: roomHistory.room_state as any,
+    room_state: roomHistory.room_state as "watch_party" | "live" | "closed",
     room_message_count: roomHistory.messages.length,
     mic_reaction_count: micReactions.length,
     mic_can_post: micStatus.can_post,

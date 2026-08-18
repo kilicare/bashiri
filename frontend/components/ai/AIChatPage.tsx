@@ -81,22 +81,22 @@ export function AIChatPage() {
       setRemaining(data.remaining_today);
       
       // Update context if tool_result contains match info
-      if (data.tool_result && data.tool_result.tool_name === "predict_fixture" && data.tool_result.data?.data?.match_id) {
+      if (data.tool_result && data.tool_result.tool_name === "predict_fixture" && (data.tool_result.data as any)?.data?.match_id) {
         setLastMatchContext({
-          id: data.tool_result.data.data.match_id,
-          label: `${data.tool_result.data.data.home_team} vs ${data.tool_result.data.data.away_team}`,
+          id: (data.tool_result.data as any).data.match_id,
+          label: `${(data.tool_result.data as any).data.home_team} vs ${(data.tool_result.data as any).data.away_team}`,
         });
-      } else if (data.tool_result && data.tool_result.tool_name === "search_matches" && data.tool_result.data?.data?.matches?.length > 0) {
-        const firstMatch = data.tool_result.data.data.matches[0];
+      } else if (data.tool_result && data.tool_result.tool_name === "search_matches" && (data.tool_result.data as any)?.data?.matches?.length > 0) {
+        const firstMatch = (data.tool_result.data as any).data.matches[0];
         setLastMatchContext({
           id: firstMatch.id,
           label: `${firstMatch.home_team} vs ${firstMatch.away_team}`,
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       const errorMessage: Message = {
         role: "assistant",
-        content: e.message || "Something went wrong. Please try again.",
+        content: e instanceof Error ? e.message : "Something went wrong. Please try again.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMessage]);

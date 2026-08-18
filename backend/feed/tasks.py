@@ -30,6 +30,17 @@ def generate_result_recaps():
     correct_predictions = 0
     high_conf_predictions = 0
     high_conf_correct = 0
+    
+    # Market-specific tracking
+    predictions_1x2 = 0
+    correct_1x2 = 0
+    predictions_btts = 0
+    correct_btts = 0
+    predictions_over_under = 0
+    correct_over_under = 0
+    
+    # Streak tracking
+    current_streak = 0
 
     for match in finished_recent:
         # Deactivate LIVE_MATCH card for this match if it exists and is still active
@@ -73,10 +84,28 @@ def generate_result_recaps():
         total_predictions += 1
         if was_correct:
             correct_predictions += 1
+            current_streak += 1
+        else:
+            current_streak = 0
+        
         if confidence >= 70:
             high_conf_predictions += 1
             if was_correct:
                 high_conf_correct += 1
+        
+        # Market-specific tracking
+        if market_key == "1X2":
+            predictions_1x2 += 1
+            if was_correct:
+                correct_1x2 += 1
+        elif market_key == "BTTS":
+            predictions_btts += 1
+            if was_correct:
+                correct_btts += 1
+        elif "OVER_UNDER" in market_key:
+            predictions_over_under += 1
+            if was_correct:
+                correct_over_under += 1
 
     # Update or create AIPerformance record for today
     if total_predictions > 0:
@@ -87,6 +116,14 @@ def generate_result_recaps():
                 "correct_predictions": correct_predictions,
                 "high_confidence_predictions": high_conf_predictions,
                 "high_confidence_correct": high_conf_correct,
+                "predictions_1x2": predictions_1x2,
+                "correct_1x2": correct_1x2,
+                "predictions_btts": predictions_btts,
+                "correct_btts": correct_btts,
+                "predictions_over_under": predictions_over_under,
+                "correct_over_under": correct_over_under,
+                "current_streak": current_streak,
+                "best_streak": current_streak,
             }
         )
         if not created:
@@ -94,6 +131,15 @@ def generate_result_recaps():
             performance.correct_predictions += correct_predictions
             performance.high_confidence_predictions += high_conf_predictions
             performance.high_confidence_correct += high_conf_correct
+            performance.predictions_1x2 += predictions_1x2
+            performance.correct_1x2 += correct_1x2
+            performance.predictions_btts += predictions_btts
+            performance.correct_btts += correct_btts
+            performance.predictions_over_under += predictions_over_under
+            performance.correct_over_under += correct_over_under
+            performance.current_streak = current_streak
+            if current_streak > performance.best_streak:
+                performance.best_streak = current_streak
             performance.save()
         performance.calculate_accuracy()
 

@@ -30,7 +30,7 @@ export default function AdminReviewsPage() {
   async function loadReviews() {
     try {
       const data = await getAdminReviews();
-      setReviews(data);
+      setReviews(data as unknown as any[]);
     } catch (error) {
       console.error("Failed to load reviews:", error);
     } finally {

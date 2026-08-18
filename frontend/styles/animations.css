@@ -1,0 +1,123 @@
+/**
+ * styles/animations.css
+ *
+ * Animation styles for Bashiri predictive UI
+ */
+
+/* Odds Change Flash Animation */
+@keyframes oddsFlash {
+  0% {
+    background-color: transparent;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+  50% {
+    background-color: rgba(74, 222, 128, 0.15);
+    box-shadow: 0 0 12px 0 rgba(74, 222, 128, 0.3);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
+.odds-flash {
+  animation: oddsFlash 600ms ease-out;
+}
+
+/* Odds Increase (Green) */
+@keyframes oddsIncreaseFlash {
+  0% { color: currentColor; }
+  30% { color: #4ADE80; font-weight: 700; }
+  100% { color: currentColor; }
+}
+
+.odds-increase {
+  animation: oddsIncreaseFlash 800ms ease-out;
+}
+
+/* Odds Decrease (Red) */
+@keyframes oddsDecreaseFlash {
+  0% { color: currentColor; }
+  30% { color: #EF4444; font-weight: 700; }
+  100% { color: currentColor; }
+}
+
+.odds-decrease {
+  animation: oddsDecreaseFlash 800ms ease-out;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.3),
+                0 0 10px rgba(212, 175, 55, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6),
+                0 0 30px rgba(212, 175, 55, 0.3);
+  }
+}
+
+/* High confidence glow effect */
+.high-confidence-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Progress bar pulse */
+.progress-bar-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Glassmorphism Chart Container */
+.chart-glass {
+  position: relative;
+  background: rgba(17, 17, 17, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              0 0 20px rgba(212, 175, 55, 0.05);
+  overflow: hidden;
+}
+
+.chart-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.chart-glass::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+  transform: skewX(-25deg);
+  pointer-events: none;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .odds-flash,
+  .odds-increase,
+  .odds-decrease,
+  .high-confidence-glow,
+  .progress-bar-pulse {
+    animation: none;
+  }
+}

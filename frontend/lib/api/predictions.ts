@@ -60,8 +60,8 @@ export function getMatchOverview(matchId: number, formRange?: number, h2hRange?:
   const query = params.toString();
   return apiClient<{
     match: Match;
-    home_form: { sequence: string; avg_goals_scored: number; matches: any[] };
-    away_form: { sequence: string; avg_goals_scored: number; matches: any[] };
+    home_form: { sequence: string; avg_goals_scored: number; matches: Array<{ opponent: string; result: string; date: string }> };
+    away_form: { sequence: string; avg_goals_scored: number; matches: Array<{ opponent: string; result: string; date: string }> };
     head_to_head: { date: string; home_team: string; away_team: string; home_score: number; away_score: number }[];
   }>(`/predictions/matches/${matchId}/overview/${query ? '?' + query : ''}`, { skipAuth: true });
 }
@@ -104,7 +104,7 @@ export function saveMatch(matchId: number) {
   return apiClient("/predictions/save/", { method: "POST", body: JSON.stringify({ match_id: matchId }) });
 }
 export function getSavedMatches() {
-  return apiClient<any[]>("/predictions/saved/");
+  return apiClient<Array<{ match_id: number; home_team: string; away_team: string; saved_at: string }>>("/predictions/saved/");
 }
 export function saveMarket(matchId: number, marketKey: string) {
   return apiClient("/predictions/save-market/", { method: "POST", body: JSON.stringify({ match_id: matchId, market_key: marketKey }) });

@@ -4,7 +4,7 @@ export interface Card {
   id: number;
   type: string;
   match_id: number | null;
-  data: any;
+  data: Record<string, unknown>;
   created_at: string;
 }
 

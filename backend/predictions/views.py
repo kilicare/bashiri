@@ -1,7 +1,7 @@
 """
 predictions/views.py
 """
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Max
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.http import HttpResponse
@@ -681,38 +681,143 @@ class AIPerformanceStatsView(APIView):
 
         today = timezone.localdate()
         week_ago = today - timedelta(days=7)
+        month_ago = today - timedelta(days=30)
 
-        # Daily performance (today)
+        # Daily performance (today) with market-specific data
         daily_performance = AIPerformance.objects.filter(date=today).first()
-        daily_stats = {
-            "accuracy_percentage": daily_performance.accuracy_percentage if daily_performance else 0.0,
-            "total_predictions": daily_performance.total_predictions if daily_performance else 0,
-            "correct_predictions": daily_performance.correct_predictions if daily_performance else 0,
-            "high_confidence_accuracy": daily_performance.high_confidence_accuracy if daily_performance else 0.0,
-        }
+        if daily_performance and daily_performance.total_predictions > 0:
+            daily_stats = {
+                "accuracy_percentage": daily_performance.accuracy_percentage,
+                "total_predictions": daily_performance.total_predictions,
+                "correct_predictions": daily_performance.correct_predictions,
+                "high_confidence_accuracy": daily_performance.high_confidence_accuracy,
+                "market_accuracy": {
+                    "1x2": daily_performance.accuracy_1x2 if daily_performance.predictions_1x2 > 0 else None,
+                    "btts": daily_performance.accuracy_btts if daily_performance.predictions_btts > 0 else None,
+                    "over_under": daily_performance.accuracy_over_under if daily_performance.predictions_over_under > 0 else None,
+                },
+                "current_streak": daily_performance.current_streak,
+                "best_streak": daily_performance.best_streak,
+            }
+        else:
+            daily_stats = {
+                "accuracy_percentage": None,
+                "total_predictions": 0,
+                "correct_predictions": 0,
+                "high_confidence_accuracy": None,
+                "market_accuracy": {
+                    "1x2": None,
+                    "btts": None,
+                    "over_under": None,
+                },
+                "current_streak": 0,
+                "best_streak": 0,
+            }
 
-        # Weekly performance (last 7 days)
+        # Weekly performance (last 7 days) with market-specific aggregation
         weekly_performances = AIPerformance.objects.filter(date__gte=week_ago, date__lte=today)
         weekly_total = weekly_performances.aggregate(
             total_predictions=Sum('total_predictions'),
             correct_predictions=Sum('correct_predictions'),
             high_conf_predictions=Sum('high_confidence_predictions'),
-            high_conf_correct=Sum('high_confidence_correct')
+            high_conf_correct=Sum('high_confidence_correct'),
+            predictions_1x2=Sum('predictions_1x2'),
+            correct_1x2=Sum('correct_1x2'),
+            predictions_btts=Sum('predictions_btts'),
+            correct_btts=Sum('correct_btts'),
+            predictions_over_under=Sum('predictions_over_under'),
+            correct_over_under=Sum('correct_over_under'),
+            best_streak=Max('best_streak'),
         )
 
         weekly_total_predictions = weekly_total['total_predictions'] or 0
         weekly_correct = weekly_total['correct_predictions'] or 0
         weekly_high_conf = weekly_total['high_conf_predictions'] or 0
         weekly_high_conf_correct = weekly_total['high_conf_correct'] or 0
+        weekly_predictions_1x2 = weekly_total['predictions_1x2'] or 0
+        weekly_correct_1x2 = weekly_total['correct_1x2'] or 0
+        weekly_predictions_btts = weekly_total['predictions_btts'] or 0
+        weekly_correct_btts = weekly_total['correct_btts'] or 0
+        weekly_predictions_over_under = weekly_total['predictions_over_under'] or 0
+        weekly_correct_over_under = weekly_total['correct_over_under'] or 0
+        weekly_best_streak = weekly_total['best_streak'] or 0
 
-        weekly_accuracy = round((weekly_correct / weekly_total_predictions) * 100, 1) if weekly_total_predictions > 0 else 0.0
-        weekly_high_conf_accuracy = round((weekly_high_conf_correct / weekly_high_conf) * 100, 1) if weekly_high_conf > 0 else 0.0
+        if weekly_total_predictions > 0:
+            weekly_accuracy = round((weekly_correct / weekly_total_predictions) * 100, 1)
+            weekly_high_conf_accuracy = round((weekly_high_conf_correct / weekly_high_conf) * 100, 1) if weekly_high_conf > 0 else 0.0
+        else:
+            weekly_accuracy = None
+            weekly_high_conf_accuracy = None
+
+        # Calculate market-specific accuracy
+        weekly_accuracy_1x2 = round((weekly_correct_1x2 / weekly_predictions_1x2) * 100, 1) if weekly_predictions_1x2 > 0 else None
+        weekly_accuracy_btts = round((weekly_correct_btts / weekly_predictions_btts) * 100, 1) if weekly_predictions_btts > 0 else None
+        weekly_accuracy_over_under = round((weekly_correct_over_under / weekly_predictions_over_under) * 100, 1) if weekly_predictions_over_under > 0 else None
 
         weekly_stats = {
             "accuracy_percentage": weekly_accuracy,
             "total_predictions": weekly_total_predictions,
             "correct_predictions": weekly_correct,
             "high_confidence_accuracy": weekly_high_conf_accuracy,
+            "market_accuracy": {
+                "1x2": weekly_accuracy_1x2,
+                "btts": weekly_accuracy_btts,
+                "over_under": weekly_accuracy_over_under,
+            },
+            "best_streak": weekly_best_streak,
+        }
+
+        # Monthly performance (last 30 days) - for better trend analysis with market-specific and streak data
+        monthly_performances = AIPerformance.objects.filter(date__gte=month_ago, date__lte=today)
+        monthly_total = monthly_performances.aggregate(
+            total_predictions=Sum('total_predictions'),
+            correct_predictions=Sum('correct_predictions'),
+            high_conf_predictions=Sum('high_confidence_predictions'),
+            high_conf_correct=Sum('high_confidence_correct'),
+            predictions_1x2=Sum('predictions_1x2'),
+            correct_1x2=Sum('correct_1x2'),
+            predictions_btts=Sum('predictions_btts'),
+            correct_btts=Sum('correct_btts'),
+            predictions_over_under=Sum('predictions_over_under'),
+            correct_over_under=Sum('correct_over_under'),
+            best_streak=Max('best_streak'),
+        )
+
+        monthly_total_predictions = monthly_total['total_predictions'] or 0
+        monthly_correct = monthly_total['correct_predictions'] or 0
+        monthly_high_conf = monthly_total['high_conf_predictions'] or 0
+        monthly_high_conf_correct = monthly_total['high_conf_correct'] or 0
+        monthly_predictions_1x2 = monthly_total['predictions_1x2'] or 0
+        monthly_correct_1x2 = monthly_total['correct_1x2'] or 0
+        monthly_predictions_btts = monthly_total['predictions_btts'] or 0
+        monthly_correct_btts = monthly_total['correct_btts'] or 0
+        monthly_predictions_over_under = monthly_total['predictions_over_under'] or 0
+        monthly_correct_over_under = monthly_total['correct_over_under'] or 0
+        monthly_best_streak = monthly_total['best_streak'] or 0
+
+        if monthly_total_predictions > 0:
+            monthly_accuracy = round((monthly_correct / monthly_total_predictions) * 100, 1)
+            monthly_high_conf_accuracy = round((monthly_high_conf_correct / monthly_high_conf) * 100, 1) if monthly_high_conf > 0 else 0.0
+        else:
+            monthly_accuracy = None
+            monthly_high_conf_accuracy = None
+
+        # Calculate market-specific accuracy
+        monthly_accuracy_1x2 = round((monthly_correct_1x2 / monthly_predictions_1x2) * 100, 1) if monthly_predictions_1x2 > 0 else None
+        monthly_accuracy_btts = round((monthly_correct_btts / monthly_predictions_btts) * 100, 1) if monthly_predictions_btts > 0 else None
+        monthly_accuracy_over_under = round((monthly_correct_over_under / monthly_predictions_over_under) * 100, 1) if monthly_predictions_over_under > 0 else None
+
+        monthly_stats = {
+            "accuracy_percentage": monthly_accuracy,
+            "total_predictions": monthly_total_predictions,
+            "correct_predictions": monthly_correct,
+            "high_confidence_accuracy": monthly_high_conf_accuracy,
+            "market_accuracy": {
+                "1x2": monthly_accuracy_1x2,
+                "btts": monthly_accuracy_btts,
+                "over_under": monthly_accuracy_over_under,
+            },
+            "best_streak": monthly_best_streak,
         }
 
         # All-time performance
@@ -739,21 +844,29 @@ class AIPerformanceStatsView(APIView):
             "high_confidence_accuracy": all_time_high_conf_accuracy,
         }
 
-        # Weekly trend (last 7 days daily accuracy)
+        # Weekly trend (last 7 days daily accuracy) - ensure all days have data
         weekly_trend = []
         for i in range(7):
             date = today - timedelta(days=i)
             perf = AIPerformance.objects.filter(date=date).first()
-            if perf:
+            if perf and perf.total_predictions > 0:
                 weekly_trend.append({
                     "date": date.isoformat(),
                     "accuracy_percentage": perf.accuracy_percentage,
                     "total_predictions": perf.total_predictions,
                 })
+            else:
+                # Add placeholder for days with no data
+                weekly_trend.append({
+                    "date": date.isoformat(),
+                    "accuracy_percentage": None,
+                    "total_predictions": 0,
+                })
 
         data = {
             "daily": daily_stats,
             "weekly": weekly_stats,
+            "monthly": monthly_stats,
             "all_time": all_time_stats,
             "weekly_trend": list(reversed(weekly_trend)),
         }

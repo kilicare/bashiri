@@ -120,7 +120,7 @@ export function MicWinnerCard({ cardId, data }: { cardId: number; data: any }) {
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))" }}>
             {winner.user.avatar_url ? (
-              <img src={winner.user.avatar_url} alt={winner.user.username} className="w-full h-full object-cover" />
+              <img src={winner.user.avatar_url} alt={winner.user.username} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <span className="font-medium text-xl" style={{ color: "var(--background)" }}>{winner.user.username?.[0]?.toUpperCase() || "?"}</span>
             )}

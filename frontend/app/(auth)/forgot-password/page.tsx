@@ -22,8 +22,8 @@ export default function ForgotPasswordPage() {
     try {
       await requestPasswordReset(phone, message);
       setSubmitted(true);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "An error occurred");
       if (isNetworkError(e)) showNetworkErrorToast();
     } finally {
       setLoading(false);

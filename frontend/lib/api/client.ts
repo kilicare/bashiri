@@ -47,7 +47,7 @@ async function refreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
-export async function apiClient<T = any>(
+export async function apiClient<T = Record<string, unknown>>(
   endpoint: string,
   options: ApiOptions = {},
   _isRetry = false

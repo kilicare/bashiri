@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Mic, MessageSquare, Flame, Trophy, Radio } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { PulseSummary } from "@/lib/api/pulse";
+import { shouldReduceMotion, getAnimationDuration, getAnimationEasing } from "@/utils/animation";
+import { useMobileTooltip } from "@/hooks/useMobileTooltip";
 
 const MOOD_EMOJI: Record<string, string> = {
   FUNNY: "😂", FIRE: "🔥", ANGRY: "😡", RESPECT: "👏", SHOCK: "🤯", PAIN: "💔",
@@ -181,6 +183,8 @@ function DerbyCard({ data, router }: { data: PulseSummary, router: any }) {
 
 // LEVEL 4: Compact Cards - Statistics, minimal, whispers
 function AIInsightsCard({ data, hasDerby, router }: { data: PulseSummary, hasDerby: boolean, router: any }) {
+  const { tooltip, handleChartClick, hideTooltip } = useMobileTooltip();
+
   return (
     <motion.button
       variants={cardVariants}
@@ -201,15 +205,47 @@ function AIInsightsCard({ data, hasDerby, router }: { data: PulseSummary, hasDer
         )}
       </div>
       {data.track_record.weekly_trend.length > 1 && (
-        <div className="h-14">
+        <div
+          className="h-14 cursor-pointer relative chart-glass"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleChartClick(e, { accuracy_percentage: data.track_record.weekly_trend[data.track_record.weekly_trend.length - 1]?.accuracy_percentage });
+          }}
+        >
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.track_record.weekly_trend}>
-              <Line type="monotone" dataKey="accuracy_percentage" stroke="#E8D4B8" strokeWidth={2} dot={false} />
+            <LineChart 
+              data={data.track_record.weekly_trend}
+              margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+            >
+              <Line 
+                type="monotone" 
+                dataKey="accuracy_percentage" 
+                stroke="#E8D4B8" 
+                strokeWidth={2} 
+                dot={false}
+                isAnimationActive={!shouldReduceMotion()}
+                animationDuration={getAnimationDuration(600)}
+                animationEasing={getAnimationEasing('ease-out')}
+                animationBegin={0}
+              />
             </LineChart>
           </ResponsiveContainer>
+
+          {/* Mobile Tooltip */}
+          {tooltip.visible && (
+            <div
+              className="fixed bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm z-50 pointer-events-none border border-white/10"
+              style={{
+                left: `${tooltip.x}px`,
+                top: `${tooltip.y - 40}px`,
+                transform: 'translateX(-50%)',
+              }}
+            >
+              {tooltip.content}
+            </div>
+          )}
         </div>
       )}
     </motion.button>
   );
 }
-

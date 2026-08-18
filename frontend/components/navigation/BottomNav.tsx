@@ -123,7 +123,7 @@ export function BottomNav() {
 
   return (
     <motion.nav
-      className="fixed bottom-6 left-0 right-0 z-30 px-4"
+      className="fixed bottom-4 left-0 right-0 z-30 px-4 pb-safe"
       initial={{ y: 0 }}
       animate={{ y: isVisible ? 0 : 100 }}
       transition={{

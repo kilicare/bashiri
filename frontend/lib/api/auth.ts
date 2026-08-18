@@ -88,7 +88,7 @@ export function updateAvatar(avatar: File) {
 }
 
 export function getPublicProfile(username: string) {
-  return apiClient<{ user: BashiriUser; mic_reactions: any[]; mic_count: number }>(`/auth/profile/${username}/`, { skipAuth: true });
+  return apiClient<{ user: BashiriUser; mic_reactions: Array<{ id: number; reaction: string; created_at: string }>; mic_count: number }>(`/auth/profile/${username}/`, { skipAuth: true });
 }
 
 /*

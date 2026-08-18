@@ -40,7 +40,7 @@ function uploadChunk(
   uploadId: string,
   sig: UploadSignature,
   onBytesSent: (bytes: number) => void
-): Promise<any> {
+): Promise<{ success: boolean; bytes_sent: number }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", url);
@@ -90,7 +90,7 @@ export async function uploadVideoResilient(
   const uploadId = generateUploadId();
 
   let start = 0;
-  let lastResponse: any = null;
+  let lastResponse: { success: boolean; bytes_sent: number; secure_url?: string; duration?: number; bytes?: number } | null = null;
 
   while (start < totalSize) {
     const end = Math.min(start + CHUNK_SIZE, totalSize);

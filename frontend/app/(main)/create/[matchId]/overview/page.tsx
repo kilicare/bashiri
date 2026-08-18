@@ -2,14 +2,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getMatchOverview } from "@/lib/api/predictions";
-import { BashiriButton } from "@/components/ui/Button";
 import { BookButton } from "@/components/ui/BookButton";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
-import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft, ChevronDown, BookOpen } from "lucide-react";
+import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft, BookOpen } from "lucide-react";
 
 export default function MatchOverviewPage() {
   const router = useRouter();

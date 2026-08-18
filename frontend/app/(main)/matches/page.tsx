@@ -10,6 +10,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { MatchOddsCard } from "@/components/predictions/MatchOddsCard";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
 
 function formatMatchDate(kickoffAt: string): string {
   const date = new Date(kickoffAt);
@@ -34,6 +35,26 @@ export default function MatchesPage() {
   const [selectedLeague, setSelectedLeague] = useState<string>("");
   const [leagues, setLeagues] = useState<League[]>([]);
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    if (tab === "fixtures") {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const data = await getFixtures(dateStr);
+      const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+      setMatches(filtered);
+    } else if (tab === "live") {
+      const data = await getLiveMatches();
+      const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+      setMatches(filtered);
+    } else if (tab === "finished") {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const data = await getFinishedMatches(20, 0, selectedLeague || undefined, undefined, dateStr);
+      setMatches(data.results);
+      setHasMore(data.count > 20);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     getLeagues().then(setLeagues);
@@ -69,16 +90,44 @@ export default function MatchesPage() {
     }
   }, [tab, selectedDate, selectedLeague, router]);
 
-  // Poll live matches every 15 seconds when on live tab
+  // Poll live matches every 30 seconds when on live tab
   useEffect(() => {
     if (tab !== "live") return;
-    const interval = setInterval(() => {
-      getLiveMatches().then((data) => { 
+
+    let interval: NodeJS.Timeout | null = setInterval(() => {
+      getLiveMatches().then((data) => {
         const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
-        setMatches(filtered); 
+        setMatches(filtered);
       });
-    }, 15000);
-    return () => clearInterval(interval);
+    }, 30000);
+
+    // Pause polling when page loses focus
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Pause polling
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      } else {
+        // Resume polling
+        if (!interval) {
+          interval = setInterval(() => {
+            getLiveMatches().then((data) => {
+              const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+              setMatches(filtered);
+            });
+          }, 30000);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [tab, selectedLeague]);
 
   async function loadMoreFinished() {
@@ -98,15 +147,16 @@ export default function MatchesPage() {
   }
 
   return (
-    <div>
-      <div className="px-5 pt-safe pt-10 pb-3 max-w-7xl mx-auto" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div>
+        <div className="px-5 pt-safe pt-10 pb-3 max-w-7xl mx-auto" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => router.back()} aria-label="Rudi nyuma">
             <ArrowLeft size={20} style={{ color: "rgba(255,255,255,0.6)" }} />
           </button>
           <h1 className="text-2xl font-black text-white">Matches</h1>
         </div>
-        <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4 max-w-2xl mx-auto sm:mx-0" style={{ background: "#151515" }}>
+        <div className="flex items-center gap-2 rounded-2xl px-4 py-4 mb-4 max-w-2xl mx-auto sm:mx-0" style={{ background: "#151515" }}>
           <Search size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
           <input
             className="bg-transparent outline-none text-sm text-white flex-1"
@@ -117,7 +167,7 @@ export default function MatchesPage() {
           {/* Date filter toggle for search */}
           <button
             onClick={() => setUseDateInSearch(!useDateInSearch)}
-            className="px-3 py-1.5 rounded-full text-xs font-bold transition-colors"
+            className="px-4 py-2 rounded-full text-xs font-bold transition-colors"
             style={{ 
               background: useDateInSearch ? "var(--brand-accent)" : "rgba(255,255,255,0.06)", 
               color: useDateInSearch ? "#000" : "rgba(255,255,255,0.5)" 
@@ -139,7 +189,7 @@ export default function MatchesPage() {
           <div className="mb-4 relative max-w-md mx-auto sm:mx-0">
             <button
               onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl"
+              className="w-full flex items-center justify-between px-4 py-4 rounded-2xl"
               style={{ background: "#151515" }}
             >
               <span className="text-sm font-bold text-white">
@@ -153,7 +203,7 @@ export default function MatchesPage() {
                    style={{ background: "#151515", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <button
                   onClick={() => { setSelectedLeague(""); setShowLeagueDropdown(false); }}
-                  className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-white/5 transition-colors"
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-white hover:bg-white/5 transition-colors"
                 >
                   All Leagues
                 </button>
@@ -161,7 +211,7 @@ export default function MatchesPage() {
                   <button
                     key={league.code}
                     onClick={() => { setSelectedLeague(league.code); setShowLeagueDropdown(false); }}
-                    className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+                    className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-colors"
                     style={{ 
                       color: selectedLeague === league.code ? "var(--brand-accent)" : "rgba(255,255,255,0.6)",
                       background: selectedLeague === league.code ? "rgba(207,175,123,0.1)" : "transparent"
@@ -180,7 +230,7 @@ export default function MatchesPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className="px-4 py-2 rounded-full text-sm font-bold sm:flex-none sm:w-28"
+              className="px-4 py-3 rounded-full text-sm font-bold sm:flex-none sm:w-28"
               style={{
                 background: tab === t ? "var(--brand-accent)" : "rgba(255,255,255,0.06)",
                 color: tab === t ? "#000" : "rgba(255,255,255,0.5)",
@@ -275,5 +325,6 @@ export default function MatchesPage() {
         )}
       </div>
     </div>
+    </PullToRefresh>
   );
 }

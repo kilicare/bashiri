@@ -20,7 +20,7 @@ export default function AdminNotificationsPage() {
     }
     setLoading(true);
     const res = await broadcastNotification({ title, body, segment });
-    setResult(res.detail);
+    setResult(String(res.detail || ""));
     setTitle("");
     setBody("");
     setLoading(false);

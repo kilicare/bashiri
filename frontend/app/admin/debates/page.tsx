@@ -25,7 +25,7 @@ export default function AdminDebatesPage() {
   }, []);
 
   function load() {
-    getCards("DEBATE").then((data) => setDebates(data));
+    getCards("DEBATE").then((data) => setDebates(data as unknown as any[]));
   }
 
   async function handleCreate() {

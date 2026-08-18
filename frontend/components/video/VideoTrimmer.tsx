@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Film, Scissors, Loader2, AlertCircle } from "lucide-react";
@@ -40,22 +40,7 @@ export function VideoTrimmer({
   const ffmpegRef = useRef<FFmpeg | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    // Don't load FFmpeg on mobile devices
-    if (!isMobile) {
-      loadFFmpeg();
-    } else {
-      // On mobile, immediately show error
-      onLoadError?.("Video editing haifanyi kazi kwenye simu. Tumia video fupi zaidi (chini ya sekunde 60) au kompyuta.");
-    }
-    return () => {
-      if (ffmpegRef.current) {
-        ffmpegRef.current.terminate();
-      }
-    };
-  }, []);
-
-  const loadFFmpeg = async () => {
+  const loadFFmpeg = useCallback(async () => {
     try {
       setLoadingFfmpeg(true);
       const ffmpeg = new FFmpeg();
@@ -109,7 +94,22 @@ export function VideoTrimmer({
     } finally {
       setLoadingFfmpeg(false);
     }
-  };
+  }, [onLoadError]);
+
+  useEffect(() => {
+    // Don't load FFmpeg on mobile devices
+    if (!isMobile) {
+      loadFFmpeg();
+    } else {
+      // On mobile, immediately show error
+      onLoadError?.("Video editing haifanyi kazi kwenye simi. Tumia video fupi zaidi (chini ya sekunde 60) au kompyuta.");
+    }
+    return () => {
+      if (ffmpegRef.current) {
+        ffmpegRef.current.terminate();
+      }
+    };
+  }, [isMobile, loadFFmpeg, onLoadError]);
 
   const handleTrim = async () => {
     if (!ffmpegRef.current || !ffmpegLoaded) {
@@ -142,9 +142,9 @@ export function VideoTrimmer({
 
       // Read output file
       const data = await ffmpeg.readFile("output.mp4");
-      
+
       // Create blob from data - handle FileData type conversion
-      const uint8Array = new Uint8Array(data as any);
+      const uint8Array = new Uint8Array(data as unknown as Uint8Array);
       const blob = new Blob([uint8Array], { type: "video/mp4" });
       const trimmedFile = new File([blob], videoFile.name, { type: "video/mp4" });
 
@@ -159,15 +159,6 @@ export function VideoTrimmer({
     } finally {
       setIsTrimming(false);
     }
-  };
-
-  const handleTimelineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    const newStartTime = Math.max(0, value - maxDuration / 2);
-    const newEndTime = Math.min(originalDuration, newStartTime + maxDuration);
-    
-    setStartTime(Math.max(0, newStartTime));
-    setEndTime(newEndTime);
   };
 
   const formatTime = (seconds: number) => {

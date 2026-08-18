@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setLoading(true);
-      getUsers({ search: search || undefined }).then((data) => { setUsers(data.results); setLoading(false); });
+      getUsers({ search: search || undefined }).then((data) => { setUsers((data as any).results as unknown as any[]); setLoading(false); });
     }, 300);
     return () => clearTimeout(timeout);
   }, [search]);

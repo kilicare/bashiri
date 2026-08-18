@@ -1,7 +1,17 @@
 import { apiClient } from "./client";
 
+export interface Notification {
+  id: number;
+  title: string;
+  body: string;
+  type: string;
+  created_at: string;
+  read: boolean;
+  is_read: boolean;
+}
+
 export function getNotifications() {
-  return apiClient<any[]>("/notifications/");
+  return apiClient<Notification[]>("/notifications/");
 }
 export function markRead(id: number) {
   return apiClient(`/notifications/${id}/read/`, { method: "POST" });

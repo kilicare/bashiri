@@ -1,11 +1,12 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getOdds, getLeagues, type OddsBookmaker, type League } from "@/lib/api/predictions";
 import { ArrowLeft, RefreshCw, Filter, ChevronDown, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { AnimatedOdds } from "@/components/AnimatedOdds";
 
 // Group odds by match for better readability
 function groupOddsByMatch(odds: OddsBookmaker[]) {
@@ -69,6 +70,7 @@ export default function LiveOddsPage() {
   const [selectedStatus, setSelectedStatus] = useState<"upcoming" | "live" | "all">("upcoming");
   const [language, setLanguage] = useState<"en" | "sw">("en");
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
+  const previousOddsRef = useRef<OddsBookmaker[]>([]);
 
   // Fetch leagues
   const { data: leagues } = useQuery({
@@ -91,6 +93,70 @@ export default function LiveOddsPage() {
 
   // Auto-refresh indicator
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  // Track odds changes for flash animation
+  useEffect(() => {
+    if (!odds || odds.length === 0) return;
+
+    odds.forEach((odd) => {
+      const prevOdd = previousOddsRef.current.find(p => p.id === odd.id);
+      if (!prevOdd) return;
+
+      // Check if odds changed
+      const currentOdds = {
+        home: odd.home_win_odds,
+        draw: odd.draw_odds,
+        away: odd.away_win_odds,
+        over: odd.over_odds,
+        under: odd.under_odds,
+        bttsYes: odd.btts_yes_odds,
+        bttsNo: odd.btts_no_odds,
+      };
+
+      const prevOdds = {
+        home: prevOdd.home_win_odds,
+        draw: prevOdd.draw_odds,
+        away: prevOdd.away_win_odds,
+        over: prevOdd.over_odds,
+        under: prevOdd.under_odds,
+        bttsYes: prevOdd.btts_yes_odds,
+        bttsNo: prevOdd.btts_no_odds,
+      };
+
+      // Trigger flash animation for changed odds
+      Object.keys(currentOdds).forEach((key) => {
+        const current = currentOdds[key as keyof typeof currentOdds];
+        const previous = prevOdds[key as keyof typeof prevOdds];
+
+        if (current !== previous && current !== null && previous !== null) {
+          const element = document.getElementById(`odds-${odd.id}-${key}`);
+          if (element) {
+            // Remove animation class to trigger re-animation
+            element.classList.remove('odds-flash', 'odds-increase', 'odds-decrease');
+
+            // Force reflow
+            void element.offsetWidth;
+
+            // Determine direction
+            const currentNum = typeof current === 'string' ? parseFloat(current) : current;
+            const prevNum = typeof previous === 'string' ? parseFloat(previous) : previous;
+            const direction = currentNum > prevNum ? 'increase' : 'decrease';
+
+            // Add animation class
+            element.classList.add('odds-flash', direction === 'increase' ? 'odds-increase' : 'odds-decrease');
+
+            // Cleanup
+            setTimeout(() => {
+              element.classList.remove('odds-flash', 'odds-increase', 'odds-decrease');
+            }, 800);
+          }
+        }
+      });
+    });
+
+    // Update previous odds ref
+    previousOddsRef.current = odds;
+  }, [odds]);
 
   useEffect(() => {
     setLastRefresh(new Date());
@@ -415,16 +481,22 @@ function MatchOddsCard({ matchData, language }: { matchData: { matchId: number; 
                 label={language === "en" ? "Home" : "Nyumbani"}
                 value={bestOdds["1X2"].home}
                 highlight={true}
+                oddId={matchData.matchId}
+                oddKey="home"
               />
               <OddValue
                 label={language === "en" ? "Draw" : "Sare"}
                 value={bestOdds["1X2"].draw}
                 highlight={false}
+                oddId={matchData.matchId}
+                oddKey="draw"
               />
               <OddValue
                 label={language === "en" ? "Away" : "Wageni"}
                 value={bestOdds["1X2"].away}
                 highlight={true}
+                oddId={matchData.matchId}
+                oddKey="away"
               />
             </div>
           </div>
@@ -441,11 +513,15 @@ function MatchOddsCard({ matchData, language }: { matchData: { matchId: number; 
                 label={language === "en" ? "Over 2.5" : "Zaidi ya 2.5"}
                 value={bestOdds["OVER_UNDER_2_5"].over}
                 highlight={true}
+                oddId={matchData.matchId}
+                oddKey="over"
               />
               <OddValue
                 label={language === "en" ? "Under 2.5" : "Chini ya 2.5"}
                 value={bestOdds["OVER_UNDER_2_5"].under}
                 highlight={false}
+                oddId={matchData.matchId}
+                oddKey="under"
               />
             </div>
           </div>
@@ -462,11 +538,15 @@ function MatchOddsCard({ matchData, language }: { matchData: { matchId: number; 
                 label={language === "en" ? "Yes" : "Ndio"}
                 value={bestOdds["BTTS"].yes}
                 highlight={true}
+                oddId={matchData.matchId}
+                oddKey="bttsYes"
               />
               <OddValue
                 label={language === "en" ? "No" : "Hapana"}
                 value={bestOdds["BTTS"].no}
                 highlight={false}
+                oddId={matchData.matchId}
+                oddKey="bttsNo"
               />
             </div>
           </div>
@@ -489,34 +569,41 @@ function MatchOddsCard({ matchData, language }: { matchData: { matchId: number; 
   );
 }
 
-function OddValue({ label, value, highlight }: { label: string; value: number | string | null; highlight: boolean }) {
+function OddValue({ label, value, highlight, oddId, oddKey }: { label: string; value: number | string | null; highlight: boolean; oddId: number; oddKey: string }) {
   // Handle various value types safely
-  let displayValue = "-";
-  
+  let numericValue: number | null = null;
+
   if (value !== null && value !== undefined) {
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
       if (!isNaN(parsed)) {
-        displayValue = parsed.toFixed(2);
+        numericValue = parsed;
       }
     } else if (typeof value === 'number') {
-      displayValue = value.toFixed(2);
+      numericValue = value;
     }
   }
-  
+
   return (
     <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       className={`text-center p-3 rounded-xl transition-all ${
-        highlight 
-          ? "bg-[#4ADE80]/10 border border-[#4ADE80]/30 shadow-lg shadow-[#4ADE80]/10" 
+        highlight
+          ? "bg-[#4ADE80]/10 border border-[#4ADE80]/30 shadow-lg shadow-[#4ADE80]/10"
           : "bg-white/5 border border-white/5 hover:bg-white/10"
       }`}
     >
       <div className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.5)" }}>{label}</div>
-      <div className={`font-bold text-lg ${highlight ? "text-[#4ADE80]" : "text-white"}`}>
-        {displayValue}
+      <div
+        id={`odds-${oddId}-${oddKey}`}
+        className={`font-bold text-lg ${highlight ? "text-[#4ADE80]" : "text-white"}`}
+      >
+        {numericValue !== null ? (
+          <AnimatedOdds value={numericValue} duration={600} />
+        ) : (
+          "-"
+        )}
       </div>
     </motion.div>
   );

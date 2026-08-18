@@ -139,7 +139,7 @@ export default function ContactPage() {
           }}
         >
           <div className="space-y-3">
-            {BUSINESS_INFO.map((info, index) => {
+            {BUSINESS_INFO.map((info) => {
               const Icon = info.icon;
               return (
                 <div key={info.label} className="flex items-center gap-3">

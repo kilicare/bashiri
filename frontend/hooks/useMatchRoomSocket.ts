@@ -4,10 +4,17 @@ import { useAuthStore } from "@/stores/auth.store";
 
 interface WSMessage {
   type: "message" | "presence" | "error";
-  message?: { id: number; username: string; content: string; created_at: string };
+  message?: Message;
   action?: "join" | "leave";
   username?: string;
   detail?: string;
+}
+
+interface Message {
+  id: number;
+  username: string;
+  content: string;
+  created_at: string;
 }
 
 const WS_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api")
@@ -15,18 +22,19 @@ const WS_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8
   .replace("https://", "wss://")
   .replace("/api", "");
 
-export function useMatchRoomSocket(matchId: number, initialMessages: any[] = []) {
-  const [messages, setMessages] = useState<any[]>([]);
+export function useMatchRoomSocket(matchId: number, initialMessages: Message[] = []) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttempts = useRef(0);
   const isUnmountingRef = useRef(false);
   const previousMatchIdRef = useRef(matchId);
+  const connectRef = useRef<(() => void) | null>(null);
   const access = useAuthStore((s) => s.access);
 
-  const mergeMessages = useCallback((existing: any[], incoming: any[]) => {
-    const byId = new Map<string, any>();
+  const mergeMessages = useCallback((existing: Message[], incoming: Message[]) => {
+    const byId = new Map<string, Message>();
     for (const message of [...existing, ...incoming]) {
       if (!message?.id) continue;
       byId.set(String(message.id), message);
@@ -38,23 +46,6 @@ export function useMatchRoomSocket(matchId: number, initialMessages: any[] = [])
     });
   }, []);
 
-  useEffect(() => {
-    if (previousMatchIdRef.current !== matchId) {
-      previousMatchIdRef.current = matchId;
-      setMessages([]);
-      return;
-    }
-
-    if (!initialMessages.length) return;
-
-    setMessages((prev) => {
-      const existingIds = new Set(prev.map((message) => String(message?.id)));
-      const incoming = initialMessages.filter((message) => !existingIds.has(String(message?.id)));
-      if (!incoming.length) return prev;
-      return mergeMessages(prev, incoming);
-    });
-  }, [matchId, initialMessages, mergeMessages]);
-
   const connect = useCallback(() => {
     if (!access || isUnmountingRef.current) return;
 
@@ -62,7 +53,7 @@ export function useMatchRoomSocket(matchId: number, initialMessages: any[] = [])
     if (wsRef.current) {
       try {
         wsRef.current.close();
-      } catch (e) {
+      } catch {
         // Connection might already be closed, ignore
       }
       wsRef.current = null;
@@ -83,7 +74,7 @@ export function useMatchRoomSocket(matchId: number, initialMessages: any[] = [])
         setMessages((prev) => {
           const exists = prev.some((message) => String(message?.id) === String(data.message?.id));
           if (exists) return prev;
-          return mergeMessages(prev, [data.message]);
+          return mergeMessages(prev, [data.message as Message]);
         });
       } else if (data.type === "error") {
         setError(data.detail || "Hitilafu imetokea.");
@@ -92,19 +83,19 @@ export function useMatchRoomSocket(matchId: number, initialMessages: any[] = [])
 
     ws.onclose = (event) => {
       setConnected(false);
-      
+
       // Don't reconnect if this was a normal closure (code 1000) or if we're unmounting
       if (event.code === 1000 || isUnmountingRef.current) {
         return;
       }
-      
+
       // Reconnect logic — muhimu kwa mtandao wa simu unaokatika mara kwa mara
       if (reconnectAttempts.current < 5) {
         const delay = Math.min(1000 * 2 ** reconnectAttempts.current, 10000);
         reconnectAttempts.current += 1;
         setTimeout(() => {
-          if (!isUnmountingRef.current) {
-            connect();
+          if (!isUnmountingRef.current && connectRef.current) {
+            connectRef.current();
           }
         }, delay);
       }
@@ -113,7 +104,31 @@ export function useMatchRoomSocket(matchId: number, initialMessages: any[] = [])
     ws.onerror = () => {
       setError("Imeshindwa kuunganisha na Match Room.");
     };
-  }, [matchId, access]);
+  }, [matchId, access, mergeMessages]);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
+
+  // Handle initial messages
+  useEffect(() => {
+    if (previousMatchIdRef.current !== matchId) {
+      previousMatchIdRef.current = matchId;
+      setMessages([]);
+      return;
+    }
+
+    if (!initialMessages.length) return;
+
+    const incoming = initialMessages.filter(
+      (message) => !messages.some((m) => String(m?.id) === String(message?.id))
+    );
+
+    if (incoming.length > 0) {
+      const merged = mergeMessages(messages, incoming);
+      setMessages(merged);
+    }
+  }, [matchId, initialMessages, messages, mergeMessages]);
 
   useEffect(() => {
     isUnmountingRef.current = false;

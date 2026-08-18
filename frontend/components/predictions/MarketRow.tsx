@@ -5,6 +5,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Market } from "@/lib/api/predictions";
 import { getConfidenceColor } from "@/lib/confidence-tiers";
 import { useState } from "react";
+import { shouldReduceMotion } from "@/utils/animation";
 
 interface MarketRowProps {
   market: Market;
@@ -121,7 +122,14 @@ export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onS
               ) : (
                 <>
                   <span className="text-xs w-24 truncate" style={{ color: "rgba(255,255,255,0.55)" }}>{opt.label}</span>
-                  <div className="flex-1"><ProgressBar value={opt.prob || 0} color={colorForOption} height={5} /></div>
+                  <div className="flex-1">
+                    <ProgressBar 
+                      value={opt.prob || 0} 
+                      color={colorForOption} 
+                      height={5}
+                      isHighConfidence={(opt.prob || 0) >= 0.8 && market.ai_pick === opt.key}
+                    />
+                  </div>
                   <span className="text-xs font-bold w-10 text-right" style={{ color: colorForOption }}>
                     {Math.round((opt.prob || 0) * 100)}%
                   </span>

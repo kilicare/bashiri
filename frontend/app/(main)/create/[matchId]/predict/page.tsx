@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getMatchDashboard, saveMatch, saveMarket, unsaveMarket, getSavedMarkets, Dashboard } from "@/lib/api/predictions";
 import { useAuthStore } from "@/stores/auth.store";
@@ -9,7 +9,7 @@ import { ConfidenceLegend } from "@/components/predictions/ConfidenceLegend";
 import { SubscriptionSheet } from "@/components/predictions/SubscriptionSheet";
 import { Spinner } from "@/components/ui/Spinner";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { Bookmark, CheckSquare, Square, ArrowRight, ArrowLeft, Trophy } from "lucide-react";
+import { Bookmark, ArrowRight, ArrowLeft, Trophy } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
@@ -22,8 +22,6 @@ export default function PredictDashboardPage() {
   const { requireAuth } = useRequireAuth();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [showSub, setShowSub] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [savedMarkets, setSavedMarkets] = useState<Set<string>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedMarkets, setSelectedMarkets] = useState<Set<string>>(new Set());
@@ -32,53 +30,41 @@ export default function PredictDashboardPage() {
   const isSubscriptionActive = useAuthStore((s) => s.user?.is_subscription_active ?? false);
   const prevSubscriptionActive = useRef(isSubscriptionActive);
 
-  useEffect(() => {
-    loadDashboard();
-    loadSavedMarkets();
-  }, [matchId]);
-
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     try {
       setPredictionError(null);
       const data = await getMatchDashboard(matchId);
       setDashboard(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to load dashboard:", error);
-      if (error.message && error.message.includes("insufficient data")) {
+      if (error instanceof Error && error.message.includes("insufficient data")) {
         setPredictionError("AI Prediction bado haipatikani kwa mechi hii — timu haina data ya kutosha.");
       } else {
         setPredictionError("AI Prediction bado haipatikani kwa mechi hii — timu haina data ya kutosha.");
       }
     }
-  }
+  }, [matchId]);
+
+  const loadSavedMarkets = useCallback(async () => {
+    try {
+      const markets = await getSavedMarkets(matchId);
+      setSavedMarkets(new Set(markets.map((m: { market_key: string }) => m.market_key)));
+    } catch {
+      // User might not be logged in
+    }
+  }, [matchId]);
+
+  useEffect(() => {
+    loadDashboard();
+    loadSavedMarkets();
+  }, [matchId, loadDashboard, loadSavedMarkets]);
 
   useEffect(() => {
     if (isSubscriptionActive && !prevSubscriptionActive.current) {
       loadDashboard();
     }
     prevSubscriptionActive.current = isSubscriptionActive;
-  }, [isSubscriptionActive, matchId]);
-
-  async function loadSavedMarkets() {
-    try {
-      const markets = await getSavedMarkets(matchId);
-      setSavedMarkets(new Set(markets.map((m: any) => m.market_key)));
-    } catch (error) {
-      // User might not be logged in
-    }
-  }
-
-  async function handleSave() {
-    if (!requireAuth("Ingia ili kuhifadhi mechi hii.")) return;
-    setSaving(true);
-    try {
-      await saveMatch(matchId);
-      setSaved(true);
-      usePWAInstallStore.getState().attemptShow();
-    } finally {
-      setSaving(false);
-    }
-  }
+  }, [isSubscriptionActive, loadDashboard]);
 
   async function handleSaveMarket(marketKey: string) {
     if (!requireAuth("Ingia ili kuhifadhi soko hili.")) return;
