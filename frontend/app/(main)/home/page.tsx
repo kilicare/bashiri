@@ -83,7 +83,23 @@ export default function HomePage() {
                 </span>
               )}
             </button>
-            <h1 className="text-2xl font-bold tracking-tight flex-1 text-center" style={{ color: "var(--brand-accent)", letterSpacing: "-0.02em" }}>BASHIRI</h1>
+            <h1 
+              className="flex-1 text-center" 
+              style={{ 
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "2rem",
+                fontWeight: "800",
+                color: "var(--brand-primary)",
+                letterSpacing: "0.08em",
+                textShadow: "0 0 30px rgba(212, 175, 55, 0.4), 0 0 60px rgba(212, 175, 55, 0.2)",
+                background: "linear-gradient(135deg, #D4AF37 0%, #F5D77A 50%, #D4AF37 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text"
+              }}
+            >
+              BASHIRI
+            </h1>
             <motion.button
               type="button"
               aria-label="Go to Pulse"
