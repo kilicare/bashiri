@@ -1,8 +1,8 @@
-"""chat/utils.py — Groq function-calling: LLM inaita tools, si kubuni jibu."""
+"""chat/utils.py — Gemini function-calling: LLM inaita tools, si kubuni jibu."""
 import json
 
 from django.conf import settings
-from groq import Groq
+import google.generativeai as genai
 
 from .tools import (
     tool_predict_fixture,
@@ -15,111 +15,93 @@ from .tools import (
 
 TOOLS = [
     {
-        "type": "function",
-        "function": {
-            "name": "predict_fixture",
-            "description": "Tumia hii tool wakati mtu anauliza kuhusu PREDICTION ya mechi fulani au anataka kujua nani atashinda mechi. Inahitaji jina la timu ya nyumbani, timu ya ugenini, na kodi ya ligi. Mfano: 'Man City vs Arsenal' au 'Nani atashinda Chelsea vs Liverpool?'",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "league_code": {
-                        "type": "string",
-                        "enum": ["EPL", "LaLiga", "Bundesliga", "Ligue1"],
-                        "description": "Kodi ya ligi (EPL kwa Premier League, LaLiga kwa La Liga, Bundesliga, Ligue1)",
-                    },
-                    "home_team": {"type": "string", "description": "Jina la timu ya nyumbani (mfano: Manchester City, Chelsea, Man City, Liverpool). System inatambua abbreviations na spelling errors."},
-                    "away_team": {"type": "string", "description": "Jina la timu ya ugenini (mfano: Arsenal, Liverpool, Spurs, Man Utd). System inatambua abbreviations na spelling errors."},
+        "name": "predict_fixture",
+        "description": "Tumia hii tool wakati mtu anauliza kuhusu PREDICTION ya mechi fulani au anataka kujua nani atashinda mechi. Inahitaji jina la timu ya nyumbani, timu ya ugenini, na kodi ya ligi. Mfano: 'Man City vs Arsenal' au 'Nani atashinda Chelsea vs Liverpool?'",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "league_code": {
+                    "type": "string",
+                    "enum": ["EPL", "LaLiga", "Bundesliga", "Ligue1"],
+                    "description": "Kodi ya ligi (EPL kwa Premier League, LaLiga kwa La Liga, Bundesliga, Ligue1)",
                 },
-                "required": ["league_code", "home_team", "away_team"],
+                "home_team": {"type": "string", "description": "Jina la timu ya nyumbani (mfano: Manchester City, Chelsea, Man City, Liverpool). System inatambua abbreviations na spelling errors."},
+                "away_team": {"type": "string", "description": "Jina la timu ya ugenini (mfano: Arsenal, Liverpool, Spurs, Man Utd). System inatambua abbreviations na spelling errors."},
             },
+            "required": ["league_code", "home_team", "away_team"],
         },
     },
     {
-        "type": "function",
-        "function": {
-            "name": "team_form",
-            "description": "Tumia hii tool wakati mtu anauliza kuhusu FORM ya timu moja tu, matokeo ya mwisho, au utendaji wa timu fulani pekee. Inahitaji jina la timu moja tu. Mfano: 'Form ya Man City', 'Arsenal wamekuwaje', 'Simba form yake'",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "team_name": {
-                        "type": "string",
-                        "description": "Jina la timu moja tu (mfano: Manchester City, Simba, Arsenal, Man City, Liverpool). System inatambua abbreviations na spelling errors.",
-                    },
+        "name": "team_form",
+        "description": "Tumia hii tool wakati mtu anauliza kuhusu FORM ya timu moja tu, matokeo ya mwisho, au utendaji wa timu fulani pekee. Inahitaji jina la timu moja tu. Mfano: 'Form ya Man City', 'Arsenal wamekuwaje', 'Simba form yake'",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "team_name": {
+                    "type": "string",
+                    "description": "Jina la timu moja tu (mfano: Manchester City, Simba, Arsenal, Man City, Liverpool). System inatambua abbreviations na spelling errors.",
                 },
-                "required": ["team_name"],
             },
+            "required": ["team_name"],
         },
     },
     {
-        "type": "function",
-        "function": {
-            "name": "head_to_head",
-            "description": "Tumia hii tool wakati mtu anauliza kuhusu HISTORIA ya mechi kati ya timu mbili, mechi za awali, au head-to-head. Inahitaji majina ya timu mbili. Mfano: 'Head to head Man City vs Liverpool', 'Mechi za awali Chelsea vs Arsenal'",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "team1_name": {
-                        "type": "string",
-                        "description": "Jina la timu ya kwanza (mfano: Manchester City, Man City, Liverpool). System inatambua abbreviations na spelling errors.",
-                    },
-                    "team2_name": {
-                        "type": "string",
-                        "description": "Jina la timu ya pili (mfano: Arsenal, Spurs, Chelsea). System inatambua abbreviations na spelling errors.",
-                    },
+        "name": "head_to_head",
+        "description": "Tumia hii tool wakati mtu anauliza kuhusu HISTORIA ya mechi kati ya timu mbili, mechi za awali, au head-to-head. Inahitaji majina ya timu mbili. Mfano: 'Head to head Man City vs Liverpool', 'Mechi za awali Chelsea vs Arsenal'",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "team1_name": {
+                    "type": "string",
+                    "description": "Jina la timu ya kwanza (mfano: Manchester City, Man City, Liverpool). System inatambua abbreviations na spelling errors.",
                 },
-                "required": ["team1_name", "team2_name"],
+                "team2_name": {
+                    "type": "string",
+                    "description": "Jina la timu ya pili (mfano: Arsenal, Spurs, Chelsea). System inatambua abbreviations na spelling errors.",
+                },
             },
+            "required": ["team1_name", "team2_name"],
         },
     },
     {
-        "type": "function",
-        "function": {
-            "name": "ai_track_record",
-            "description": "Tumia hii tool wakati mtu anauliza kuhusu TRACK RECORD ya AI, accuracy ya predictions, au utendaji wa AI. Mfano: 'AI track record', 'Accuracy ya AI', 'AI imeshinda ngapi'",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "league_code": {
-                        "type": "string",
-                        "description": "Kodi ya ligi (optional - kama haipatikani, rudisha overall accuracy)",
-                    },
+        "name": "ai_track_record",
+        "description": "Tumia hii tool wakati mtu anauliza kuhusu TRACK RECORD ya AI, accuracy ya predictions, au utendaji wa AI. Mfano: 'AI track record', 'Accuracy ya AI', 'AI imeshinda ngapi'",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "league_code": {
+                    "type": "string",
+                    "description": "Kodi ya ligi (optional - kama haipatikani, rudisha overall accuracy)",
                 },
-                "required": [],
             },
+            "required": [],
         },
     },
     {
-        "type": "function",
-        "function": {
-            "name": "active_derby",
-            "description": "Tumia hii tool wakati mtu anauliza kuhusu DERBY zinazoendelea sasa au mechi kubwa za rivalry. Mfano: 'Kuna derby leo?', 'Derby zinazoendelea'",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": [],
-            },
+        "name": "active_derby",
+        "description": "Tumia hii tool wakati mtu anauliza kuhusu DERBY zinazoendelea sasa au mechi kubwa za rivalry. Mfano: 'Kuna derby leo?', 'Derby zinazoendelea'",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": [],
         },
     },
     {
-        "type": "function",
-        "function": {
-            "name": "search_matches",
-            "description": "Tumia hii tool wakati mtu anataka kutafuta mechi kwa jina la timu, au anataka kuona mechi zote za timu fulani. Mfano: 'Mechi za Man City', 'Tafuta Arsenal', 'Simba mechi zake'",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "Jina la timu au sehemu ya jina la timu unayotaka kutafuta mechi zake",
-                    },
-                    "status": {
-                        "type": "string",
-                        "description": "Status ya mechi (optional: SCHEDULED, LIVE, FINISHED)",
-                    },
+        "name": "search_matches",
+        "description": "Tumia hii tool wakati mtu anataka kutafuta mechi kwa jina la timu, au anataka kuona mechi zote za timu fulani. Mfano: 'Mechi za Man City', 'Tafuta Arsenal', 'Simba mechi zake'",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Jina la timu au sehemu ya jina la timu unayotaka kutafuta mechi zake",
                 },
-                "required": ["query"],
+                "status": {
+                    "type": "string",
+                    "description": "Status ya mechi (optional: SCHEDULED, LIVE, FINISHED)",
+                },
             },
+            "required": ["query"],
         },
     },
 ]
@@ -144,31 +126,36 @@ def get_chat_response(user_message: str, history: list) -> tuple[str, str | None
     - tool_name: Jina la tool iliyoitwa (au None kama hakuna tool)
     - tool_data: Matokeo ya tool (au None kama hakuna tool)
     """
-    client = Groq(api_key=settings.GROQ_API_KEY)
-
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history + [
-        {"role": "user", "content": user_message}
-    ]
-
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+    model = genai.GenerativeModel(
+        model_name=settings.GEMINI_MODEL,
         tools=TOOLS,
-        tool_choice="auto",
+        system_instruction=SYSTEM_PROMPT,
     )
 
-    message = response.choices[0].message
+    # Build conversation history for Gemini
+    chat_history = []
+    for msg in history:
+        if msg["role"] == "user":
+            chat_history.append({"role": "user", "parts": [msg["content"]]})
+        elif msg["role"] == "assistant":
+            chat_history.append({"role": "model", "parts": [msg["content"]]})
 
-    if message.tool_calls:
-        messages.append(message)
-        
+    # Start chat with history
+    chat = model.start_chat(history=chat_history)
+
+    # Send user message
+    response = chat.send_message(user_message)
+
+    # Check if function call was made
+    if response.candidates[0].function_calls:
         tool_name = None
         tool_data = None
-        
-        for tool_call in message.tool_calls:
-            tool_name = tool_call.function.name
-            args = json.loads(tool_call.function.arguments)
-            
+
+        for function_call in response.candidates[0].function_calls:
+            tool_name = function_call.name
+            args = function_call.args
+
             # Dictionary mapping ya tool_name -> function
             tool_functions = {
                 "predict_fixture": tool_predict_fixture,
@@ -178,7 +165,7 @@ def get_chat_response(user_message: str, history: list) -> tuple[str, str | None
                 "active_derby": tool_active_derby,
                 "search_matches": tool_search_matches,
             }
-            
+
             tool_func = tool_functions.get(tool_name)
             if tool_func:
                 try:
@@ -191,15 +178,11 @@ def get_chat_response(user_message: str, history: list) -> tuple[str, str | None
                 result = {"error": f"Tool '{tool_name}' haipatikani"}
                 tool_data = result
 
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": json.dumps(result),
-            })
+            # Send function result back to model
+            response = chat.send_message(
+                genai.types.FunctionResponse(name=tool_name, response=result)
+            )
 
-        second_response = client.chat.completions.create(
-            model="llama-3.1-8b-instant", messages=messages,
-        )
-        return second_response.choices[0].message.content, tool_name, tool_data
+        return response.text, tool_name, tool_data
 
-    return message.content, None, None
+    return response.text, None, None
