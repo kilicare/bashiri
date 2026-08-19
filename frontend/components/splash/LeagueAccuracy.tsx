@@ -1,0 +1,37 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { SPLASH_CONFIG } from "@/lib/constants/splashConfig";
+import { LeagueAccuracyRow } from "./LeagueAccuracyRow";
+
+export function LeagueAccuracy() {
+  return (
+    <motion.div
+      className="w-full max-w-sm mx-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: SPLASH_CONFIG.baseAnimationDuration, delay: 0.3 }}
+    >
+      {/* Header */}
+      <div
+        className="text-xs font-semibold mb-3 uppercase tracking-wider"
+        style={{ color: SPLASH_CONFIG.textSecondary }}
+      >
+        Top League Accuracy
+      </div>
+
+      {/* League rows */}
+      <div className="space-y-3">
+        {SPLASH_CONFIG.leagueData.map((league, index) => (
+          <LeagueAccuracyRow
+            key={league.name}
+            name={league.name}
+            flag={league.flag}
+            accuracy={league.accuracy}
+            index={index}
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
