@@ -32,7 +32,7 @@ function renderCard(card: Card) {
   }
 }
 
-export function FeedContainer() {
+export function FeedContainer({ externalRefreshKey }: { externalRefreshKey?: number }) {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -54,6 +54,13 @@ export function FeedContainer() {
     setHasMore(currentOffset + 20 < data.count);
     setLoading(false);
   }
+
+  // Trigger full refresh when externalRefreshKey changes
+  useEffect(() => {
+    if (externalRefreshKey && externalRefreshKey > 0) {
+      loadMore(true);
+    }
+  }, [externalRefreshKey]);
 
   // Smart refresh: append new data without reset
   const smartRefresh = useCallback(async () => {

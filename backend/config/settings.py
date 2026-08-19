@@ -205,8 +205,8 @@ CELERY_BROKER_POOL_LIMIT = 10
 
 FOOTBALL_DATA_API_KEY = config("FOOTBALL_DATA_API_KEY", default="")
 ODDS_API_KEY = config("ODDS_API_KEY", default="")
-GEMINI_API_KEY = config("GEMINI_API_KEY", default="")
-GEMINI_MODEL = config("GEMINI_MODEL", default="gemini-1.5-flash")
+GROQ_API_KEY = config("GROQ_API_KEY", default="")
+GROQ_MODEL = config("GROQ_MODEL", default="openai/gpt-oss-120b")
 MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY", default="")
 MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET", default="")
 MPESA_SHORTCODE = config("MPESA_SHORTCODE", default="")

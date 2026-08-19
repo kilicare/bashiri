@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { cloudinaryUrl } from "@/lib/cloudinary";
 import { LeagueCard } from "@/components/onboarding/LeagueCard";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { saveOnboardingPreferences } from "@/lib/api/auth";
+import { saveOnboardingPreferences, getMe } from "@/lib/api/auth";
 import { getLeagues, getTeams } from "@/lib/api/settings";
 import { useAuthStore } from "@/stores/auth.store";
 import { CardSkeleton } from "@/components/ui/Skeleton";
@@ -15,6 +15,7 @@ import { consumeReturnTo } from "@/lib/return-to";
 export default function OnboardingPage() {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
+  const user = useAuthStore((s) => s.user);
   const [leagues, setLeagues] = useState<any[]>([]);
   const [selectedLeagues, setSelectedLeagues] = useState<Set<number>>(new Set());
   const [selectedTeams, setSelectedTeams] = useState<Set<number>>(new Set());
@@ -22,6 +23,19 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [fetchingLeagues, setFetchingLeagues] = useState(true);
   const [fetchingTeams, setFetchingTeams] = useState(false);
+
+  // Refresh user data from API to get fresh profile_complete status
+  useEffect(() => {
+    getMe().then((freshUser) => {
+      setUser(freshUser);
+      // If profile is already complete, redirect to home
+      if (freshUser.profile_complete) {
+        router.push(consumeReturnTo() || "/home");
+      }
+    }).catch(() => {
+      // If fetch fails, continue with cached user
+    });
+  }, []);
 
   useEffect(() => {
     getLeagues().then((data) => {

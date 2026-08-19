@@ -168,7 +168,7 @@ export default function HomePage() {
           <div className="pb-8">
             <HeroCarousel />
           </div>
-          <FeedContainer />
+          <FeedContainer externalRefreshKey={refreshKey} />
         </div>
 
         {/* Review Prompt Modal */}
