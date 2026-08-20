@@ -3,9 +3,9 @@
     "name": "BASHIRI ML v2.0",
     "version": "2.0.0",
     "model_type": "Poisson GLM (Per-League) + Dynamic Elo + Time Decay",
-    "release_date": "2026-08-17T11:49:13.760691+00:00",
+    "release_date": "2026-08-20T04:23:48.482489+00:00",
     "status": "PRODUCTION",
-    "last_updated": "2026-08-17T11:49:13.760709+00:00",
+    "last_updated": "2026-08-20T04:23:48.482502+00:00",
     "architecture": {
       "stage_1": "Dynamic Elo Engine (chronological, no lookahead)",
       "stage_2": "Time Decay Weighting (recent matches preferred)",
@@ -14,18 +14,18 @@
     }
   },
   "performance_metrics": {
-    "calibration_error": "2.35%",
+    "calibration_error": "3.89%",
     "calibration_grade": "Good",
     "1x2_accuracy": "✅ Home: -2.0%, Draw: -3.2%, Away: +1.2%",
     "btts_accuracy": "✅ +1.6%",
     "over_2_5_accuracy": "✅ +1.4%",
     "method": "Walk-Forward Validation (3 folds, no data leakage)",
     "test_samples": 2863,
-    "training_samples": 8806,
-    "total_matches_predicted": 8806
+    "training_samples": 8810,
+    "total_matches_predicted": 8810
   },
   "training_data": {
-    "total_matches": 8806,
+    "total_matches": 8810,
     "competitions": 8,
     "competition_list": [
       "EPL",
@@ -45,15 +45,15 @@
     ],
     "date_range": {
       "start": "2023-04-15",
-      "end": "2026-08-16"
+      "end": "2026-08-19"
     },
-    "total_teams": 202,
+    "total_teams": 204,
     "matches_per_competition": {
       "Bundesliga": 917,
-      "Campeonato Brasileiro Série A": 1364,
-      "Championship": 1682,
+      "Campeonato Brasileiro Série A": 1365,
+      "Championship": 1683,
       "EPL": 1140,
-      "LaLiga": 1144,
+      "LaLiga": 1146,
       "Ligue1": 916,
       "Serie A": 1140,
       "UEFA Champions League": 503
@@ -73,7 +73,7 @@
       "lambda": 0.05,
       "formula": "weight = exp(-lambda * days_since / 365)",
       "min_weight": 0.1,
-      "reference_date": "2026-08-17"
+      "reference_date": "2026-08-20"
     },
     "dixon_coles": {
       "model": "Generalized Linear Model (Poisson)",
@@ -94,22 +94,22 @@
     ],
     "prediction_statistics": {
       "1x2": {
-        "home_mean": "46.4%",
-        "draw_mean": "22.1%",
-        "away_mean": "31.5%"
+        "home_mean": "47.1%",
+        "draw_mean": "21.3%",
+        "away_mean": "31.7%"
       },
       "btts": {
-        "yes_mean": "56.7%",
-        "no_mean": "43.3%"
+        "yes_mean": "59.6%",
+        "no_mean": "40.4%"
       },
       "over_under": {
-        "over_2_5_mean": "55.0%",
-        "under_2_5_mean": "45.0%"
+        "over_2_5_mean": "58.1%",
+        "under_2_5_mean": "41.9%"
       }
     }
   },
   "team_parameters": {
-    "total_teams": 202,
+    "total_teams": 204,
     "top_20_by_elo": {
       "FC Bayern München": 1917.2,
       "Arsenal FC": 1876.3,
@@ -125,7 +125,7 @@
       "Manchester United FC": 1687.0,
       "Liverpool FC": 1681.4,
       "Como 1907": 1673.3,
-      "Club Atlético de Madrid": 1662.9,
+      "Club Atlético de Madrid": 1669.2,
       "Bayer 04 Leverkusen": 1660.2,
       "Aston Villa FC": 1659.0,
       "Racing Club de Lens": 1654.9,
@@ -134,1066 +134,1074 @@
     },
     "per_league": {
       "Bundesliga": {
-        "elo_coefficient": -0.02143225610903044,
+        "elo_coefficient": -0.021432256109030674,
         "baseline": {
           "avg_goals": 1.598691384950927,
-          "home_advantage": 1.1940167964170219
+          "home_advantage": 1.1940167964170216
         },
         "teams": {
           "1. FC Heidenheim 1846": {
-            "attack": 0.850527670214784,
-            "defense": 0.8581584609027666
+            "attack": 0.8505276702147837,
+            "defense": 0.858158460902767
           },
           "1. FC Köln": {
-            "attack": 0.7819827294981324,
-            "defense": 0.8911263604678556
+            "attack": 0.781982729498132,
+            "defense": 0.8911263604678558
           },
           "1. FC Union Berlin": {
-            "attack": 0.7559821427569173,
-            "defense": 0.9982589982297442
+            "attack": 0.7559821427569178,
+            "defense": 0.9982589982297436
           },
           "1. FSV Mainz 05": {
-            "attack": 0.9244216783456366,
-            "defense": 1.135801945146734
+            "attack": 0.9244216783456368,
+            "defense": 1.1358019451467345
           },
           "Bayer 04 Leverkusen": {
-            "attack": 1.5687015585872977,
-            "defense": 1.4638329055512005
+            "attack": 1.5687015585872945,
+            "defense": 1.4638329055512
           },
           "Borussia Dortmund": {
-            "attack": 1.4324217654184939,
-            "defense": 1.317716172101722
+            "attack": 1.4324217654184925,
+            "defense": 1.3177161721017223
           },
           "Borussia Mönchengladbach": {
-            "attack": 1.0201441529136077,
-            "defense": 0.9350108421231329
+            "attack": 1.020144152913607,
+            "defense": 0.9350108421231323
           },
           "Eintracht Frankfurt": {
             "attack": 1.2233069606176559,
-            "defense": 1.0261159804334639
+            "defense": 1.0261159804334645
           },
           "FC Augsburg": {
             "attack": 0.8671930688608408,
-            "defense": 0.9675897745852727
+            "defense": 0.9675897745852726
           },
           "FC Bayern München": {
-            "attack": 2.204677438704503,
-            "defense": 1.4642252566226637
+            "attack": 2.204677438704502,
+            "defense": 1.4642252566226628
           },
           "FC St. Pauli 1910": {
-            "attack": 0.5689438230531378,
-            "defense": 1.099213158958839
+            "attack": 0.5689438230531381,
+            "defense": 1.0992131589588392
           },
           "Hamburger SV": {
-            "attack": 0.8269566412918873,
-            "defense": 1.025854439492796
+            "attack": 0.8269566412918883,
+            "defense": 1.0258544394927962
           },
           "Holstein Kiel": {
-            "attack": 0.9868404536321388,
+            "attack": 0.9868404536321379,
             "defense": 0.6819031520078626
           },
           "RB Leipzig": {
-            "attack": 1.3261935993213634,
-            "defense": 1.2402610617805967
+            "attack": 1.3261935993213652,
+            "defense": 1.2402610617805965
           },
           "SC Freiburg": {
-            "attack": 0.9773905311501603,
-            "defense": 0.990363123077131
+            "attack": 0.9773905311501595,
+            "defense": 0.9903631230771309
           },
           "SV Darmstadt 98": {
-            "attack": 0.5949056229022155,
-            "defense": 0.6452572608299599
+            "attack": 0.5949056229022157,
+            "defense": 0.6452572608299595
           },
           "SV Werder Bremen": {
-            "attack": 0.9289745296183628,
-            "defense": 0.9723111073023648
+            "attack": 0.9289745296183632,
+            "defense": 0.972311107302365
           },
           "TSG 1899 Hoffenheim": {
-            "attack": 1.1986894855839885,
-            "defense": 0.8864823007504988
+            "attack": 1.1986894855839896,
+            "defense": 0.8864823007504989
           },
           "VfB Stuttgart": {
-            "attack": 1.4500704020016086,
-            "defense": 1.1744926264928741
+            "attack": 1.450070402001608,
+            "defense": 1.1744926264928746
           },
           "VfL Bochum 1848": {
-            "attack": 0.7291339379930095,
-            "defense": 0.7748293313625059
+            "attack": 0.7291339379930106,
+            "defense": 0.7748293313625054
           },
           "VfL Wolfsburg": {
-            "attack": 0.951994727388526,
+            "attack": 0.9519947273885258,
             "defense": 0.9201512979763257
           }
         }
       },
       "Campeonato Brasileiro Série A": {
-        "elo_coefficient": -0.0385174917944413,
+        "elo_coefficient": -0.03807473388544798,
         "baseline": {
-          "avg_goals": 1.252932551319648,
-          "home_advantage": 1.3885533780212969
+          "avg_goals": 1.2527472527472527,
+          "home_advantage": 1.3878916373321504
         },
         "teams": {
           "AC Goianiense": {
-            "attack": 0.6533973133257343,
-            "defense": 0.8497643082190256
+            "attack": 0.6534878285689034,
+            "defense": 0.8492822103159829
           },
           "América FC": {
-            "attack": 0.9462880975961261,
-            "defense": 0.6039309873025758
+            "attack": 0.9464889537575936,
+            "defense": 0.6036415536977481
           },
           "Botafogo FR": {
-            "attack": 1.3725627053499279,
-            "defense": 1.3306725447362113
+            "attack": 1.3720399599394686,
+            "defense": 1.3289406034683866
           },
           "CA Mineiro": {
-            "attack": 1.0926883803694543,
-            "defense": 1.1517981028231714
+            "attack": 1.0928981102288615,
+            "defense": 1.1507563501962552
           },
           "CA Paranaense": {
-            "attack": 1.0506745628111622,
-            "defense": 1.211133838082253
+            "attack": 1.0507264688994598,
+            "defense": 1.2100041370172834
           },
           "CR Flamengo": {
-            "attack": 1.5768906915017304,
-            "defense": 1.4324212523838908
+            "attack": 1.576147757209617,
+            "defense": 1.4303731317809987
           },
           "CR Vasco da Gama": {
-            "attack": 1.0154075733015384,
-            "defense": 0.8794822342872185
+            "attack": 1.015597201022547,
+            "defense": 0.8789087263124334
           },
           "Ceará SC": {
-            "attack": 0.7545193548436869,
-            "defense": 1.2589399205830563
+            "attack": 0.7544469194536769,
+            "defense": 1.2580444221344107
           },
           "Chapecoense AF": {
-            "attack": 0.855153936726127,
-            "defense": 0.6237228192646487
+            "attack": 0.8566339264377854,
+            "defense": 0.6235275858308095
           },
           "Clube do Remo": {
-            "attack": 0.9987025247066202,
-            "defense": 0.8073041321929516
+            "attack": 1.0008625105847448,
+            "defense": 0.8257741148219373
           },
           "Coritiba FBC": {
-            "attack": 0.9452376756284305,
-            "defense": 0.776210195089384
+            "attack": 0.9460127702778076,
+            "defense": 0.7759031152708594
           },
           "Criciúma EC": {
-            "attack": 0.9658972803645063,
-            "defense": 0.8084226602248197
+            "attack": 0.965823994364989,
+            "defense": 0.8078104547878046
           },
           "Cruzeiro EC": {
-            "attack": 1.0431028669255795,
-            "defense": 1.3515576349719858
+            "attack": 1.0429210482187712,
+            "defense": 1.3502156864516484
           },
           "Cuiabá EC": {
-            "attack": 0.768367113522783,
-            "defense": 1.1404108403293507
+            "attack": 0.7683146700491802,
+            "defense": 1.139541939150395
           },
           "EC Bahia": {
-            "attack": 1.135791484086013,
-            "defense": 1.0289549933479512
+            "attack": 1.1357319466588007,
+            "defense": 1.0280649000646331
           },
           "EC Juventude": {
-            "attack": 0.9377571877918611,
-            "defense": 0.7647438154191084
+            "attack": 0.9378285082672789,
+            "defense": 0.7642952240440324
           },
           "EC Vitória": {
-            "attack": 0.8892239608395252,
-            "defense": 0.9592295481085293
+            "attack": 0.8897558952391006,
+            "defense": 0.9586325747659027
           },
           "Fluminense FC": {
-            "attack": 1.0589563996273494,
-            "defense": 1.2004897827906755
+            "attack": 1.05887807007983,
+            "defense": 1.1994086147444998
           },
           "Fortaleza EC": {
-            "attack": 1.0705551131873428,
-            "defense": 1.0640952058090212
+            "attack": 1.0703005083834096,
+            "defense": 1.063121293403559
           },
           "Goiás EC": {
-            "attack": 0.8031715221982062,
-            "defense": 0.9525279447284116
+            "attack": 0.8031344485295867,
+            "defense": 0.95181652657383
           },
           "Grêmio FBPA": {
-            "attack": 1.1255250917526924,
-            "defense": 0.9660765499011696
+            "attack": 1.125612044796932,
+            "defense": 0.9652561185997051
           },
           "Mirassol FC": {
-            "attack": 1.2521663649883514,
-            "defense": 1.0766589773159099
+            "attack": 1.2529367413680987,
+            "defense": 1.0756068596048742
           },
           "RB Bragantino": {
-            "attack": 1.0423312420555422,
-            "defense": 1.1016112791692934
+            "attack": 1.0423757475476048,
+            "defense": 1.1006506348278544
           },
           "SC Corinthians Paulista": {
-            "attack": 1.0536939697223744,
-            "defense": 1.123935594435302
+            "attack": 1.0537519418579815,
+            "defense": 1.1229746336582669
           },
           "SC Internacional": {
-            "attack": 1.056669417874254,
-            "defense": 1.0992155876764027
+            "attack": 1.0510363486868621,
+            "defense": 1.0981274915939385
           },
           "SC Recife": {
-            "attack": 0.625730894246637,
-            "defense": 0.6528611399736964
+            "attack": 0.6259147706008071,
+            "defense": 0.6526354548043481
           },
           "SE Palmeiras": {
-            "attack": 1.498845413936888,
-            "defense": 1.5865959343120994
+            "attack": 1.497970118951184,
+            "defense": 1.5843072592093126
           },
           "Santos FC": {
-            "attack": 0.9933291540969956,
-            "defense": 0.8552092009508296
+            "attack": 0.9937744952600202,
+            "defense": 0.8547689969139756
           },
           "São Paulo FC": {
-            "attack": 1.0345036875786522,
-            "defense": 1.1799827338703652
+            "attack": 1.0344128420034568,
+            "defense": 1.1788874178632542
           }
         }
       },
       "Championship": {
-        "elo_coefficient": 0.020148384566245625,
+        "elo_coefficient": 0.02009910486940014,
         "baseline": {
-          "avg_goals": 1.2877526753864448,
-          "home_advantage": 1.2563174209680492
+          "avg_goals": 1.2875816993464053,
+          "home_advantage": 1.2565664499879747
         },
         "teams": {
           "Birmingham City FC": {
-            "attack": 0.8552272146248081,
-            "defense": 1.0197965004512293
+            "attack": 0.855549629446429,
+            "defense": 1.0193980793179027
           },
           "Blackburn Rovers FC": {
-            "attack": 0.8332649801039003,
-            "defense": 1.0177561623300386
+            "attack": 0.8335881843306701,
+            "defense": 1.0174133387659356
           },
           "Bolton Wanderers FC": {
-            "attack": 1.2437171620255096,
-            "defense": 1.0097837706775388
+            "attack": 1.243829256660836,
+            "defense": 1.0096583795477607
           },
           "Bristol City FC": {
-            "attack": 0.9008387783791625,
-            "defense": 1.049485650522999
+            "attack": 0.9011982723788347,
+            "defense": 1.0491536510244621
           },
           "Burnley FC": {
-            "attack": 1.0992812000834744,
-            "defense": 3.594146922785434
+            "attack": 1.099743414646138,
+            "defense": 3.593442065007802
           },
           "Cardiff City FC": {
-            "attack": 0.8310796379680638,
-            "defense": 0.8390591127819029
+            "attack": 0.8281729020521951,
+            "defense": 0.8429897810210525
           },
           "Charlton Athletic FC": {
-            "attack": 0.7276914782644436,
-            "defense": 1.0474656495405166
+            "attack": 0.7279609822893229,
+            "defense": 1.046911844852997
           },
           "Coventry City FC": {
-            "attack": 1.2283037617859052,
-            "defense": 1.0718609042604215
+            "attack": 1.2288318593348346,
+            "defense": 1.07154620942841
           },
           "Derby County FC": {
-            "attack": 0.9446801052262286,
-            "defense": 1.0245775317358354
+            "attack": 0.9450459371417288,
+            "defense": 1.0241861594634514
           },
           "Huddersfield Town AFC": {
-            "attack": 0.7757953319052573,
-            "defense": 0.7924126771451956
+            "attack": 0.7760897923630327,
+            "defense": 0.7922254771057415
           },
           "Hull City AFC": {
-            "attack": 0.9762319445658209,
-            "defense": 1.008328903331016
+            "attack": 0.9766195645586172,
+            "defense": 1.0080048348483917
           },
           "Ipswich Town FC": {
-            "attack": 1.3483472625542312,
-            "defense": 1.1246805178513506
+            "attack": 1.348914398053281,
+            "defense": 1.1242738671840067
           },
           "Leeds United FC": {
-            "attack": 1.3470707166012144,
-            "defense": 1.588130672509517
+            "attack": 1.3476941611052273,
+            "defense": 1.5879100516308822
           },
           "Leicester City FC": {
-            "attack": 1.1537234093152287,
-            "defense": 1.0703043215131318
+            "attack": 1.1541890307011964,
+            "defense": 1.069902145547215
           },
           "Lincoln City FC": {
-            "attack": 0.9064973129259962,
-            "defense": 0.8201701887195054
+            "attack": 0.9067331098762601,
+            "defense": 0.8201965407078535
           },
           "Luton Town FC": {
-            "attack": 0.7716688634690739,
-            "defense": 0.8789509565329793
+            "attack": 0.7719329465837222,
+            "defense": 0.8787051373509964
           },
           "Middlesbrough FC": {
-            "attack": 1.0840441946508252,
-            "defense": 1.0803630823926575
+            "attack": 1.0844957674942277,
+            "defense": 1.0800426448592337
           },
           "Millwall FC": {
-            "attack": 0.8348396025129916,
-            "defense": 1.1876881268360304
+            "attack": 0.8351656407126005,
+            "defense": 1.187308502049391
           },
           "Norwich City FC": {
-            "attack": 1.1323636969142536,
-            "defense": 0.9370041107825297
+            "attack": 1.1328179642236735,
+            "defense": 0.9367050964280534
           },
           "Oxford United FC": {
-            "attack": 0.7763314275064346,
-            "defense": 0.9747232474998864
+            "attack": 0.7766239140205445,
+            "defense": 0.9743301207331844
           },
           "Plymouth Argyle FC": {
-            "attack": 0.911114967896132,
-            "defense": 0.7576922109238191
+            "attack": 0.9114618649490986,
+            "defense": 0.7575094288363307
           },
           "Portsmouth FC": {
-            "attack": 0.8816545725481448,
-            "defense": 0.8748743408211218
+            "attack": 0.8819892992988961,
+            "defense": 0.874530606249474
           },
           "Preston North End FC": {
-            "attack": 0.8613404446212684,
-            "defense": 0.9565953970519768
+            "attack": 0.8616783988651971,
+            "defense": 0.9562754813550315
           },
           "Queens Park Rangers FC": {
-            "attack": 0.8913986628921177,
-            "defense": 0.9257769037384639
+            "attack": 0.8917404198609259,
+            "defense": 0.9254660837813512
           },
           "Rotherham United FC": {
-            "attack": 0.6082902841655663,
-            "defense": 0.6986100154671773
+            "attack": 0.6085061234657555,
+            "defense": 0.6984275642221999
           },
           "Sheffield United FC": {
-            "attack": 1.0597691186880096,
-            "defense": 1.1681191234144517
+            "attack": 1.0601808799944987,
+            "defense": 1.1676845619272014
           },
           "Sheffield Wednesday FC": {
-            "attack": 0.7329814065831187,
-            "defense": 0.8063843581146554
+            "attack": 0.7332488503434264,
+            "defense": 0.8060930606147765
           },
           "Southampton FC": {
-            "attack": 1.3299908135866247,
-            "defense": 1.0314305602090332
+            "attack": 1.3305055881623884,
+            "defense": 1.0310609126466426
           },
           "Stoke City FC": {
-            "attack": 0.7859432804761283,
-            "defense": 1.0096581483159086
+            "attack": 0.7862431838078776,
+            "defense": 1.0093156253396192
           },
           "Sunderland AFC": {
-            "attack": 0.8900911155188198,
-            "defense": 1.217477412226816
+            "attack": 0.8904580297588238,
+            "defense": 1.2172469348811883
           },
           "Swansea City AFC": {
-            "attack": 0.9093135473004492,
-            "defense": 0.9988461286825385
+            "attack": 0.9096682963031526,
+            "defense": 0.9985130928339683
           },
           "Watford FC": {
-            "attack": 0.9040592380928112,
-            "defense": 0.9599385491020569
+            "attack": 0.9044146542136082,
+            "defense": 0.9596200470384746
           },
           "West Bromwich Albion FC": {
-            "attack": 0.9219109033901934,
-            "defense": 1.16501495168774
+            "attack": 0.9222899136610055,
+            "defense": 1.1646635428910004
           },
           "West Ham United FC": {
-            "attack": 5.902719505047159,
-            "defense": 0.8139455079832254
+            "attack": 5.905160021490813,
+            "defense": 0.8140177948837723
           },
           "Wolverhampton Wanderers FC": {
-            "attack": 1.3580340137597564,
-            "defense": 0.5012798494055561
+            "attack": 1.3580669097565776,
+            "defense": 0.5011835358724918
           },
           "Wrexham AFC": {
-            "attack": 1.1159186514541057,
-            "defense": 0.9097561071061399
+            "attack": 1.1058493758991057,
+            "defense": 0.9144738947429188
           }
         }
       },
       "EPL": {
-        "elo_coefficient": -0.04278460508004486,
+        "elo_coefficient": -0.0427846050800447,
         "baseline": {
           "avg_goals": 1.493859649122807,
-          "home_advantage": 1.1756652877067262
+          "home_advantage": 1.175665287706726
         },
         "teams": {
           "AFC Bournemouth": {
-            "attack": 1.1036933547596646,
-            "defense": 1.0548609753423424
+            "attack": 1.103693354759664,
+            "defense": 1.054860975342343
           },
           "Arsenal FC": {
-            "attack": 1.593494496201754,
-            "defense": 2.098704921836435
+            "attack": 1.593494496201752,
+            "defense": 2.0987049218364366
           },
           "Aston Villa FC": {
-            "attack": 1.2620468936802451,
-            "defense": 1.1211611119318614
+            "attack": 1.2620468936802443,
+            "defense": 1.1211611119318612
           },
           "Brentford FC": {
             "attack": 1.1376413217571508,
-            "defense": 1.00016992761791
+            "defense": 1.0001699276179097
           },
           "Brighton & Hove Albion FC": {
-            "attack": 1.1226920723216234,
-            "defense": 1.0580527653506706
+            "attack": 1.1226920723216247,
+            "defense": 1.0580527653506702
           },
           "Burnley FC": {
-            "attack": 0.7648854645715942,
-            "defense": 0.7642801051910593
+            "attack": 0.7648854645715935,
+            "defense": 0.7642801051910595
           },
           "Chelsea FC": {
-            "attack": 1.3169955243593432,
-            "defense": 1.1338499918201388
+            "attack": 1.3169955243593416,
+            "defense": 1.1338499918201377
           },
           "Crystal Palace FC": {
-            "attack": 0.9574498807599585,
-            "defense": 1.1016089363769968
+            "attack": 0.9574498807599591,
+            "defense": 1.1016089363769972
           },
           "Everton FC": {
-            "attack": 0.8222797718774099,
+            "attack": 0.8222797718774105,
             "defense": 1.2089037188682297
           },
           "Fulham FC": {
-            "attack": 0.9950991901052508,
+            "attack": 0.9950991901052513,
             "defense": 1.0514680157010639
           },
           "Ipswich Town FC": {
-            "attack": 0.6937881531165286,
-            "defense": 0.6992577497256299
+            "attack": 0.6937881531165283,
+            "defense": 0.69925774972563
           },
           "Leeds United FC": {
-            "attack": 1.0315837214601955,
-            "defense": 1.098338493161855
+            "attack": 1.0315837214601946,
+            "defense": 1.0983384931618545
           },
           "Leicester City FC": {
-            "attack": 0.6289467016972566,
-            "defense": 0.7155287428731316
+            "attack": 0.6289467016972567,
+            "defense": 0.7155287428731321
           },
           "Liverpool FC": {
-            "attack": 1.6211152270815516,
-            "defense": 1.3647746911538357
+            "attack": 1.6211152270815508,
+            "defense": 1.3647746911538343
           },
           "Luton Town FC": {
-            "attack": 0.9799938267976149,
-            "defense": 0.6755230790872023
+            "attack": 0.9799938267976159,
+            "defense": 0.6755230790872021
           },
           "Manchester City FC": {
-            "attack": 1.674855280388359,
-            "defense": 1.6361263932323609
+            "attack": 1.6748552803883594,
+            "defense": 1.6361263932323595
           },
           "Manchester United FC": {
-            "attack": 1.0944974627057784,
-            "defense": 1.0752241177046011
+            "attack": 1.0944974627057786,
+            "defense": 1.0752241177046002
           },
           "Newcastle United FC": {
-            "attack": 1.3498009686528485,
-            "defense": 1.0792056320592556
+            "attack": 1.3498009686528487,
+            "defense": 1.0792056320592558
           },
           "Nottingham Forest FC": {
             "attack": 0.9921383658202759,
-            "defense": 1.0671903561810312
+            "defense": 1.0671903561810314
           },
           "Sheffield United FC": {
-            "attack": 0.6528447915237807,
-            "defense": 0.5485303153047215
+            "attack": 0.6528447915237823,
+            "defense": 0.5485303153047221
           },
           "Southampton FC": {
-            "attack": 0.4881086261648975,
-            "defense": 0.654711267134288
+            "attack": 0.48810862616489775,
+            "defense": 0.6547112671342882
           },
           "Sunderland AFC": {
-            "attack": 0.8377831270153897,
-            "defense": 1.2287336473600825
+            "attack": 0.8377831270153889,
+            "defense": 1.228733647360082
           },
           "Tottenham Hotspur FC": {
-            "attack": 1.2098974136948535,
-            "defense": 0.9598219975806142
+            "attack": 1.2098974136948528,
+            "defense": 0.9598219975806143
           },
           "West Ham United FC": {
-            "attack": 0.96731196394997,
-            "defense": 0.8575842706634247
+            "attack": 0.9673119639499709,
+            "defense": 0.8575842706634249
           },
           "Wolverhampton Wanderers FC": {
-            "attack": 0.8148678139589803,
-            "defense": 0.8414755172913515
+            "attack": 0.81486781395898,
+            "defense": 0.8414755172913511
           }
         }
       },
       "LaLiga": {
-        "elo_coefficient": 0.008290936858711028,
+        "elo_coefficient": 0.00829093685871243,
         "baseline": {
-          "avg_goals": 1.3273601398601398,
-          "home_advantage": 1.3157430026315982
+          "avg_goals": 1.3267888307155322,
+          "home_advantage": 1.3157430026316017
         },
         "teams": {
           "Athletic Club": {
-            "attack": 1.1252500312959561,
-            "defense": 1.2579241014680824
+            "attack": 2.292146832029995,
+            "defense": 1.248632793916191
           },
           "CA Osasuna": {
-            "attack": 1.0011587127816504,
-            "defense": 1.011916333797087
+            "attack": 2.039371435714388,
+            "defense": 1.0044420944028987
           },
           "CD Leganés": {
-            "attack": 0.8577992059069696,
-            "defense": 0.9526929193630695
+            "attack": 1.7473465253522567,
+            "defense": 0.9456561172968833
           },
           "Club Atlético de Madrid": {
-            "attack": 1.418924917992523,
-            "defense": 1.3140423847009626
+            "attack": 2.890365843331024,
+            "defense": 1.3043365750116263
           },
           "Cádiz CF": {
-            "attack": 0.5624273828159525,
-            "defense": 0.9796084914900384
+            "attack": 1.1456708357375136,
+            "defense": 0.9723728850140542
           },
           "Deportivo Alavés": {
-            "attack": 0.8806534816099528,
-            "defense": 1.076280441533378
+            "attack": 1.79390093921048,
+            "defense": 1.0683307945056286
           },
           "Elche CF": {
-            "attack": 1.1016957852191513,
-            "defense": 0.9436817949084563
+            "attack": 2.2441665707332072,
+            "defense": 0.9367115510142653
           },
           "FC Barcelona": {
-            "attack": 1.959420041744763,
-            "defense": 1.2584592463687283
+            "attack": 3.9913604233618343,
+            "defense": 1.2491639861174249
           },
           "Getafe CF": {
-            "attack": 0.773006504579589,
-            "defense": 1.2199558474676773
+            "attack": 1.5746228494391044,
+            "defense": 1.2109449818953235
           },
           "Girona FC": {
-            "attack": 1.209669486707312,
-            "defense": 0.9770484281728687
+            "attack": 2.464110201859887,
+            "defense": 0.9698317308946677
           },
           "Granada CF": {
-            "attack": 0.8450556713105758,
-            "defense": 0.6762299071173626
+            "attack": 1.7213878036090111,
+            "defense": 0.6712351224276661
           },
           "Levante UD": {
-            "attack": 1.038928116139415,
-            "defense": 0.866889192435973
+            "attack": 2.116308130534504,
+            "defense": 0.8604861558052789
+          },
+          "Málaga CF": {
+            "attack": 3.39868790869258e-09,
+            "defense": 1.0251538441516137
           },
           "RC Celta de Vigo": {
-            "attack": 1.1601577193201997,
-            "defense": 0.9809027813765244
+            "attack": 2.363254180879487,
+            "defense": 0.9736576149872003
+          },
+          "RC Deportivo La Coruña": {
+            "attack": 1.3361859182529487,
+            "defense": 1.1916340022965675
           },
           "RCD Espanyol de Barcelona": {
-            "attack": 0.9352471865725984,
-            "defense": 1.023540420857384
+            "attack": 1.9051089235682195,
+            "defense": 1.0159803233674984
           },
           "RCD Mallorca": {
-            "attack": 0.8430058627672238,
-            "defense": 1.1066088141110957
+            "attack": 1.7172123208023147,
+            "defense": 1.0984351549693856
           },
           "Rayo Vallecano de Madrid": {
-            "attack": 0.8103033261946732,
-            "defense": 1.1717765130804794
+            "attack": 1.6505968899919872,
+            "defense": 1.1631215108014028
           },
           "Real Betis Balompié": {
-            "attack": 1.1924510834610351,
-            "defense": 1.0985578180879125
+            "attack": 2.4290361228944186,
+            "defense": 1.090443625395781
           },
           "Real Madrid CF": {
-            "attack": 1.6951680106800076,
-            "defense": 1.515371472780416
+            "attack": 3.4530760963087586,
+            "defense": 1.5041786016107297
           },
           "Real Oviedo": {
-            "attack": 0.5891627448690315,
-            "defense": 0.9235543522548205
+            "attack": 1.2001310656675368,
+            "defense": 0.9167327741344263
           },
           "Real Racing Club de Santander": {
-            "attack": 1.3512425285401644,
-            "defense": 0.8365345431135631
+            "attack": 2.752496063057578,
+            "defense": 0.8303557126827137
           },
           "Real Sociedad de Fútbol": {
-            "attack": 1.0559727433210588,
-            "defense": 1.0777355237314252
+            "attack": 2.1510282257230795,
+            "defense": 1.0697751291425153
           },
           "Real Valladolid CF": {
-            "attack": 0.5941221773425837,
-            "defense": 0.6017073619518972
+            "attack": 1.2102334847892946,
+            "defense": 0.5972630173768865
           },
           "Sevilla FC": {
-            "attack": 1.0057407916801282,
-            "defense": 0.9460016096618056
+            "attack": 2.0487051814056962,
+            "defense": 0.9390142310992237
           },
           "UD Almería": {
-            "attack": 0.9588931318386805,
-            "defense": 0.7110550922388406
+            "attack": 1.953275977133718,
+            "defense": 0.7058030809763031
           },
           "UD Las Palmas": {
-            "attack": 0.7958930285860487,
-            "defense": 0.9848330037972028
+            "attack": 1.621242953450278,
+            "defense": 0.9775588079098204
           },
           "Valencia CF": {
-            "attack": 0.9521837542889249,
-            "defense": 1.0368217205604888
+            "attack": 1.9396089004237889,
+            "defense": 1.0291635244332649
           },
           "Villarreal CF": {
-            "attack": 1.5192098244055745,
-            "defense": 0.9617455442416428
+            "attack": 3.0946473133526977,
+            "defense": 0.9546418774720978
           }
         }
       },
       "Ligue1": {
-        "elo_coefficient": 0.0055091494816178616,
+        "elo_coefficient": 0.0055091494816173585,
         "baseline": {
           "avg_goals": 1.418122270742358,
-          "home_advantage": 1.203487226712816
+          "home_advantage": 1.2034872267128158
         },
         "teams": {
           "AJ Auxerre": {
-            "attack": 0.9221732695907655,
-            "defense": 1.0560953236637443
+            "attack": 0.9221732695907641,
+            "defense": 1.0560953236637436
           },
           "AS Monaco FC": {
-            "attack": 1.413777841920762,
+            "attack": 1.4137778419207612,
             "defense": 1.0470533323877755
           },
           "AS Saint-Étienne": {
-            "attack": 0.8966498374136064,
-            "defense": 0.630137770140777
+            "attack": 0.8966498374136065,
+            "defense": 0.6301377701407767
           },
           "Angers SCO": {
-            "attack": 0.6894531007647646,
-            "defense": 1.0048696306998643
+            "attack": 0.6894531007647647,
+            "defense": 1.0048696306998641
           },
           "Clermont Foot 63": {
-            "attack": 0.5850246661654525,
-            "defense": 0.8338684298407051
+            "attack": 0.5850246661654538,
+            "defense": 0.8338684298407055
           },
           "FC Lorient": {
-            "attack": 1.039186425215276,
-            "defense": 0.8538146721089293
+            "attack": 1.0391864252152756,
+            "defense": 0.8538146721089294
           },
           "FC Metz": {
-            "attack": 0.7713498945259857,
-            "defense": 0.7476406064058502
+            "attack": 0.7713498945259862,
+            "defense": 0.7476406064058503
           },
           "FC Nantes": {
-            "attack": 0.7457981995392553,
+            "attack": 0.745798199539255,
             "defense": 0.9432258004132068
           },
           "Le Havre AC": {
-            "attack": 0.7996312096434064,
-            "defense": 0.9410132138353878
+            "attack": 0.7996312096434063,
+            "defense": 0.9410132138353882
           },
           "Lille OSC": {
-            "attack": 1.140600301392011,
-            "defense": 1.3650029913235382
+            "attack": 1.1406003013920114,
+            "defense": 1.3650029913235389
           },
           "Montpellier HSC": {
-            "attack": 0.7629144438731799,
-            "defense": 0.7829276157360573
+            "attack": 0.7629144438731801,
+            "defense": 0.7829276157360575
           },
           "OGC Nice": {
-            "attack": 1.0576157334052347,
-            "defense": 1.1188867604454384
+            "attack": 1.0576157334052345,
+            "defense": 1.118886760445438
           },
           "Olympique Lyonnais": {
-            "attack": 1.2461725100255299,
+            "attack": 1.246172510025529,
             "defense": 1.0389123694876228
           },
           "Olympique de Marseille": {
-            "attack": 1.4028668162650795,
-            "defense": 1.0812271149610824
+            "attack": 1.402866816265079,
+            "defense": 1.081227114961082
           },
           "Paris FC": {
-            "attack": 1.0737208617346015,
-            "defense": 1.0055086315272768
+            "attack": 1.0737208617346006,
+            "defense": 1.0055086315272772
           },
           "Paris Saint-Germain FC": {
-            "attack": 1.783087673083398,
-            "defense": 1.4408155485080991
+            "attack": 1.7830876730833982,
+            "defense": 1.4408155485080987
           },
           "RC Strasbourg Alsace": {
             "attack": 1.140227569711777,
-            "defense": 1.042645225610759
+            "defense": 1.0426452256107592
           },
           "Racing Club de Lens": {
-            "attack": 1.1326243918031709,
+            "attack": 1.132624391803171,
             "defense": 1.3199652416555219
           },
           "Stade Brestois 29": {
             "attack": 1.1015023437971336,
-            "defense": 0.986098775311811
+            "defense": 0.9860987753118109
           },
           "Stade Rennais FC 1901": {
-            "attack": 1.220914309094173,
-            "defense": 0.9994988255073304
+            "attack": 1.2209143090941736,
+            "defense": 0.9994988255073305
           },
           "Stade de Reims": {
-            "attack": 0.8270224557554336,
-            "defense": 1.052456210642632
+            "attack": 0.8270224557554338,
+            "defense": 1.0524562106426323
           },
           "Toulouse FC": {
-            "attack": 1.0027375618484926,
-            "defense": 1.0881286425394996
+            "attack": 1.0027375618484924,
+            "defense": 1.0881286425394991
           }
         }
       },
       "Serie A": {
-        "elo_coefficient": -0.01498937031569575,
+        "elo_coefficient": -0.014989370315697102,
         "baseline": {
           "avg_goals": 1.2662280701754387,
-          "home_advantage": 1.1398780070922157
+          "home_advantage": 1.1398780070922154
         },
         "teams": {
           "AC Milan": {
-            "attack": 1.459877478130979,
-            "defense": 1.173252079415849
+            "attack": 1.4598774781309791,
+            "defense": 1.1732520794158499
           },
           "AC Monza": {
-            "attack": 0.7633548872816822,
+            "attack": 0.7633548872816813,
             "defense": 0.8224655015850014
           },
           "AC Pisa 1909": {
-            "attack": 0.6092249377742777,
+            "attack": 0.609224937774279,
             "defense": 0.7060104662770114
           },
           "ACF Fiorentina": {
-            "attack": 1.2363453333044978,
-            "defense": 1.0818947407777209
+            "attack": 1.2363453333044983,
+            "defense": 1.0818947407777206
           },
           "AS Roma": {
-            "attack": 1.3774717302673005,
-            "defense": 1.3350920263217882
+            "attack": 1.377471730267299,
+            "defense": 1.3350920263217878
           },
           "Atalanta BC": {
-            "attack": 1.5430408348370017,
-            "defense": 1.2929169137069538
+            "attack": 1.543040834837,
+            "defense": 1.292916913706954
           },
           "Bologna FC 1909": {
-            "attack": 1.225207846935496,
+            "attack": 1.2252078469354968,
             "defense": 1.1839952292897795
           },
           "Cagliari Calcio": {
-            "attack": 0.9310643019852313,
+            "attack": 0.9310643019852298,
             "defense": 0.8363203707320864
           },
           "Como 1907": {
-            "attack": 1.3361063749197775,
+            "attack": 1.336106374919777,
             "defense": 1.228057486879213
           },
           "Empoli FC": {
-            "attack": 0.7070474784577139,
-            "defense": 0.8770741839165177
+            "attack": 0.707047478457714,
+            "defense": 0.8770741839165176
           },
           "FC Internazionale Milano": {
-            "attack": 1.9998968171846028,
-            "defense": 1.5926036600162168
+            "attack": 1.999896817184604,
+            "defense": 1.5926036600162166
           },
           "Frosinone Calcio": {
-            "attack": 0.9811768934151324,
-            "defense": 0.7110564412402312
+            "attack": 0.9811768934151334,
+            "defense": 0.7110564412402307
           },
           "Genoa CFC": {
-            "attack": 0.9355017049464923,
-            "defense": 1.025242719798925
+            "attack": 0.935501704946493,
+            "defense": 1.0252427197989251
           },
           "Hellas Verona FC": {
-            "attack": 0.7329838338712674,
-            "defense": 0.8328766757385214
+            "attack": 0.7329838338712661,
+            "defense": 0.8328766757385212
           },
           "Juventus FC": {
-            "attack": 1.3279829470007698,
-            "defense": 1.4905518476697401
+            "attack": 1.3279829470007702,
+            "defense": 1.4905518476697395
           },
           "Parma Calcio 1913": {
-            "attack": 0.8330102089337112,
-            "defense": 0.9609369064528671
+            "attack": 0.8330102089337115,
+            "defense": 0.9609369064528672
           },
           "SS Lazio": {
-            "attack": 1.1542400325578979,
-            "defense": 1.1659025978025006
+            "attack": 1.154240032557898,
+            "defense": 1.1659025978025002
           },
           "SSC Napoli": {
-            "attack": 1.3190159526637488,
-            "defense": 1.3494544828908517
+            "attack": 1.3190159526637473,
+            "defense": 1.3494544828908512
           },
           "Torino FC": {
-            "attack": 0.9113737890928337,
-            "defense": 1.0280011547215797
+            "attack": 0.9113737890928341,
+            "defense": 1.0280011547215788
           },
           "US Cremonese": {
-            "attack": 0.7438261201816221,
-            "defense": 0.8812431019867026
+            "attack": 0.7438261201816233,
+            "defense": 0.8812431019867027
           },
           "US Lecce": {
-            "attack": 0.6577354587530333,
-            "defense": 0.9231388895407049
+            "attack": 0.6577354587530332,
+            "defense": 0.923138889540704
           },
           "US Salernitana 1919": {
-            "attack": 0.7182342402759528,
-            "defense": 0.6066850608369821
+            "attack": 0.718234240275953,
+            "defense": 0.6066850608369831
           },
           "US Sassuolo Calcio": {
-            "attack": 1.0101745287804653,
-            "defense": 0.792001161877034
+            "attack": 1.0101745287804655,
+            "defense": 0.7920011618770344
           },
           "Udinese Calcio": {
             "attack": 0.9397373931432408,
-            "defense": 0.9460305871312265
+            "defense": 0.946030587131227
           },
           "Venezia FC": {
-            "attack": 0.7549693761042617,
-            "defense": 0.889616907884475
+            "attack": 0.7549693761042625,
+            "defense": 0.8896169078844757
           }
         }
       },
       "UEFA Champions League": {
-        "elo_coefficient": -0.015161736909854534,
+        "elo_coefficient": -0.01516173690985318,
         "baseline": {
           "avg_goals": 1.6739562624254474,
-          "home_advantage": 1.313947390092846
+          "home_advantage": 1.3139473900928458
         },
         "teams": {
           "1. FC Union Berlin": {
-            "attack": 0.6903178773275788,
-            "defense": 0.9564644587058161
+            "attack": 0.6903178773275777,
+            "defense": 0.9564644587058077
           },
           "AC Milan": {
-            "attack": 0.8971445531754149,
-            "defense": 1.4560582018802193
+            "attack": 0.8971445531754197,
+            "defense": 1.4560582018802177
           },
           "AC Sparta Praha": {
-            "attack": 0.5735453298235074,
-            "defense": 0.5842340290929622
+            "attack": 0.5735453298235058,
+            "defense": 0.5842340290929615
           },
           "AFC Ajax": {
-            "attack": 0.6661929587695561,
-            "defense": 0.5016522315223401
+            "attack": 0.6661929587695582,
+            "defense": 0.5016522315223404
           },
           "AS Monaco FC": {
-            "attack": 1.1111347901682154,
-            "defense": 1.0310551547834468
+            "attack": 1.1111347901682167,
+            "defense": 1.0310551547834472
           },
           "Arsenal FC": {
-            "attack": 1.8312965384715452,
-            "defense": 2.5066429634143663
+            "attack": 1.8312965384715392,
+            "defense": 2.5066429634143685
           },
           "Aston Villa FC": {
-            "attack": 1.4922703520807796,
-            "defense": 1.7171225146018347
+            "attack": 1.492270352080778,
+            "defense": 1.7171225146018356
           },
           "Atalanta BC": {
             "attack": 1.2891507917081488,
-            "defense": 1.118925893467325
+            "defense": 1.1189258934673245
           },
           "Athletic Club": {
-            "attack": 0.8805327258592012,
-            "defense": 1.085463549231641
+            "attack": 0.8805327258592027,
+            "defense": 1.0854635492316402
           },
           "BSC Young Boys": {
-            "attack": 0.43745076925651005,
-            "defense": 0.593107011399823
+            "attack": 0.43745076925651033,
+            "defense": 0.5931070113998227
           },
           "Bayer 04 Leverkusen": {
-            "attack": 1.1144834373274357,
-            "defense": 1.3085584117734606
+            "attack": 1.1144834373274377,
+            "defense": 1.3085584117734623
           },
           "Bologna FC 1909": {
-            "attack": 0.4575703617675364,
-            "defense": 1.6191257605891414
+            "attack": 0.45757036176753635,
+            "defense": 1.6191257605891416
           },
           "Borussia Dortmund": {
-            "attack": 1.551509464360223,
-            "defense": 1.4170749590623215
+            "attack": 1.5515094643602227,
+            "defense": 1.4170749590623204
           },
           "Celtic FC": {
-            "attack": 0.8503390057547436,
-            "defense": 0.8697997991707702
+            "attack": 0.8503390057547435,
+            "defense": 0.8697997991707704
           },
           "Chelsea FC": {
             "attack": 1.3010702378321364,
-            "defense": 1.088567705920404
+            "defense": 1.0885677059204046
           },
           "Club Atlético de Madrid": {
-            "attack": 1.847902935493323,
-            "defense": 1.081059868746125
+            "attack": 1.8479029354933219,
+            "defense": 1.0810598687461257
           },
           "Club Brugge KV": {
-            "attack": 1.2403208188641925,
-            "defense": 0.9174356177723062
+            "attack": 1.2403208188641945,
+            "defense": 0.9174356177723068
           },
           "Eintracht Frankfurt": {
-            "attack": 0.921281298379284,
-            "defense": 0.7346245418461969
+            "attack": 0.9212812983792867,
+            "defense": 0.7346245418461975
           },
           "FC Barcelona": {
-            "attack": 2.05305133227382,
-            "defense": 1.106248540727922
+            "attack": 2.0530513322738186,
+            "defense": 1.1062485407279214
           },
           "FC Bayern München": {
-            "attack": 1.9133172344398282,
-            "defense": 1.5182072986543123
+            "attack": 1.9133172344398275,
+            "defense": 1.518207298654313
           },
           "FC Internazionale Milano": {
-            "attack": 1.2083980160054928,
-            "defense": 1.5533030133886094
+            "attack": 1.2083980160054921,
+            "defense": 1.5533030133886099
           },
           "FC København": {
-            "attack": 0.9167978810924792,
-            "defense": 0.8086488562475439
+            "attack": 0.9167978810924785,
+            "defense": 0.8086488562475453
           },
           "FC Porto": {
-            "attack": 1.774129532054171,
-            "defense": 1.1723903900345196
+            "attack": 1.7741295320541723,
+            "defense": 1.17239039003452
           },
           "FC Red Bull Salzburg": {
-            "attack": 0.4970567724470089,
-            "defense": 0.635407948171158
+            "attack": 0.49705677244700835,
+            "defense": 0.6354079481711573
           },
           "FK Bodø/Glimt": {
-            "attack": 1.5356906301548887,
-            "defense": 0.9361154918424961
+            "attack": 1.535690630154887,
+            "defense": 0.9361154918424962
           },
           "FK Crvena Zvezda": {
-            "attack": 0.9215887999187972,
-            "defense": 0.5307987326752475
+            "attack": 0.9215887999187975,
+            "defense": 0.5307987326752468
           },
           "FK Kairat": {
-            "attack": 0.7105436149991174,
-            "defense": 0.6018278348532105
+            "attack": 0.7105436149991173,
+            "defense": 0.6018278348532095
           },
           "FK Shakhtar Donetsk": {
-            "attack": 0.9566960892459401,
-            "defense": 0.9160554968109375
+            "attack": 0.9566960892459376,
+            "defense": 0.9160554968109365
           },
           "Feyenoord Rotterdam": {
-            "attack": 1.3142585928843538,
+            "attack": 1.3142585928843526,
             "defense": 0.7387836615325569
           },
           "GNK Dinamo Zagreb": {
             "attack": 1.0698536740027056,
-            "defense": 0.662228103298486
+            "defense": 0.6622281032984869
           },
           "Galatasaray SK": {
-            "attack": 1.0773462111716867,
-            "defense": 0.9793944209521518
+            "attack": 1.0773462111716876,
+            "defense": 0.9793944209521523
           },
           "Girona FC": {
-            "attack": 0.45283795281670397,
-            "defense": 1.1054496299294705
+            "attack": 0.45283795281670425,
+            "defense": 1.1054496299294696
           },
           "Juventus FC": {
-            "attack": 1.163111617126426,
+            "attack": 1.1631116171264255,
             "defense": 1.233370381539314
           },
           "Lille OSC": {
-            "attack": 1.6232482432804862,
-            "defense": 1.3948040061966491
+            "attack": 1.6232482432804818,
+            "defense": 1.394804006196651
           },
           "Liverpool FC": {
-            "attack": 1.5766350652046968,
-            "defense": 1.8434730195414712
+            "attack": 1.576635065204694,
+            "defense": 1.8434730195414697
           },
           "Manchester City FC": {
-            "attack": 1.4911106710135678,
-            "defense": 1.02897108759146
+            "attack": 1.491110671013566,
+            "defense": 1.0289710875914588
           },
           "Manchester United FC": {
-            "attack": 1.4872434242125052,
-            "defense": 0.7095412742163417
+            "attack": 1.4872434242125046,
+            "defense": 0.709541274216343
           },
           "Newcastle United FC": {
-            "attack": 1.492297045750323,
-            "defense": 1.4364717343892357
+            "attack": 1.4922970457503213,
+            "defense": 1.436471734389236
           },
           "Olympique de Marseille": {
-            "attack": 1.0120276004148234,
-            "defense": 1.0181185182175119
+            "attack": 1.0120276004148236,
+            "defense": 1.0181185182175125
           },
           "PAE Olympiakos SFP": {
-            "attack": 0.7133989718157399,
+            "attack": 0.7133989718157397,
             "defense": 1.0630835672805792
           },
           "PSV": {
-            "attack": 1.519851659306999,
-            "defense": 0.9246191388104674
+            "attack": 1.5198516593069975,
+            "defense": 0.9246191388104671
           },
           "Paphos FC": {
-            "attack": 0.6612297813400817,
-            "defense": 0.9638537401362894
+            "attack": 0.6612297813400815,
+            "defense": 0.9638537401362902
           },
           "Paris Saint-Germain FC": {
-            "attack": 2.345599596454114,
-            "defense": 1.5641459535395632
+            "attack": 2.345599596454115,
+            "defense": 1.5641459535395619
           },
           "Qarabağ Ağdam FK": {
-            "attack": 1.0898151855092857,
-            "defense": 0.5022992080578388
+            "attack": 1.089815185509287,
+            "defense": 0.502299208057839
           },
           "RB Leipzig": {
-            "attack": 0.9354145239321635,
-            "defense": 0.9807544531184264
+            "attack": 0.935414523932162,
+            "defense": 0.9807544531184261
           },
           "Racing Club de Lens": {
-            "attack": 0.8648646927625835,
-            "defense": 1.0957465073505859
+            "attack": 0.864864692762586,
+            "defense": 1.095746507350589
           },
           "Real Madrid CF": {
-            "attack": 1.930058029888762,
-            "defense": 1.1727965389251862
+            "attack": 1.9300580298887609,
+            "defense": 1.1727965389251855
           },
           "Real Sociedad de Fútbol": {
-            "attack": 0.7671878021057217,
-            "defense": 2.2899698247898543
+            "attack": 0.7671878021057216,
+            "defense": 2.289969824789858
           },
           "Royal Antwerp FC": {
-            "attack": 0.7607773821789152,
-            "defense": 0.765897756387365
+            "attack": 0.7607773821789161,
+            "defense": 0.7658977563873653
           },
           "Royale Union Saint-Gilloise": {
-            "attack": 0.8292990446513099,
-            "defense": 0.9079049965568556
+            "attack": 0.8292990446513098,
+            "defense": 0.9079049965568562
           },
           "SK Slavia Praha": {
-            "attack": 0.5373243720527084,
-            "defense": 0.7522715463700059
+            "attack": 0.5373243720527088,
+            "defense": 0.7522715463700056
           },
           "SK Sturm Graz": {
-            "attack": 0.4936243645047174,
-            "defense": 0.8925200388032012
+            "attack": 0.49362436450471703,
+            "defense": 0.8925200388032023
           },
           "SS Lazio": {
-            "attack": 0.7085134429560764,
-            "defense": 1.6147951908677884
+            "attack": 0.7085134429560754,
+            "defense": 1.6147951908677856
           },
           "SSC Napoli": {
-            "attack": 0.8737553072585286,
-            "defense": 1.0028864962923651
+            "attack": 0.8737553072585267,
+            "defense": 1.002886496292365
           },
           "Sevilla FC": {
-            "attack": 1.0594416324091054,
-            "defense": 0.9567273357619339
+            "attack": 1.0594416324091092,
+            "defense": 0.9567273357619356
           },
           "Sport Lisboa e Benfica": {
             "attack": 1.0007098750977106,
             "defense": 1.065755321212786
           },
           "Sporting Clube de Braga": {
-            "attack": 0.7493229031976972,
-            "defense": 0.7918088177692714
+            "attack": 0.7493229031976966,
+            "defense": 0.7918088177692727
           },
           "Sporting Clube de Portugal": {
-            "attack": 1.325195260318,
-            "defense": 1.3244312833743592
+            "attack": 1.3251952603180006,
+            "defense": 1.3244312833743581
           },
           "Stade Brestois 29": {
-            "attack": 0.7051155618968777,
-            "defense": 0.8736293682946589
+            "attack": 0.7051155618968776,
+            "defense": 0.8736293682946585
           },
           "Tottenham Hotspur FC": {
-            "attack": 1.492919904309243,
-            "defense": 1.2882631926609236
+            "attack": 1.4929199043092447,
+            "defense": 1.288263192660925
           },
           "VfB Stuttgart": {
-            "attack": 0.9165963736349049,
-            "defense": 0.745171444383076
+            "attack": 0.9165963736349048,
+            "defense": 0.7451714443830759
           },
           "Villarreal CF": {
-            "attack": 0.4310095372762233,
-            "defense": 0.6980564739132978
+            "attack": 0.4310095372762238,
+            "defense": 0.698056473913298
           },
           "ŠK Slovan Bratislava": {
-            "attack": 0.6030932181379657,
-            "defense": 0.4712322225095439
+            "attack": 0.6030932181379656,
+            "defense": 0.471232222509544
           }
         }
       }
