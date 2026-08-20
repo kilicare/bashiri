@@ -91,6 +91,12 @@ export function getPublicProfile(username: string) {
   return apiClient<{ user: BashiriUser; mic_reactions: Array<{ id: number; reaction: string; created_at: string }>; mic_count: number }>(`/auth/profile/${username}/`, { skipAuth: true });
 }
 
+export function deleteAccount() {
+  return apiClient<{ detail: string }>("/auth/delete-account/", {
+    method: "DELETE",
+  });
+}
+
 /*
 // ============================================================
 // OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)

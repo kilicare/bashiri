@@ -1,13 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X, Flame, Sparkles, Power, Eye } from "lucide-react";
+import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X, Flame, Sparkles, Power, Eye, Trash2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { PremiumButton } from "@/components/ui/Button";
 import { PremiumCard, GlassCard } from "@/components/ui/GlassCard";
 import { PremiumBadge } from "@/components/ui/Badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
-import { updateAvatar, completeProfile } from "@/lib/api/auth";
+import { updateAvatar, completeProfile, deleteAccount } from "@/lib/api/auth";
 import { getAIPerformanceStats } from "@/lib/api/predictions";
 import { ShareProfileModal } from "@/components/profile/ShareProfileModal";
 import { QRCodeModal } from "@/components/profile/QRCodeModal";
@@ -36,6 +36,8 @@ export default function ProfilePage() {
     variant: "info"
   });
   const [viewAvatarModal, setViewAvatarModal] = useState<{ isOpen: boolean; imageUrl: string }>({ isOpen: false, imageUrl: "" });
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const { tooltip, handleChartClick, hideTooltip } = useMobileTooltip();
 
   // Check for reduced motion preference
@@ -150,6 +152,25 @@ export default function ProfilePage() {
     setEditUsername(user.username || "");
     setEditDob(user.date_of_birth || "");
     setEditingProfile(true);
+  }
+
+  async function handleDeleteAccount() {
+    setIsDeletingAccount(true);
+    try {
+      await deleteAccount();
+      logout();
+      router.push("/login");
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: "Imeshindika",
+        message: "Imeshindika kufuta akaunti. Jaribu tena.",
+        variant: "error"
+      });
+    } finally {
+      setIsDeletingAccount(false);
+      setDeleteConfirmModal(false);
+    }
   }
 
   const STATS = loadingAI ? [
@@ -297,6 +318,14 @@ export default function ProfilePage() {
             title="Toka"
           >
             <Power size={18} />
+          </motion.button>
+          <motion.button
+            onClick={() => setDeleteConfirmModal(true)}
+            whileTap={{ scale: 0.9 }}
+            className="w-10 h-10 rounded-xl bg-red-500/20 backdrop-blur-sm flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+            title="Futa Akaunti"
+          >
+            <Trash2 size={18} />
           </motion.button>
         </div>
       </div>
@@ -831,6 +860,79 @@ export default function ProfilePage() {
         message={alertModal.message}
         variant={alertModal.variant}
       />
+
+      {/* Delete Account Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setDeleteConfirmModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-[#111111] rounded-2xl p-6 max-w-md w-full border border-red-500/30"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <Trash2 size={24} className="text-red-400" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Futa Akaunti</h2>
+              </div>
+              <p className="text-white/70 mb-6 leading-relaxed">
+                Una hakika unataka kufuta akaunti yako? Hatua hii haiwezi kurudishwa. Data yote itafutwa pamoja na:
+              </p>
+              <ul className="text-white/60 mb-6 space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  Profile na avatar
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  Predictions na track record
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  Subscription na malipo
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  Video na reactions
+                </li>
+              </ul>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirmModal(false)}
+                  disabled={isDeletingAccount}
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50"
+                >
+                  Ghairi
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                  className="flex-1 px-4 py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeletingAccount ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Inafuta...
+                    </>
+                  ) : (
+                    "Futa Akaunti"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

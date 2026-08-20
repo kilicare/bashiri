@@ -6,6 +6,7 @@ login (phone+password) -> me/logout. OTP views zimewekwa chini kama
 COMMENT.
 """
 from django.contrib.auth import authenticate
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -351,6 +352,36 @@ class PublicProfileView(APIView):
         cache.set(cache_key, response_data, timeout=300)  # 5 minutes cache
         
         return Response(response_data)
+
+
+class DeleteAccountView(APIView):
+    """DELETE /api/auth/delete-account/ — permanently delete user account"""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        
+        # Delete user's data (cascade delete will handle related objects)
+        try:
+            # Blacklist all refresh tokens for this user
+            from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+            
+            # Get all outstanding tokens for this user and blacklist them
+            outstanding_tokens = OutstandingToken.objects.filter(user_id=user.id)
+            for token in outstanding_tokens:
+                BlacklistedToken.objects.get_or_create(token=token)
+            
+            # Delete the user (cascade delete will handle related objects)
+            user.delete()
+            
+            return Response({"detail": "Akaunti imefutwa kikamilifu."}, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"Delete account error: {e}")
+            return Response(
+                {"detail": "Imeshindika kufuta akaunti. Jaribu tena."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # ============================================================
