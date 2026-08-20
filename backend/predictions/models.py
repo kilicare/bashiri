@@ -14,6 +14,7 @@ class League(models.Model):
     code = models.CharField(max_length=10, unique=True, help_text="Kodi ya football-data.org: PL, PD, BL1, FL1")
     name = models.CharField(max_length=100)
     poisson_key = models.CharField(max_length=30, unique=True)
+    logo_url = models.URLField(max_length=500, blank=True, default="", help_text="League logo URL from football-data.org")
     is_active = models.BooleanField(default=True)
 
     class Meta:

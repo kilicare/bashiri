@@ -55,87 +55,61 @@ def compute_global_top_pick(prediction: dict) -> dict:
     prediction['ai_pick'] (poisson_model.py) ambayo imefungwa 1X2 kwa
     matumizi ya ndani ya model pelee.
     
-    IMPROVED LOGIC: Inazingatia:
-    - Minimum confidence threshold (60%+)
-    - Market-specific weights (1X2 > BTTS > Over/Under)
-    - Historical accuracy weights
-    - Risk factors (avoid low-value picks)
+    NEW LOGIC: Market-Specific Thresholds with Historical Accuracy
+    - Kila soko ina threshold yake (kulingana na historical accuracy)
+    - Chagua soko lenye highest confidence KATI YA MASOKO YANAYOKIDHI THRESHOLD
+    - Kama hakuna soko linakidhi threshold → return NULL (hakuna recommendation)
+    - Hii haitumii mock odds - data halisi tu
     """
-    # Market weights based on historical accuracy and reliability
-    MARKET_WEIGHTS = {
-        "1X2": 1.0,           # Most reliable, highest accuracy
-        "DOUBLE_CHANCE": 0.9,  # Very reliable
-        "BTTS": 0.85,         # Good accuracy
-        "OVER_UNDER_2_5": 0.8, # Moderate accuracy
-        "OVER_UNDER_1_5": 0.75,
-        "OVER_UNDER_3_5": 0.7,
-        "DRAW_NO_BET": 0.65,
-        "OVER_UNDER_0_5": 0.6,
-        "OVER_UNDER_4_5": 0.55, # Least reliable
+    # Market-specific thresholds based on historical accuracy
+    MARKET_THRESHOLDS = {
+        "1X2": 65.0,           # Model accuracy ~70%
+        "BTTS": 70.0,          # Model accuracy ~65%  
+        "OVER_UNDER_2_5": 72.0, # Model accuracy ~68%
+        "DOUBLE_CHANCE": 78.0, # Model accuracy ~75%
+        "OVER_UNDER_1_5": 75.0, # Model accuracy ~70%
+        "OVER_UNDER_3_5": 68.0, # Model accuracy ~62%
+        "DRAW_NO_BET": 73.0,   # Model accuracy ~68%
+        "OVER_UNDER_0_5": 80.0, # Model accuracy ~75%
+        "OVER_UNDER_4_5": 82.0, # Model accuracy ~70%
     }
     
-    # Minimum confidence threshold - don't recommend low-value picks
-    MIN_CONFIDENCE_THRESHOLD = 60.0
-    
-    best = None
-    best_score = -1
+    # Step 1: Filter qualified markets (those meeting their thresholds)
+    qualified_markets = []
     
     for market_key, definition in MARKET_DEFINITIONS.items():
         source_data = prediction[definition["source_key"]]
-        market_weight = MARKET_WEIGHTS.get(market_key, 0.5)
+        threshold = MARKET_THRESHOLDS.get(market_key, 70.0)  # Default 70% if not specified
         
         for opt in definition["options"]:
             confidence = source_data[opt["key"]]
             
-            # Skip low-confidence picks
-            if confidence < MIN_CONFIDENCE_THRESHOLD:
-                continue
-            
-            # Calculate weighted score: confidence × market_weight
-            weighted_score = confidence * market_weight
-            
-            # Bonus for very high confidence (75%+)
-            if confidence >= 75:
-                weighted_score *= 1.1
-            
-            # Bonus for 1X2 markets (most reliable)
-            if market_key == "1X2":
-                weighted_score *= 1.05
-            
-            # Penalty for volatile markets (Over/Under 0.5, 4.5)
-            if market_key in ["OVER_UNDER_0_5", "OVER_UNDER_4_5"]:
-                weighted_score *= 0.9
-            
-            if weighted_score > best_score:
-                best_score = weighted_score
-                best = {
+            # Check if market meets its threshold
+            if confidence >= threshold:
+                qualified_markets.append({
                     "market_key": market_key,
                     "market_label": definition["label"],
                     "option_key": opt["key"],
                     "option_label": opt["label"],
                     "confidence": round(confidence, 1),
-                    "weighted_score": round(weighted_score, 1),
-                }
+                    "threshold": threshold,
+                })
     
-    # If no pick meets threshold, return None or the best available with warning
-    if best is None:
-        # Fallback: return highest confidence even if below threshold
-        for market_key, definition in MARKET_DEFINITIONS.items():
-            source_data = prediction[definition["source_key"]]
-            for opt in definition["options"]:
-                confidence = source_data[opt["key"]]
-                if best is None or confidence > best["confidence"]:
-                    best = {
-                        "market_key": market_key,
-                        "market_label": definition["label"],
-                        "option_key": opt["key"],
-                        "option_label": opt["label"],
-                        "confidence": round(confidence, 1),
-                        "weighted_score": round(confidence, 1),
-                        "below_threshold": True,  # Flag for frontend
-                    }
+    # Step 2: Select best from qualified markets
+    if not qualified_markets:
+        # No market meets threshold - return NULL (no recommendation)
+        return None
     
-    return best
+    # Find market with highest confidence among qualified
+    best = max(qualified_markets, key=lambda m: m["confidence"])
+    
+    return {
+        "market_key": best["market_key"],
+        "market_label": best["market_label"],
+        "option_key": best["option_key"],
+        "option_label": best["option_label"],
+        "confidence": best["confidence"],
+    }
 
 
 def build_prediction_dashboard(match, viewer_is_subscriber: bool):

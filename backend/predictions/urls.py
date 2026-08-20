@@ -4,7 +4,7 @@ from .views import (
     ActiveDerbyView, AITrackRecordView, AIPerformanceStatsView, BookmakersView, CommandSearchView, FixturesView, LeagueListView,
     LiveMatchesView, MatchAnalysisView, MatchDashboardView, MatchOddsView, MatchOverviewView, OddsListView,
     SavedMatchesListView, SavedMarketsListView, SaveMatchView, SaveMarketView, SearchView, TeamListView, FinishedMatchesView, SyncHistoricalView, GenerateSavedMarketsPDFView,
-    TeamStandingsView, HeadToHeadView,
+    TeamStandingsView, HeadToHeadView, TeamDetailView, LeagueDetailView,
 )
 
 urlpatterns = [
@@ -13,7 +13,9 @@ urlpatterns = [
     path("search/", SearchView.as_view(), name="search"),
     path("command-search/", CommandSearchView.as_view(), name="command-search"),
     path("leagues/", LeagueListView.as_view(), name="league-list"),
+    path("leagues/<str:league_code>/", LeagueDetailView.as_view(), name="league-detail"),
     path("teams/", TeamListView.as_view(), name="team-list"),
+    path("teams/<int:team_id>/", TeamDetailView.as_view(), name="team-detail"),
     path("active-derby/", ActiveDerbyView.as_view(), name="active-derby"),
     path("ai-track-record/", AITrackRecordView.as_view(), name="ai-track-record"),
     path("ai-performance/", AIPerformanceStatsView.as_view(), name="ai-performance"),

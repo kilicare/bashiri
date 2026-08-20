@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getFixtures, getLiveMatches, getFinishedMatches, searchMatches, Match, getLeagues, League } from "@/lib/api/predictions";
-import { Search, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon } from "lucide-react";
+import { commandSearch, CommandSearchResults } from "@/lib/api/command-search";
+import { Search, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon, X, Target } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { BookButton } from "@/components/ui/BookButton";
 import { DatePicker } from "@/components/ui/DatePicker";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { MatchOddsCard } from "@/components/predictions/MatchOddsCard";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
@@ -24,17 +25,102 @@ function formatMatchDate(kickoffAt: string): string {
 
 export default function MatchesPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"fixtures" | "live" | "finished" | "live-odds">("fixtures");
+  const searchParams = useSearchParams();
+  
+  // Initialize state from URL params
+  const [tab, setTab] = useState<"fixtures" | "live" | "finished" | "live-odds">(
+    (searchParams.get("tab") as any) || "fixtures"
+  );
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [useDateInSearch, setUseDateInSearch] = useState(false);
-  const [selectedLeague, setSelectedLeague] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState(
+    searchParams.get("date") ? new Date(searchParams.get("date")!) : new Date()
+  );
+  const [useDateInSearch, setUseDateInSearch] = useState(searchParams.get("useDate") === "true");
+  const [selectedLeague, setSelectedLeague] = useState(searchParams.get("league") || "");
   const [leagues, setLeagues] = useState<League[]>([]);
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
+  
+  // Intelligent search state
+  const [searchResults, setSearchResults] = useState<CommandSearchResults | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Intelligent search handler
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (query.trim().length < 2) {
+      setSearchResults(null);
+      return;
+    }
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(() => {
+      commandSearch(query).then((data) => {
+        setSearchResults(data);
+        setSearchLoading(false);
+      });
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  // Handle search result clicks
+  const handleSearchResultClick = (type: 'match' | 'team' | 'league', id: number, code?: string) => {
+    setIsSearchFocused(false);
+    if (type === 'match') {
+      router.push(`/create/${id}/overview`);
+    } else if (type === 'team') {
+      router.push(`/team/${id}`);
+    } else if (type === 'league' && code) {
+      router.push(`/league/${code}`);
+    }
+  };
+
+  // Function to update URL params without page refresh
+  const updateURLParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    const newURL = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, "", newURL);
+  };
+
+  // State setters that also update URL
+  const updateTab = (newTab: typeof tab) => {
+    setTab(newTab);
+    updateURLParams({ tab: newTab });
+  };
+
+  const updateQuery = (newQuery: string) => {
+    setQuery(newQuery);
+    updateURLParams({ q: newQuery || null });
+  };
+
+  const updateSelectedDate = (newDate: Date) => {
+    setSelectedDate(newDate);
+    updateURLParams({ date: format(newDate, 'yyyy-MM-dd') });
+  };
+
+  const updateUseDateInSearch = (newValue: boolean) => {
+    setUseDateInSearch(newValue);
+    updateURLParams({ useDate: newValue ? "true" : null });
+  };
+
+  const updateSelectedLeague = (newLeague: string) => {
+    setSelectedLeague(newLeague);
+    updateURLParams({ league: newLeague || null });
+  };
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -62,7 +148,15 @@ export default function MatchesPage() {
 
   useEffect(() => {
     if (tab === "live-odds") {
-      router.push("/live-odds");
+      // Store current state before redirecting
+      const currentState = {
+        tab: tab,
+        selectedDate: format(selectedDate, 'yyyy-MM-dd'),
+        selectedLeague: selectedLeague,
+        query: query,
+        useDateInSearch: useDateInSearch
+      };
+      router.push(`/live-odds?from=matches&state=${encodeURIComponent(JSON.stringify(currentState))}`);
       return;
     }
     setLoading(true);
@@ -88,7 +182,7 @@ export default function MatchesPage() {
         setLoading(false);
       });
     }
-  }, [tab, selectedDate, selectedLeague, router]);
+  }, [tab, selectedDate, selectedLeague, router, query, useDateInSearch]);
 
   // Poll live matches every 30 seconds when on live tab
   useEffect(() => {
@@ -139,7 +233,7 @@ export default function MatchesPage() {
   }
 
   async function handleSearch(q: string) {
-    setQuery(q);
+    updateQuery(q);
     if (q.length < 2) return;
     const dateStr = useDateInSearch ? format(selectedDate, 'yyyy-MM-dd') : undefined;
     const data = await searchMatches(q, dateStr, selectedLeague || undefined);
@@ -156,17 +250,25 @@ export default function MatchesPage() {
           </button>
           <h1 className="text-2xl font-black text-white">Matches</h1>
         </div>
-        <div className="flex items-center gap-2 rounded-2xl px-4 py-4 mb-4 max-w-2xl mx-auto sm:mx-0" style={{ background: "#151515" }}>
+        <div className="flex items-center gap-2 rounded-2xl px-4 py-4 mb-4 max-w-2xl mx-auto sm:mx-0 relative" style={{ background: "#151515" }}>
           <Search size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
           <input
+            ref={searchInputRef}
             className="bg-transparent outline-none text-sm text-white flex-1"
-            placeholder="Tafuta timu au mechi..."
+            placeholder="Tafuta timu, ligi, au mechi..."
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
           />
+          {query && (
+            <button onClick={() => { updateQuery(''); setSearchResults(null); }}>
+              <X size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
+            </button>
+          )}
           {/* Date filter toggle for search */}
           <button
-            onClick={() => setUseDateInSearch(!useDateInSearch)}
+            onClick={() => updateUseDateInSearch(!useDateInSearch)}
             className="px-4 py-2 rounded-full text-xs font-bold transition-colors"
             style={{ 
               background: useDateInSearch ? "var(--brand-accent)" : "rgba(255,255,255,0.06)", 
@@ -175,12 +277,152 @@ export default function MatchesPage() {
           >
             {useDateInSearch ? "Date: ON" : "Date: OFF"}
           </button>
+
+          {/* Intelligent Search Results Dropdown */}
+          <AnimatePresence>
+            {isSearchFocused && query.length >= 2 && (
+              <motion.div
+                className="absolute top-full left-0 right-0 mt-2 rounded-2xl z-50 max-h-80 overflow-y-auto"
+                style={{ background: "#111111", border: "2px solid rgba(212,175,55,0.3)" }}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                {searchLoading && (
+                  <p className="text-xs text-center py-4" style={{ color: "rgba(255,255,255,0.4)" }}>Inatafuta...</p>
+                )}
+
+                {!searchLoading && searchResults && (
+                  <>
+                    {searchResults.teams.length > 0 && (
+                      <div className="px-2 py-2">
+                        <p className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Timu</p>
+                        {searchResults.teams.map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => handleSearchResultClick('team', t.id)}
+                            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:scale-[1.02] text-left"
+                            style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.1)" }}
+                          >
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                              {t.crest_url ? (
+                                <img 
+                                  src={t.crest_url} 
+                                  alt={t.name}
+                                  className="w-full h-full object-contain p-1"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                              ) : null}
+                              <Target size={16} style={{ color: "#D4AF37" }} className={t.crest_url ? 'hidden' : ''} />
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{t.name}</div>
+                              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{t.league?.name || ''}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {searchResults.leagues.length > 0 && (
+                      <div className="px-2 py-2 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Ligi</p>
+                        {searchResults.leagues.map((l) => (
+                          <button
+                            key={l.id}
+                            onClick={() => handleSearchResultClick('league', l.id, l.code)}
+                            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:scale-[1.02] text-left"
+                            style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.1)" }}
+                          >
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                              {l.logo_url ? (
+                                <img 
+                                  src={l.logo_url} 
+                                  alt={l.name}
+                                  className="w-full h-full object-contain p-1"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                              ) : null}
+                              <Target size={16} style={{ color: "#D4AF37" }} className={l.logo_url ? 'hidden' : ''} />
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{l.name}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {searchResults.matches.length > 0 && (
+                      <div className="px-2 py-2 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Mechi</p>
+                        {searchResults.matches.map((m) => (
+                          <button
+                            key={m.id}
+                            onClick={() => handleSearchResultClick('match', m.id)}
+                            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:scale-[1.02] text-left"
+                            style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.1)" }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                                {m.home_team.crest_url ? (
+                                  <img 
+                                    src={m.home_team.crest_url} 
+                                    alt={m.home_team.name}
+                                    className="w-full h-full object-contain p-1"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                <Target size={12} style={{ color: "#D4AF37" }} className={m.home_team.crest_url ? 'hidden' : ''} />
+                              </div>
+                              <span className="text-xs" style={{ color: "var(--text-secondary)" }}>vs</span>
+                              <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                                {m.away_team.crest_url ? (
+                                  <img 
+                                    src={m.away_team.crest_url} 
+                                    alt={m.away_team.name}
+                                    className="w-full h-full object-contain p-1"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                <Target size={12} style={{ color: "#D4AF37" }} className={m.away_team.crest_url ? 'hidden' : ''} />
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{m.home_team.name} vs {m.away_team.name}</div>
+                              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{m.league.name}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {!searchLoading && searchResults.matches.length === 0 && searchResults.teams.length === 0 && searchResults.leagues.length === 0 && (
+                      <p className="text-xs text-center py-4" style={{ color: "rgba(255,255,255,0.4)" }}>Hakuna matokeo.</p>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
         {/* Date picker for fixtures and finished tabs */}
         {(tab === "fixtures" || tab === "finished") && (
           <div className="mb-4 max-w-xs mx-auto sm:mx-0">
-            <DatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+            <DatePicker selectedDate={selectedDate} onDateChange={updateSelectedDate} />
           </div>
         )}
 
@@ -202,7 +444,7 @@ export default function MatchesPage() {
               <div className="absolute top-full left-0 right-0 mt-2 p-2 rounded-2xl z-50 max-h-60 overflow-y-auto"
                    style={{ background: "#151515", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <button
-                  onClick={() => { setSelectedLeague(""); setShowLeagueDropdown(false); }}
+                  onClick={() => { updateSelectedLeague(""); setShowLeagueDropdown(false); }}
                   className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-white hover:bg-white/5 transition-colors"
                 >
                   All Leagues
@@ -210,7 +452,7 @@ export default function MatchesPage() {
                 {leagues.map((league) => (
                   <button
                     key={league.code}
-                    onClick={() => { setSelectedLeague(league.code); setShowLeagueDropdown(false); }}
+                    onClick={() => { updateSelectedLeague(league.code); setShowLeagueDropdown(false); }}
                     className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-colors"
                     style={{ 
                       color: selectedLeague === league.code ? "var(--brand-accent)" : "rgba(255,255,255,0.6)",
@@ -229,7 +471,7 @@ export default function MatchesPage() {
           {(["fixtures", "live", "finished", "live-odds"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
+              onClick={() => updateTab(t)}
               className="px-4 py-3 rounded-full text-sm font-bold sm:flex-none sm:w-28"
               style={{
                 background: tab === t ? "var(--brand-accent)" : "rgba(255,255,255,0.06)",

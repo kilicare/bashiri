@@ -4,12 +4,15 @@ export interface Team {
   id: number;
   name: string;
   crest_url: string;
+  league?: League;
 }
 export interface League {
   id: number;
   code: string;
   name: string;
   poisson_key: string;
+  logo_url: string;
+  is_active: boolean;
 }
 export interface Match {
   id: number;
@@ -212,6 +215,8 @@ export interface League {
   code: string;
   name: string;
   poisson_key: string;
+  logo_url: string;
+  is_active: boolean;
 }
 
 export function getLeagues() {
@@ -278,4 +283,47 @@ export function getMatchOdds(matchId: number, lang?: string) {
 
 export function getBookmakers() {
   return apiClient<Bookmaker[]>("/predictions/bookmakers/", { skipAuth: true });
+}
+
+// Team and League Detail API types
+export interface TeamStanding {
+  id: number;
+  team: Team;
+  league: League;
+  position: number;
+  matches_played: number;
+  won: number;
+  draw: number;
+  lost: number;
+  goals_for: number;
+  goals_against: number;
+  goal_difference: number;
+  points: number;
+  form: string;
+  form_rating: number;
+  updated_at: string;
+}
+
+export interface TeamDetail {
+  team: Team;
+  league: League | null;
+  standings: TeamStanding | null;
+  upcoming_matches: Match[];
+  finished_matches: Match[];
+}
+
+export interface LeagueDetail {
+  league: League;
+  standings: TeamStanding[];
+  upcoming_matches: Match[];
+  finished_matches: Match[];
+  teams: Team[];
+}
+
+export function getTeamDetail(teamId: number) {
+  return apiClient<TeamDetail>(`/predictions/teams/${teamId}/`, { skipAuth: true });
+}
+
+export function getLeagueDetail(leagueCode: string) {
+  return apiClient<LeagueDetail>(`/predictions/leagues/${leagueCode}/`, { skipAuth: true });
 }

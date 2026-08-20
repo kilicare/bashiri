@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getOdds, getLeagues, type OddsBookmaker, type League } from "@/lib/api/predictions";
 import { ArrowLeft, RefreshCw, Filter, ChevronDown, TrendingUp } from "lucide-react";
@@ -66,11 +66,23 @@ function getBestOddsForMatch(matchOdds: OddsBookmaker[]) {
 
 export default function LiveOddsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+  
   const [selectedLeague, setSelectedLeague] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<"upcoming" | "live" | "all">("upcoming");
   const [language, setLanguage] = useState<"en" | "sw">("en");
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
   const previousOddsRef = useRef<OddsBookmaker[]>([]);
+
+  // Handle back button
+  const handleBack = () => {
+    if (from === "matches") {
+      router.push("/matches");
+    } else {
+      router.back();
+    }
+  };
 
   // Fetch leagues
   const { data: leagues } = useQuery({
@@ -174,7 +186,7 @@ export default function LiveOddsPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => router.back()} 
+              onClick={handleBack} 
               aria-label="Go back"
               className="p-2 rounded-full transition-all hover:bg-white/10"
             >

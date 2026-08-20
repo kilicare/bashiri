@@ -6,13 +6,15 @@ from .models import ActiveDerby, League, Match, OddsBookmaker, OddsUpdate, Saved
 class LeagueSerializer(serializers.ModelSerializer):
     class Meta:
         model = League
-        fields = ["id", "code", "name", "poisson_key"]
+        fields = ["id", "code", "name", "poisson_key", "logo_url", "is_active"]
 
 
 class TeamSerializer(serializers.ModelSerializer):
+    league = LeagueSerializer(read_only=True)
+    
     class Meta:
         model = Team
-        fields = ["id", "name", "crest_url"]
+        fields = ["id", "name", "crest_url", "league"]
 
 
 class MatchListSerializer(serializers.ModelSerializer):

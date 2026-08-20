@@ -13,8 +13,8 @@ from rest_framework.throttling import AnonRateThrottle
 
 from core.cache_utils import cache_response
 
-from .models import ActiveDerby, Match, OddsBookmaker, SavedMatch, SavedMarket, TeamStanding, HeadToHead
-from .serializers import ActiveDerbySerializer, MatchListSerializer, OddsBookmakerSerializer, SavedMatchSerializer, SavedMarketSerializer, TeamStandingSerializer, HeadToHeadSerializer
+from .models import ActiveDerby, Match, OddsBookmaker, SavedMatch, SavedMarket, Team, League, TeamStanding, HeadToHead
+from .serializers import ActiveDerbySerializer, MatchListSerializer, OddsBookmakerSerializer, SavedMatchSerializer, SavedMarketSerializer, TeamSerializer, LeagueSerializer, TeamStandingSerializer, HeadToHeadSerializer
 from .services import UnknownTeamError, build_prediction_dashboard, build_match_analysis, head_to_head, team_form, build_enhanced_prediction_dashboard, get_enhanced_team_data, get_enhanced_h2h_data
 
 
@@ -918,6 +918,82 @@ class TeamStandingsView(APIView):
         standings = standings.order_by("league", "position")
         
         return Response(TeamStandingSerializer(standings, many=True).data)
+
+
+class TeamDetailView(APIView):
+    """GET /api/predictions/teams/{id}/ — Get detailed team information like sofascore."""
+    permission_classes = [AllowAny]
+    
+    def get(self, request, team_id):
+        try:
+            team = Team.objects.get(id=team_id)
+        except Team.DoesNotExist:
+            return Response({"detail": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get team standings
+        standings = TeamStanding.objects.filter(team=team).select_related("league").first()
+        
+        # Get upcoming matches
+        upcoming_matches = Match.objects.filter(
+            Q(home_team=team) | Q(away_team=team),
+            status="SCHEDULED"
+        ).select_related("league", "home_team", "away_team").order_by("kickoff_at")[:10]
+        
+        # Get recent finished matches
+        finished_matches = Match.objects.filter(
+            Q(home_team=team) | Q(away_team=team),
+            status="FINISHED"
+        ).select_related("league", "home_team", "away_team").order_by("-kickoff_at")[:10]
+        
+        # Get league for the team
+        league = team.league
+        
+        return Response({
+            "team": TeamSerializer(team).data,
+            "league": LeagueSerializer(league).data if league else None,
+            "standings": TeamStandingSerializer(standings).data if standings else None,
+            "upcoming_matches": MatchListSerializer(upcoming_matches, many=True).data,
+            "finished_matches": MatchListSerializer(finished_matches, many=True).data,
+        })
+
+
+class LeagueDetailView(APIView):
+    """GET /api/predictions/leagues/{code}/ — Get detailed league information like sofascore."""
+    permission_classes = [AllowAny]
+    
+    def get(self, request, league_code):
+        try:
+            league = League.objects.get(code=league_code)
+        except League.DoesNotExist:
+            return Response({"detail": "League not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get league standings
+        standings = TeamStanding.objects.filter(
+            league=league
+        ).select_related("team", "league").order_by("position")
+        
+        # Get upcoming matches
+        upcoming_matches = Match.objects.filter(
+            league=league,
+            status="SCHEDULED"
+        ).select_related("home_team", "away_team").order_by("kickoff_at")[:20]
+        
+        # Get recent finished matches
+        finished_matches = Match.objects.filter(
+            league=league,
+            status="FINISHED"
+        ).select_related("home_team", "away_team").order_by("-kickoff_at")[:20]
+        
+        # Get all teams in league
+        teams = Team.objects.filter(league=league).order_by("name")
+        
+        return Response({
+            "league": LeagueSerializer(league).data,
+            "standings": TeamStandingSerializer(standings, many=True).data,
+            "upcoming_matches": MatchListSerializer(upcoming_matches, many=True).data,
+            "finished_matches": MatchListSerializer(finished_matches, many=True).data,
+            "teams": TeamSerializer(teams, many=True).data,
+        })
 
 
 class HeadToHeadView(APIView):

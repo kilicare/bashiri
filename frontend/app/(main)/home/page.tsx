@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FeedContainer } from "@/components/feed/FeedContainer";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { PulseIndicatorButton } from "@/components/pulse/PulseIndicatorButton";
 import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
-import { Bell, Target } from "lucide-react";
-import { motion } from "framer-motion";
+import { Bell, Target, Search, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ReviewPromptModal } from "@/components/review/ReviewPromptModal";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
+import { commandSearch, CommandSearchResults } from "@/lib/api/command-search";
 
 export default function HomePage() {
   const router = useRouter();
@@ -18,6 +19,53 @@ export default function HomePage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Search state
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<CommandSearchResults | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Search logic
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (searchQuery.trim().length < 2) {
+      setSearchResults(null);
+      return;
+    }
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(() => {
+      commandSearch(searchQuery).then((data) => {
+        setSearchResults(data);
+        setSearchLoading(false);
+      });
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (showSearch) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } else {
+      setSearchQuery("");
+      setSearchResults(null);
+    }
+  }, [showSearch]);
+
+  const handleSearchResultClick = (type: 'match' | 'team' | 'league', id: number, code?: string) => {
+    setShowSearch(false);
+    if (type === 'match') {
+      router.push(`/create/${id}/overview`);
+    } else if (type === 'team') {
+      router.push(`/team/${id}`);
+    } else if (type === 'league' && code) {
+      router.push(`/league/${code}`);
+    }
+  };
 
   const handleRefresh = async () => {
     // Force refresh of feed and notifications
@@ -72,8 +120,7 @@ export default function HomePage() {
               type="button"
               aria-label="Open notifications"
               onClick={() => router.push("/notifications")}
-              className="relative grid place-items-center rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.1)" }}
+              className="relative w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
             >
               <Bell size={20} style={{ color: "var(--brand-primary)" }} />
               {unreadCount > 0 && (
@@ -100,70 +147,28 @@ export default function HomePage() {
             >
               BASHIRI
             </h1>
-            <motion.button
+            <button
               type="button"
               aria-label="Go to Pulse"
               onClick={() => router.push("/pulse")}
-              className="relative grid place-items-center rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)] flex-shrink-0"
-              style={{
-                background: "linear-gradient(135deg, rgba(0,200,120,0.2), rgba(0,200,120,0.08))",
-                border: "1.5px solid rgba(0,200,120,0.4)",
-                boxShadow: "0 4px 20px rgba(0,200,120,0.3), 0 0 0 1px rgba(0,200,120,0.1)",
-              }}
-              whileHover={{ scale: 1.08, boxShadow: "0 6px 30px rgba(0,200,120,0.5), 0 0 0 1px rgba(0,200,120,0.2)" }}
-              whileTap={{ scale: 0.95 }}
-              animate={{
-                boxShadow: [
-                  "0 4px 20px rgba(0,200,120,0.3), 0 0 0 1px rgba(0,200,120,0.1)",
-                  "0 4px 30px rgba(0,200,120,0.5), 0 0 0 1px rgba(0,200,120,0.2)",
-                  "0 4px 20px rgba(0,200,120,0.3), 0 0 0 1px rgba(0,200,120,0.1)",
-                ],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+              className="relative w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
             >
-              {/* Pulse Glow Effect */}
-              <motion.div
-                className="absolute inset-0 rounded-xl"
-                style={{
-                  background: "radial-gradient(circle, rgba(0,200,120,0.3) 0%, transparent 70%)",
-                }}
-                animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [0.5, 0.8, 0.5],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
               <Target size={20} style={{ color: "#00C878" }} />
-
-              {/* LIVE Badge */}
-              <motion.div
-                className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full"
-                style={{
-                  background: "rgba(0,200,120,0.9)",
-                  border: "1px solid rgba(0,200,120,0.3)",
-                  boxShadow: "0 0 10px rgba(0,200,120,0.6)",
-                }}
-                animate={{
-                  opacity: [1, 0.6, 1],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                <span className="text-[8px] font-bold text-white tracking-wider">LIVE</span>
-              </motion.div>
-            </motion.button>
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 text-[10px] font-bold"
+                style={{ background: "rgba(0,200,120,0.9)", color: "white", boxShadow: "0 0 10px rgba(0,200,120,0.6)" }}>
+                LIVE
+              </span>
+            </button>
+            
+            {/* Search Button */}
+            <button
+              type="button"
+              aria-label="Open search"
+              onClick={() => setShowSearch(true)}
+              className="w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
+            >
+              <Search size={20} style={{ color: "#D4AF37" }} />
+            </button>
           </div>
           <div className="pb-8">
             <HeroCarousel />
@@ -180,6 +185,220 @@ export default function HomePage() {
             router.push("/review");
           }}
         />
+
+        {/* Search Modal */}
+        <AnimatePresence>
+          {showSearch && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-50"
+                style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+                onClick={() => setShowSearch(false)}
+              />
+              
+              {/* Modal */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg mx-4"
+              >
+                <div
+                  className="rounded-2xl overflow-hidden"
+                  style={{
+                    background: "var(--surface)",
+                    border: "2px solid rgba(212,175,55,0.3)",
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.1)",
+                  }}
+                >
+                  {/* Header */}
+                  <div className="flex items-center gap-3 p-4 border-b" style={{ borderColor: "rgba(212,175,55,0.15)" }}>
+                    <Search size={20} style={{ color: "#D4AF37" }} />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search teams, leagues, matches..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1 bg-transparent outline-none text-lg"
+                      style={{ color: "var(--text-primary)" }}
+                    />
+                    <button
+                      onClick={() => setShowSearch(false)}
+                      className="grid place-items-center rounded-lg p-2 transition-all hover:scale-105"
+                      style={{ background: "rgba(212,175,55,0.1)" }}
+                    >
+                      <X size={18} style={{ color: "#D4AF37" }} />
+                    </button>
+                  </div>
+
+                  {/* Results */}
+                  <div className="max-h-[400px] overflow-y-auto p-2">
+                    {searchLoading && (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                          Searching...
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!searchLoading && searchQuery.trim().length < 2 && (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="text-sm text-center" style={{ color: "var(--text-secondary)" }}>
+                          Type at least 2 characters to search
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!searchLoading && searchQuery.trim().length >= 2 && !searchResults && (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                          No results found
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!searchLoading && searchResults && (
+                      <div className="space-y-1">
+                        {/* Teams */}
+                        {searchResults.teams && searchResults.teams.length > 0 && (
+                          <div>
+                            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
+                              Teams
+                            </div>
+                            {searchResults.teams.map((team) => (
+                              <button
+                                key={team.id}
+                                onClick={() => handleSearchResultClick('team', team.id)}
+                                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:scale-[1.02] text-left"
+                                style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.1)" }}
+                              >
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                                  {team.crest_url ? (
+                                    <img 
+                                      src={team.crest_url} 
+                                      alt={team.name}
+                                      className="w-full h-full object-contain p-1"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                      }}
+                                    />
+                                  ) : null}
+                                  <Target size={16} style={{ color: "#D4AF37" }} className={team.crest_url ? 'hidden' : ''} />
+                                </div>
+                                <div>
+                                  <div className="font-medium" style={{ color: "var(--text-primary)" }}>{team.name}</div>
+                                  <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{team.league?.name || ''}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Leagues */}
+                        {searchResults.leagues && searchResults.leagues.length > 0 && (
+                          <div>
+                            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
+                              Leagues
+                            </div>
+                            {searchResults.leagues.map((league) => (
+                              <button
+                                key={league.code}
+                                onClick={() => handleSearchResultClick('league', league.id, league.code)}
+                                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:scale-[1.02] text-left"
+                                style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.1)" }}
+                              >
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                                  {league.logo_url ? (
+                                    <img 
+                                      src={league.logo_url} 
+                                      alt={league.name}
+                                      className="w-full h-full object-contain p-1"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                      }}
+                                    />
+                                  ) : null}
+                                  <Target size={16} style={{ color: "#D4AF37" }} className={league.logo_url ? 'hidden' : ''} />
+                                </div>
+                                <div>
+                                  <div className="font-medium" style={{ color: "var(--text-primary)" }}>{league.name}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Matches */}
+                        {searchResults.matches && searchResults.matches.length > 0 && (
+                          <div>
+                            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
+                              Matches
+                            </div>
+                            {searchResults.matches.map((match) => (
+                              <button
+                                key={match.id}
+                                onClick={() => handleSearchResultClick('match', match.id)}
+                                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:scale-[1.02] text-left"
+                                style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.1)" }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {/* Home Team Logo */}
+                                  <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                                    {match.home_team.crest_url ? (
+                                      <img 
+                                        src={match.home_team.crest_url} 
+                                        alt={match.home_team.name}
+                                        className="w-full h-full object-contain p-1"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                        }}
+                                      />
+                                    ) : null}
+                                    <Target size={12} style={{ color: "#D4AF37" }} className={match.home_team.crest_url ? 'hidden' : ''} />
+                                  </div>
+                                  <span className="text-xs" style={{ color: "var(--text-secondary)" }}>vs</span>
+                                  {/* Away Team Logo */}
+                                  <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "rgba(212,175,55,0.15)" }}>
+                                    {match.away_team.crest_url ? (
+                                      <img 
+                                        src={match.away_team.crest_url} 
+                                        alt={match.away_team.name}
+                                        className="w-full h-full object-contain p-1"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                        }}
+                                      />
+                                    ) : null}
+                                    <Target size={12} style={{ color: "#D4AF37" }} className={match.away_team.crest_url ? 'hidden' : ''} />
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-medium" style={{ color: "var(--text-primary)" }}>{match.home_team.name} vs {match.away_team.name}</div>
+                                  <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{match.league.name}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </PullToRefresh>
   );
