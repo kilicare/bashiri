@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { SPLASH_CONFIG } from "@/lib/constants/splashConfig";
 import { useCountUp } from "@/hooks/useCountUp";
+import { Target } from "lucide-react";
 
 interface LeagueAccuracyRowProps {
   name: string;
@@ -19,53 +20,61 @@ export function LeagueAccuracyRow({ name, flag, accuracy, index }: LeagueAccurac
 
   return (
     <motion.div
-      className="flex items-center gap-3"
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
+      className="relative rounded-2xl p-4 w-full"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ 
         duration: SPLASH_CONFIG.baseAnimationDuration, 
         delay: 0.4 + index * SPLASH_CONFIG.staggerDelay,
         ease: "easeOut" 
       }}
+      style={{
+        background: SPLASH_CONFIG.surface,
+        border: `1px solid ${SPLASH_CONFIG.surfaceBorder}`,
+        backdropFilter: "blur(10px)",
+      }}
     >
-      {/* League flag */}
-      <div className="text-2xl flex-shrink-0">{flag}</div>
-      
-      {/* League name and progress */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <span
-            className="text-sm font-semibold truncate"
-            style={{ color: SPLASH_CONFIG.white }}
+      <div className="flex items-center justify-between gap-4">
+        {/* League Section */}
+        <div className="flex items-center gap-3 flex-1">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: "rgba(212, 175, 55, 0.1)",
+              border: "1px solid rgba(212, 175, 55, 0.2)",
+            }}
           >
-            {name}
-          </span>
-          <span
-            className="text-sm font-bold ml-2"
-            style={{ color: SPLASH_CONFIG.aiGreen }}
+            <span className="text-xl">{flag}</span>
+          </div>
+          <div>
+            <div
+              className="text-sm font-semibold"
+              style={{ 
+                color: SPLASH_CONFIG.white,
+              }}
+            >
+              {name}
+            </div>
+            <div
+              className="text-xs font-medium"
+              style={{ color: SPLASH_CONFIG.textSecondary }}
+            >
+              League Accuracy
+            </div>
+          </div>
+        </div>
+
+        {/* Accuracy Percentage */}
+        <div className="flex items-center gap-2">
+          <div
+            className="text-xl font-bold"
+            style={{ 
+              color: SPLASH_CONFIG.aiGreen,
+              fontSize: SPLASH_CONFIG.statsFontSize,
+            }}
           >
             {animatedAccuracy}%
-          </span>
-        </div>
-        
-        {/* Progress bar */}
-        <div 
-          className="h-1.5 rounded-full overflow-hidden"
-          style={{ background: "rgba(255, 255, 255, 0.1)" }}
-        >
-          <motion.div
-            className="h-full rounded-full"
-            style={{
-              background: `linear-gradient(90deg, ${SPLASH_CONFIG.primaryGold}, ${SPLASH_CONFIG.secondaryGold})`,
-            }}
-            initial={{ width: 0 }}
-            animate={{ width: `${accuracy}%` }}
-            transition={{ 
-              duration: SPLASH_CONFIG.progressAnimationDuration,
-              delay: 0.5 + index * SPLASH_CONFIG.staggerDelay,
-              ease: "easeOut" 
-            }}
-          />
+          </div>
         </div>
       </div>
     </motion.div>

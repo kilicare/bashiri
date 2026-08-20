@@ -14,13 +14,13 @@ export function LeagueAccuracy() {
     >
       {/* Header */}
       <div
-        className="text-xs font-semibold mb-3 uppercase tracking-wider"
+        className="text-xs font-semibold mb-4 uppercase tracking-wider"
         style={{ color: SPLASH_CONFIG.textSecondary }}
       >
         Top League Accuracy
       </div>
 
-      {/* League rows */}
+      {/* League cards */}
       <div className="space-y-3">
         {SPLASH_CONFIG.leagueData.map((league, index) => (
           <LeagueAccuracyRow
