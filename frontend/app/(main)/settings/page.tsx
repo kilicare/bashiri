@@ -12,37 +12,50 @@ const SETTINGS_ITEMS = [
     label: "Timu Ninazopenda", 
     href: "/settings/teams",
     icon: Star,
-    description: "Manage your favorite teams"
+    description: "Manage your favorite teams",
+    adminOnly: false
   },
   { 
     label: "Ligi Ninazopenda", 
     href: "/settings/leagues",
     icon: Heart,
-    description: "Select your preferred leagues"
+    description: "Select your preferred leagues",
+    adminOnly: false
   },
   { 
     label: "Notifications", 
     href: "/settings/notifications",
     icon: Bell,
-    description: "Configure notification settings"
+    description: "Configure notification settings",
+    adminOnly: false
   },
   { 
     label: "Lugha (SW/EN)", 
     href: "/settings/language",
     icon: Globe,
-    description: "Change app language"
+    description: "Change app language",
+    adminOnly: false
   },
   { 
     label: "Wasiliana Nasi", 
     href: "/contact",
     icon: Phone,
-    description: "Contact Bashiri team"
+    description: "Contact Bashiri team",
+    adminOnly: false
   },
   { 
     label: "Msaada na Maoni", 
     href: "/settings/support",
     icon: HelpCircle,
-    description: "Get help or send feedback"
+    description: "Get help or send feedback",
+    adminOnly: false
+  },
+  { 
+    label: "Admin Panel", 
+    href: "/admin/login",
+    icon: ShieldAlert,
+    description: "Access admin dashboard",
+    adminOnly: true
   },
 ];
 
@@ -145,7 +158,7 @@ export default function SettingsPage() {
           transition={{ delay: 0.1 }}
           className="grid grid-cols-2 gap-3 mb-6"
         >
-          {SETTINGS_ITEMS.map((item, index) => (
+          {SETTINGS_ITEMS.filter(item => !item.adminOnly || user?.is_staff).map((item, index) => (
             <motion.div
               key={item.href}
               initial={{ opacity: 0, y: 10 }}
@@ -159,8 +172,8 @@ export default function SettingsPage() {
                 >
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#F5A623]/10 to-[#E8892A]/5 border border-[#F5A623]/20 flex items-center justify-center flex-shrink-0">
-                        <item.icon size={17} className="text-[#F5A623]" />
+                      <div className={`w-9 h-9 rounded-lg ${item.adminOnly ? 'bg-gradient-to-br from-[var(--brand-accent)]/10 to-[var(--brand-accent)]/5 border border-[var(--brand-accent)]/30' : 'bg-gradient-to-br from-[#F5A623]/10 to-[#E8892A]/5 border border-[#F5A623]/20'} flex items-center justify-center flex-shrink-0`}>
+                        <item.icon size={17} className={item.adminOnly ? 'text-[var(--brand-accent)]' : 'text-[#F5A623]'} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-semibold text-white block truncate">{item.label}</span>

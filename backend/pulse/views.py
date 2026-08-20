@@ -72,10 +72,19 @@ class PulseSummaryView(APIView):
             .order_by("-created_at")[:3]
         )
 
-        active_matches_count = Match.objects.filter(status="FINISHED", updated_at__gte=cutoff).count()
+        # Use cached active matches count to avoid timeout
+        from django.core.cache import cache
+        cache_key = "mic_active_matches_count"
+        active_matches_count = cache.get(cache_key)
+        
+        if active_matches_count is None:
+            active_matches_count = Match.objects.filter(status="FINISHED", updated_at__gte=cutoff).count()
+            cache.set(cache_key, active_matches_count, timeout=60)  # Cache for 1 minute
 
-        return {
-            "featured_reactions": [
+        # Handle empty featured reactions to prevent frontend errors
+        featured_data = []
+        if featured:
+            featured_data = [
                 {
                     "id": r.id,
                     "match_id": r.match_id,
@@ -86,12 +95,23 @@ class PulseSummaryView(APIView):
                     "away_team": r.match.away_team.name,
                 }
                 for r in featured
-            ],
+            ]
+
+        return {
+            "featured_reactions": featured_data,
             "active_matches_count": active_matches_count,
         }
 
     def _build_rooms(self):
         from predictions.models import Match
+        from django.core.cache import cache
+
+        # Cache live matches for 30 seconds
+        cache_key = "pulse_live_matches"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return cached_data
 
         live_matches = (
             Match.objects.filter(status="LIVE")
@@ -99,7 +119,7 @@ class PulseSummaryView(APIView):
             .order_by("-kickoff_at")[:5]
         )
 
-        return {
+        data = {
             "live_matches": [
                 {
                     "id": m.id,
@@ -112,6 +132,9 @@ class PulseSummaryView(APIView):
                 for m in live_matches
             ]
         }
+        
+        cache.set(cache_key, data, timeout=30)  # Cache for 30 seconds
+        return data
 
     def _build_debates(self):
         from feed.models import Card

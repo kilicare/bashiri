@@ -20,8 +20,8 @@ type BentoGridMode = 'hero' | 'live-intelligence' | 'community' | 'ai-insights';
 
 export function BentoGrid({ data, mode }: { data: PulseSummary; mode?: BentoGridMode }) {
   const router = useRouter();
-  const featuredMic = data.mic.featured_reactions[0];
-  const featuredRoom = data.rooms.live_matches[0];
+  const featuredMic = data.mic.featured_reactions[0] || null;
+  const featuredRoom = data.rooms.live_matches[0] || null;
   const hasDerby = !!data.derby;
 
   // If no mode specified, render all cards (legacy behavior)
@@ -75,7 +75,7 @@ function HeroCard({ featuredMic, data, router }: { featuredMic: any, data: Pulse
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
-      {featuredMic ? (
+      {featuredMic && featuredMic.video_url ? (
         <video
           src={featuredMic.video_url}
           muted loop autoPlay playsInline
@@ -98,7 +98,7 @@ function HeroCard({ featuredMic, data, router }: { featuredMic: any, data: Pulse
           {featuredMic ? `@${featuredMic.username} ${MOOD_EMOJI[featuredMic.mood] || ""}` : "Ona Video za Mashabiki"}
         </p>
         <p className="text-sm font-normal leading-relaxed" style={{ color: "rgba(248,250,252,0.7)" }}>
-          {data.mic.active_matches_count} mechi zinapokea video sasa
+          {data.mic.active_matches_count || 0} mechi zinapokea video sasa
         </p>
       </div>
     </motion.button>

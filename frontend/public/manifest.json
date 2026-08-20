@@ -37,6 +37,13 @@
       "description": "Ona jinsi AI ilivyofanya kazi",
       "url": "/track-record",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Admin Panel",
+      "short_name": "Admin",
+      "description": "Ingia kwenye Admin Dashboard",
+      "url": "/admin/login",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

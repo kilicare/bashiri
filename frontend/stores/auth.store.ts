@@ -21,6 +21,7 @@ export interface BashiriUser {
   favorite_team_ids: number[];
   favorite_league_ids: number[];
   date_joined: string;
+  is_staff: boolean;
 }
 
 interface AuthState {

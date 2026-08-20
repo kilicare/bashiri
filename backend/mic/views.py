@@ -13,6 +13,7 @@ from datetime import timedelta
 
 import cloudinary.utils
 from django.conf import settings
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -337,23 +338,37 @@ class MicActiveMatchesView(APIView):
     throttle_classes = [NoThrottle]
 
     def get(self, request):
+        from django.core.cache import cache
+        from django.db.models import Count
         from predictions.models import Match
         from predictions.serializers import MatchListSerializer
+
+        # Cache results for 1 minute (match status changes infrequently)
+        cache_key = "mic_active_matches"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return Response(cached_data)
 
         window_hours = settings.BASHIRI["MIC_POSTING_WINDOW_HOURS"]
         cutoff = timezone.now() - timedelta(hours=window_hours)
 
+        # Optimize query with annotation to avoid N+1 problem
         matches = (
             Match.objects.filter(status="FINISHED", updated_at__gte=cutoff)
             .select_related("league", "home_team", "away_team")
-            .order_by("-updated_at")
+            .annotate(reaction_count=Count("mic_reactions", filter=Q(mic_reactions__is_active=True)))
+            .order_by("-updated_at")[:50]  # Limit to 50 matches to prevent timeout
         )
 
         results = []
         for m in matches:
-            reaction_count = m.mic_reactions.filter(is_active=True).count()
-            results.append({"match": MatchListSerializer(m).data, "reaction_count": reaction_count})
+            results.append({
+                "match": MatchListSerializer(m).data, 
+                "reaction_count": m.reaction_count
+            })
 
+        cache.set(cache_key, results, timeout=60)  # Cache for 1 minute
         return Response(results)
 
 

@@ -137,7 +137,7 @@ class UserSerializer(serializers.ModelSerializer):
             "current_streak", "best_streak", "total_predictions",
             "correct_predictions", "accuracy_percentage", "profile_complete",
             "preferred_language", "favorite_team_ids", "favorite_league_ids",
-            "date_joined",
+            "date_joined", "is_staff",
         ]
         read_only_fields = fields
 
