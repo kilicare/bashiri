@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getMatchOverview } from "@/lib/api/predictions";
+import { getMatchOverview, getTeamDetail } from "@/lib/api/predictions";
 import { BookButton } from "@/components/ui/BookButton";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import { MatchHubTabs } from "@/components/match-hub/MatchHubTabs";
 import { DerbyThemeProvider } from "@/components/match-hub/DerbyThemeProvider";
-import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft, BookOpen } from "lucide-react";
+import { TrendingUp, Calendar, Trophy, Flag, ArrowLeft, BookOpen, Target } from "lucide-react";
 
 export default function MatchOverviewPage() {
   const router = useRouter();
@@ -17,10 +17,23 @@ export default function MatchOverviewPage() {
   const [data, setData] = useState<any>(null);
   const [formRange, setFormRange] = useState(5);
   const [h2hRange, setH2hRange] = useState(5);
+  const [homeStandings, setHomeStandings] = useState<any>(null);
+  const [awayStandings, setAwayStandings] = useState<any>(null);
 
   useEffect(() => {
     getMatchOverview(matchId, formRange, h2hRange).then(setData);
   }, [matchId, formRange, h2hRange]);
+
+  useEffect(() => {
+    if (data?.match) {
+      getTeamDetail(data.match.home_team.id).then((teamData) => {
+        setHomeStandings(teamData.standings);
+      });
+      getTeamDetail(data.match.away_team.id).then((teamData) => {
+        setAwayStandings(teamData.standings);
+      });
+    }
+  }, [data?.match]);
 
   if (!data) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
 
@@ -180,8 +193,95 @@ export default function MatchOverviewPage() {
             </PremiumCard>
           </motion.div>
 
+          {/* League Standings */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+            <PremiumCard variant="gradient" hover texture className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Trophy size={16} className="text-[#D4AF37]" />
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>League Standings</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Home Team Standings */}
+                {homeStandings ? (
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-[#00FF87]" />
+                      <p className="text-sm font-bold text-white">{match.home_team.name}</p>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-white">#{homeStandings.position}</div>
+                        <div className="text-[10px] text-white/40">Pos</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-white">{homeStandings.points}</div>
+                        <div className="text-[10px] text-white/40">Pts</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-white">{homeStandings.won}</div>
+                        <div className="text-[10px] text-white/40">W</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-white">{homeStandings.matches_played}</div>
+                        <div className="text-[10px] text-white/40">P</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-[#00FF87]" />
+                      <p className="text-sm font-bold text-white">{match.home_team.name}</p>
+                    </div>
+                    <div className="text-center py-2">
+                      <p className="text-xs text-white/40">Standings not available</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Away Team Standings */}
+                {awayStandings ? (
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-[#FFD600]" />
+                      <p className="text-sm font-bold text-white">{match.away_team.name}</p>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-white">#{awayStandings.position}</div>
+                        <div className="text-[10px] text-white/40">Pos</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-white">{awayStandings.points}</div>
+                        <div className="text-[10px] text-white/40">Pts</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-white">{awayStandings.won}</div>
+                        <div className="text-[10px] text-white/40">W</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-white">{awayStandings.matches_played}</div>
+                        <div className="text-[10px] text-white/40">P</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-[#FFD600]" />
+                      <p className="text-sm font-bold text-white">{match.away_team.name}</p>
+                    </div>
+                    <div className="text-center py-2">
+                      <p className="text-xs text-white/40">Standings not available</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </PremiumCard>
+          </motion.div>
+
           {/* CTA Button */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
             <BookButton onClick={() => router.push(`/create/${matchId}/predict`)} icon={BookOpen}>
               Ona Predictions
             </BookButton>

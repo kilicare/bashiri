@@ -4,9 +4,10 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { CheckCheck, Bell, Filter, RefreshCw } from 'lucide-react'
+import { CheckCheck, Bell, Filter, RefreshCw, Sparkles } from 'lucide-react'
 import { getNotifications, markRead } from '@/lib/api/notifications'
 import { CardSkeleton } from '@/components/ui/Skeleton'
+import { GlassCard } from '@/components/ui/GlassCard'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { timeAgo } from '@/lib/utils'
@@ -44,70 +45,68 @@ function NotifCard({
         if (!notif.is_read) onRead(notif.id)
         router.push(path)
       }}
-      className="flex items-start gap-4 px-5 py-4 cursor-pointer"
-      style={{
-        background: notif.is_read
-          ? 'transparent'
-          : `${cfg.color}07`,
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-      }}
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      whileTap={{ scale: 0.99 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.98 }}
+      className="mb-3"
     >
-      {/* Icon / Avatar */}
-      <div className="relative flex-shrink-0">
-        {notif.sender ? (
-          <div className="w-11 h-11 rounded-2xl bg-[#1A1A24] flex items-center justify-center overflow-hidden">
-            {notif.sender.avatar ? (
-              <img src={notif.sender.avatar} alt="" className="w-full h-full object-cover" />
+      <GlassCard hover={!notif.is_read} className="p-4 relative rounded-2xl">
+        <div className="flex items-start gap-3">
+          {/* Icon / Avatar */}
+          <div className="relative flex-shrink-0">
+            {notif.sender ? (
+              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
+                {notif.sender.avatar ? (
+                  <img src={notif.sender.avatar} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm font-semibold text-white/70">
+                    {notif.sender.username?.charAt(0).toUpperCase() || '?'}
+                  </span>
+                )}
+              </div>
             ) : (
-              <span className="text-sm font-semibold text-white/70">
-                {notif.sender.username?.charAt(0).toUpperCase() || '?'}
-              </span>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                style={{ background: `${cfg.color}15` }}
+              >
+                {cfg.emoji}
+              </div>
+            )}
+            {notif.sender && (
+              <div
+                className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
+                style={{ background: cfg.color }}
+              >
+                {cfg.emoji}
+              </div>
             )}
           </div>
-        ) : (
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl"
-            style={{ background: `${cfg.color}15` }}
-          >
-            {cfg.emoji}
-          </div>
-        )}
-        {notif.sender && (
-          <div
-            className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs"
-            style={{ background: cfg.color }}
-          >
-            {cfg.emoji}
-          </div>
-        )}
-      </div>
 
-      <div className="flex-1 min-w-0">
-        <p
-          className={clsx(
-            "text-sm leading-snug",
-            notif.is_read ? "font-normal text-white/50" : "font-semibold text-white/90"
+          <div className="flex-1 min-w-0">
+            <p
+              className={clsx(
+                "text-sm leading-snug",
+                notif.is_read ? "font-normal text-white/50" : "font-semibold text-white/90"
+              )}
+            >
+              {notif.title}
+            </p>
+            <p className="text-xs mt-1 line-clamp-2 text-white/40">
+              {notif.body}
+            </p>
+            <p className="text-[10px] mt-1.5 text-white/30">
+              {timeAgo(notif.created_at)}
+            </p>
+          </div>
+
+          {!notif.is_read && (
+            <div
+              className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
+              style={{ background: cfg.color }}
+            />
           )}
-        >
-          {notif.title}
-        </p>
-        <p className="text-sm mt-1 line-clamp-2 text-white/40">
-          {notif.body}
-        </p>
-        <p className="text-xs mt-1.5 text-white/30">
-          {timeAgo(notif.created_at)}
-        </p>
-      </div>
-
-      {!notif.is_read && (
-        <div
-          className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
-          style={{ background: cfg.color }}
-        />
-      )}
+        </div>
+      </GlassCard>
     </motion.div>
   )
 }
@@ -205,22 +204,21 @@ export default function NotificationsPage() {
     >
       {/* Header */}
       <div
-        className="sticky top-0 z-10 px-5 py-4 border-b flex items-center justify-between"
+        className="sticky top-0 z-10 px-5 py-4 flex items-center justify-between"
         style={{
-          background: 'rgba(10,10,15,0.95)',
-          backdropFilter: 'blur(20px)',
-          borderColor: 'rgba(255,255,255,0.1)',
           paddingTop: 'calc(32px + env(safe-area-inset-top, 0px))',
         }}
       >
         <div className="flex items-center gap-3">
-          <Bell size={20} style={{ color: 'var(--brand-primary)' }} />
+          <div className="relative">
+            <Bell size={20} style={{ color: 'var(--brand-primary)' }} />
+            {unread > 0 && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: 'var(--danger)', color: 'white' }}>
+                {unread > 9 ? '9+' : unread}
+              </div>
+            )}
+          </div>
           <h1 className="text-xl font-semibold text-white">Arifa</h1>
-          {unread > 0 && (
-            <span className="bg-[var(--danger)] text-white text-xs font-medium px-2 py-0.5 rounded-full">
-              {unread}
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -295,8 +293,10 @@ export default function NotificationsPage() {
         </div>
       ) : filteredNotifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center px-4 py-20">
-          <div className="text-6xl mb-4">🔔</div>
-          <h2 className="text-xl font-semibold text-white mb-2">
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+            <Sparkles size={24} className="text-white/30" />
+          </div>
+          <h2 className="text-lg font-semibold text-white mb-2">
             {filterType ? `Hakuna arifa za ${filterType}` : 'Hakuna arifa bado'}
           </h2>
           <p className="text-sm text-white/50">
@@ -304,23 +304,25 @@ export default function NotificationsPage() {
           </p>
         </div>
       ) : (
-        <div className="pb-4">
+        <div className="px-4 pb-4">
           {Object.entries(groupedNotifications).map(([date, notifs]) => (
-            <div key={date}>
-              <div className="px-5 py-2 sticky top-[73px] z-0 bg-[#050508]/95 backdrop-blur-sm">
-                <p className="text-xs font-medium text-white/50 uppercase">
+            <div key={date} className="mb-4">
+              <div className="px-2 py-2 mb-2">
+                <p className="text-xs font-medium text-white/40 uppercase tracking-wider">
                   {date === new Date().toDateString() ? 'Leo' : date}
                 </p>
               </div>
-              <AnimatePresence>
-                {notifs.map((n: any) => (
-                  <NotifCard
-                    key={n.id}
-                    notif={n}
-                    onRead={handleRead}
-                  />
-                ))}
-              </AnimatePresence>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <AnimatePresence>
+                  {notifs.map((n: any) => (
+                    <NotifCard
+                      key={n.id}
+                      notif={n}
+                      onRead={handleRead}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
             </div>
           ))}
         </div>

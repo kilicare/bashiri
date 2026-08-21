@@ -186,24 +186,6 @@ export function FeedContainer({ externalRefreshKey }: { externalRefreshKey?: num
         </button>
       </div>
       
-      {/* Manual Refresh Button */}
-      <div className="mb-4 flex justify-end">
-        <button
-          type="button"
-          onClick={smartRefresh}
-          disabled={isRefreshing}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(207,175,123,0.08))",
-            border: "1px solid rgba(212,175,55,0.25)",
-            color: "var(--text-primary)",
-          }}
-        >
-          <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
-          {isRefreshing ? "Inashaji..." : "Sasisha"}
-        </button>
-      </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card) => (
           <div key={card.id}>{renderCard(card)}</div>

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "herocarousel",
     "pulse",
     "reviews",
+    "tips",
 ]
 
 MIDDLEWARE = [

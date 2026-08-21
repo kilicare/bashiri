@@ -45,6 +45,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     total_predictions = models.PositiveIntegerField(default=0)
     correct_predictions = models.PositiveIntegerField(default=0)
 
+    # Tip-specific tracking fields
+    tip_count = models.PositiveIntegerField(default=0)
+    tip_accuracy = models.FloatField(default=0.0)
+    verified_tipster = models.BooleanField(default=False)
+    followers_count = models.PositiveIntegerField(default=0)
+    following_count = models.PositiveIntegerField(default=0)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -76,6 +83,31 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.is_subscriber or not self.subscription_expires_at:
             return False
         return self.subscription_expires_at > timezone.now()
+
+    @property
+    def user_tip_stats(self):
+        """Get user's tip statistics"""
+        try:
+            return self.tip_performance
+        except:
+            # Create if doesn't exist
+            from tips.models import TipPerformance
+            perf, _ = TipPerformance.objects.get_or_create(user=self)
+            return perf
+
+    def get_tip_accuracy(self):
+        """Get user's tip accuracy percentage"""
+        try:
+            return self.user_tip_stats.accuracy_percentage
+        except:
+            return 0.0
+
+    def get_total_tips(self):
+        """Get user's total tips"""
+        try:
+            return self.user_tip_stats.total_tips
+        except:
+            return 0
 
 
 class OTPCode(models.Model):

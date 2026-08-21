@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getFixtures, getLiveMatches, getFinishedMatches, searchMatches, Match, getLeagues, League } from "@/lib/api/predictions";
 import { commandSearch, CommandSearchResults } from "@/lib/api/command-search";
-import { Search, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon, X, Target } from "lucide-react";
+import { Search, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon, X, Target, Calendar, TrendingUp, Flame } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { BookButton } from "@/components/ui/BookButton";
@@ -501,51 +501,101 @@ export default function MatchesPage() {
                 <GlassCard hover texture className="p-4 relative">
                   <div
                     onClick={() => router.push(`/create/${m.id}/overview`)}
-                    className="w-full text-left cursor-pointer pr-12"
+                    className="w-full text-left cursor-pointer"
                   >
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] uppercase tracking-[0.22em] mb-2" style={{ color: "rgba(255,255,255,0.45)" }}>
-                            {m.league.name}
-                          </p>
-                          <p className="text-base font-black text-white truncate">
-                            {m.home_team.name} vs {m.away_team.name}
-                          </p>
+                    {/* Match Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Flame size={12} className="text-[#D4AF37]" />
+                        <span className="text-[11px] uppercase tracking-[0.22em]" style={{ color: "rgba(255,255,255,0.45)" }}>
+                          {m.league.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar size={12} className="text-[#D4AF37]" />
+                        <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.6)" }}>
+                          {formatMatchDate(m.kickoff_at)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Teams with Logos */}
+                    <div className="flex items-center justify-between mb-3 gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {/* Home Team */}
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/5 flex-shrink-0">
+                            {m.home_team.crest_url ? (
+                              <img 
+                                src={m.home_team.crest_url} 
+                                alt={m.home_team.name}
+                                className="w-full h-full object-contain p-1"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <Target size={16} className="text-[#D4AF37] hidden" />
+                          </div>
+                          <span className="text-sm font-bold text-white truncate">{m.home_team.name}</span>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
+
+                        {/* Score/VS */}
+                        <div className="px-2 py-1 rounded-lg bg-white/5 flex-shrink-0">
                           {m.status === "LIVE" ? (
                             <span className="text-sm font-black" style={{ color: "var(--success)" }}>{m.home_score}-{m.away_score}</span>
                           ) : m.status === "FINISHED" ? (
                             <span className="text-sm font-black text-white">{m.home_score}-{m.away_score}</span>
                           ) : (
-                            <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: "rgba(207,175,123,0.14)", color: "var(--brand-accent)" }}>
-                              Upcoming
-                            </span>
+                            <span className="text-xs font-bold text-white/40">VS</span>
                           )}
                         </div>
-                      </div>
 
-                      <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
-                        <span className="bg-white/5 rounded-full px-2 py-1">{formatMatchDate(m.kickoff_at)}</span>
-                        {m.matchday && <span className="bg-white/5 rounded-full px-2 py-1">Matchday {m.matchday}</span>}
-                      </div>
-
-                      {(m.stage_display || m.group_name) && (
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          {m.stage_display && (
-                            <span className="px-2 py-1 rounded-full" style={{ background: "rgba(245,158,11,0.1)", color: "var(--warning)" }}>
-                              {m.stage_display}
-                            </span>
-                          )}
-                          {m.group_name && (
-                            <span className="px-2 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)" }}>
-                              {m.group_name}
-                            </span>
-                          )}
+                        {/* Away Team */}
+                        <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                          <span className="text-sm font-bold text-white truncate text-right">{m.away_team.name}</span>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/5 flex-shrink-0">
+                            {m.away_team.crest_url ? (
+                              <img 
+                                src={m.away_team.crest_url} 
+                                alt={m.away_team.name}
+                                className="w-full h-full object-contain p-1"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <Target size={16} className="text-[#D4AF37] hidden" />
+                          </div>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Match Info */}
+                    <div className="flex flex-wrap items-center gap-2 text-xs mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      {m.matchday && <span className="bg-white/5 rounded-full px-2 py-1">Matchday {m.matchday}</span>}
+                      {m.status === "LIVE" && (
+                        <span className="bg-green-500/20 text-green-400 rounded-full px-2 py-1 font-bold">LIVE</span>
                       )}
                     </div>
+
+                    {/* Stage/Group Info */}
+                    {(m.stage_display || m.group_name) && (
+                      <div className="flex flex-wrap gap-2 text-xs mb-3">
+                        {m.stage_display && (
+                          <span className="px-2 py-1 rounded-full" style={{ background: "rgba(245,158,11,0.1)", color: "var(--warning)" }}>
+                            {m.stage_display}
+                          </span>
+                        )}
+                        {m.group_name && (
+                          <span className="px-2 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)" }}>
+                            {m.group_name}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     
                     {/* Integrated Odds Card */}
                     <MatchOddsCard 

@@ -13,24 +13,31 @@ export function GlassCard({ children, className, hover = false, glow = false, te
   return (
     <div
       className={clsx(
-        "relative rounded-3xl border border-white/10",
+        "relative rounded-3xl",
         "backdrop-blur-md",
-        hover && "hover:from-white/10 hover:to-white/5 hover:border-white/20 hover:scale-[1.02] transition-all duration-300",
-        glow && "shadow-[0_0_40px_rgba(207,175,123,0.15)]",
+        hover && "hover:from-white/6 hover:to-white/3 hover:scale-[1.02] transition-all duration-300",
+        glow && "shadow-[0_0_30px_rgba(207,175,123,0.1)]",
         className
       )}
       style={{
         background: texture
           ? `
-            radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
+            radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px),
             linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%),
-            linear-gradient(to bottom right, rgba(255,255,255,0.05), rgba(255,255,255,0.02))
+            linear-gradient(to bottom right, rgba(255,255,255,0.03), rgba(255,255,255,0.01))
           `
-          : "linear-gradient(to bottom right, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+          : "linear-gradient(to bottom right, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
         backgroundSize: texture ? "16px 16px, 100% 100%, 100% 100%" : "100% 100%",
+        boxShadow: "0 3px 18px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+        border: "1px solid rgba(255, 255, 255, 0.15)",
       }}
     >
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+      {/* White edge effect */}
+      <div className="absolute inset-0 rounded-3xl border border-white/20 pointer-events-none" />
+      
+      {/* Very subtle glass reflection */}
+      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/4 via-white/2 to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-1/4 rounded-t-3xl bg-gradient-to-b from-white/6 to-transparent pointer-events-none" />
       {children}
     </div>
   );

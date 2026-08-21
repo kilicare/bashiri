@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { getFixtures, getLeagues, Match, League } from "@/lib/api/predictions";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { BookButton } from "@/components/ui/BookButton";
-import { Calendar, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon } from "lucide-react";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Calendar, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon, Target, TrendingUp, Flame } from "lucide-react";
 import { MatchOddsCard } from "@/components/predictions/MatchOddsCard";
+import { motion } from "framer-motion";
 
 export default function CreatePredictionStep1() {
   const router = useRouter();
@@ -177,47 +179,115 @@ export default function CreatePredictionStep1() {
           </div>
         ) : (
           filteredLeagues.map((league) => (
-            <div key={league}>
-              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{league}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {grouped[league].map((m) => (
-                  <div
+            <motion.div 
+              key={league}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p className="text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <Flame size={12} className="text-[#D4AF37]" />
+                {league}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {grouped[league].map((m, index) => (
+                  <motion.div
                     key={m.id}
-                    className="w-full rounded-2xl p-4 flex flex-col items-start gap-2 relative overflow-hidden cursor-pointer pr-12"
-                    style={{
-                      background: "#111111",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                      backgroundImage: `
-                        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px),
-                        linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)
-                      `,
-                      backgroundSize: "16px 16px, 100% 100%",
-                    }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
                     onClick={() => router.push(`/create/${m.id}/overview`)}
                   >
-                    <div className="w-full flex items-center justify-between">
-                      <p className="text-sm font-bold text-white">{m.home_team.name} vs {m.away_team.name}</p>
-                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                        {new Date(m.kickoff_at).toLocaleDateString("sw-TZ", { day: "numeric", month: "short" })}
-                      </span>
-                    </div>
-                    {m.stage_display && (
-                      <span className="text-xs rounded-full px-2 py-1" style={{ background: "rgba(255,214,0,0.08)", color: "#FFD600" }}>
-                        {m.stage_display}{m.group_name ? ` • ${m.group_name}` : ""}
-                      </span>
-                    )}
-                    
-                    {/* Integrated Odds Card */}
-                    <MatchOddsCard 
-                      matchId={m.id} 
-                      homeTeam={m.home_team.name} 
-                      awayTeam={m.away_team.name}
-                      compact={true}
-                    />
-                  </div>
+                    <GlassCard 
+                      hover 
+                      texture 
+                      className="p-4 cursor-pointer"
+                    >
+                      {/* Match Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={12} className="text-[#D4AF37]" />
+                          <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.6)" }}>
+                            {new Date(m.kickoff_at).toLocaleDateString("sw-TZ", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <TrendingUp size={12} className="text-[#00FF87]" />
+                          <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.6)" }}>
+                            {new Date(m.kickoff_at).toLocaleTimeString("sw-TZ", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Teams with Logos */}
+                      <div className="flex items-center justify-between mb-3 gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {/* Home Team */}
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/5 flex-shrink-0">
+                              {m.home_team.crest_url ? (
+                                <img 
+                                  src={m.home_team.crest_url} 
+                                  alt={m.home_team.name}
+                                  className="w-full h-full object-contain p-1"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                              ) : null}
+                              <Target size={16} className="text-[#D4AF37] hidden" />
+                            </div>
+                            <span className="text-sm font-bold text-white truncate">{m.home_team.name}</span>
+                          </div>
+
+                          {/* VS */}
+                          <div className="px-2 py-1 rounded-lg bg-white/5 flex-shrink-0">
+                            <span className="text-xs font-bold text-white/40">VS</span>
+                          </div>
+
+                          {/* Away Team */}
+                          <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                            <span className="text-sm font-bold text-white truncate text-right">{m.away_team.name}</span>
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/5 flex-shrink-0">
+                              {m.away_team.crest_url ? (
+                                <img 
+                                  src={m.away_team.crest_url} 
+                                  alt={m.away_team.name}
+                                  className="w-full h-full object-contain p-1"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                              ) : null}
+                              <Target size={16} className="text-[#D4AF37] hidden" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stage Badge */}
+                      {m.stage_display && (
+                        <div className="mb-3">
+                          <span className="text-xs rounded-full px-3 py-1 font-semibold" style={{ background: "rgba(255,214,0,0.1)", color: "#FFD600", border: "1px solid rgba(255,214,0,0.2)" }}>
+                            {m.stage_display}{m.group_name ? ` • ${m.group_name}` : ""}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Integrated Odds Card */}
+                      <MatchOddsCard 
+                        matchId={m.id} 
+                        homeTeam={m.home_team.name} 
+                        awayTeam={m.away_team.name}
+                        compact={true}
+                      />
+                    </GlassCard>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>

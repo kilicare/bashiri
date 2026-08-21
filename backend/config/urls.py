@@ -38,4 +38,5 @@ urlpatterns = [
     path("api/hero/", include("herocarousel.urls")),
     path("api/pulse/", include("pulse.urls")),
     path("api/reviews/", include("reviews.urls")),
+    path("api/tips/", include("tips.urls")),
 ]
