@@ -20,6 +20,9 @@ if [ "$SERVICE_TYPE" = "web" ]; then
 fi
 
 if [ "$SERVICE_TYPE" = "beat" ]; then
+    echo "📦 Running database migrations..."
+    python manage.py migrate --noinput
+    
     echo "⏰ Setting up Celery Beat schedules..."
     python setup_celery_schedules.py || true
 fi
