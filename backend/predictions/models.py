@@ -300,7 +300,7 @@ class TeamStanding(models.Model):
     goals_against = models.PositiveSmallIntegerField()
     goal_difference = models.IntegerField()
     points = models.PositiveSmallIntegerField()
-    form = models.CharField(max_length=10, blank=True, help_text="Last 5 matches: W, D, L, W, D")
+    form = models.CharField(max_length=10, blank=True, null=True, help_text="Last 5 matches: W, D, L, W, D")
     form_rating = models.FloatField(default=50.0, help_text="Form rating 0-100 based on recent results")
     updated_at = models.DateTimeField(auto_now=True)
     

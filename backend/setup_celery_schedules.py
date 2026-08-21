@@ -87,4 +87,7 @@ make_task("Notify Weekly Summary", "notifications.tasks.notify_weekly_summary", 
 make_task("Compute Fan of Match", "mic.tasks.compute_fan_of_match", {"minute": "0", "hour": "*"})
 make_task("Generate Mic Winner Cards", "feed.tasks.generate_mic_winner_cards", {"minute": "0", "hour": "*"})
 
+# Standings - Fetch league standings every 5 minutes
+make_interval_task("Fetch Team Standings", "predictions.tasks.fetch_team_standings_task", 5)
+
 print("\n✅ Schedule zote zimeundwa/thibitishwa!")

@@ -299,7 +299,7 @@ export interface TeamStanding {
   goals_against: number;
   goal_difference: number;
   points: number;
-  form: string;
+  form: string | null;
   form_rating: number;
   updated_at: string;
 }

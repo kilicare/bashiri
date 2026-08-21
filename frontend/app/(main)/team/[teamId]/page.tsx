@@ -62,50 +62,52 @@ export default function TeamDetailPage() {
         {/* Standings Card */}
         {standings && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <GlassCard hover texture className="mb-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Trophy size={16} className="text-[#D4AF37]" />
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Current Standings</p>
+            <GlassCard hover texture className="mb-4 overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Trophy size={16} className="text-[#D4AF37]" />
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Current Standings</p>
+                  </div>
+                  <div className="text-xl font-black px-2 py-1 rounded-lg bg-[#D4AF37]/10" style={{ color: "#D4AF37" }}>#{standings.position}</div>
                 </div>
-                <div className="text-2xl font-black" style={{ color: "#D4AF37" }}>#{standings.position}</div>
-              </div>
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div>
-                  <div className="text-lg font-bold text-white">{standings.points}</div>
-                  <div className="text-[10px] text-white/40">Points</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-white">{standings.won}</div>
-                  <div className="text-[10px] text-white/40">Won</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-white">{standings.draw}</div>
-                  <div className="text-[10px] text-white/40">Draw</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-white">{standings.lost}</div>
-                  <div className="text-[10px] text-white/40">Lost</div>
-                </div>
-              </div>
-              {standings.form && (
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-bold text-white/60">Form</p>
-                    <div className="flex gap-1">
-                      {standings.form.split('').map((result, i) => (
-                        <div key={i} className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
-                          result === 'W' ? 'bg-green-500/20 text-green-400' :
-                          result === 'D' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-red-500/20 text-red-400'
-                        }`}>
-                          {result}
-                        </div>
-                      ))}
-                    </div>
+                <div className="grid grid-cols-4 gap-3 text-center">
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.points}</div>
+                    <div className="text-[10px] text-white/40">Points</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.won}</div>
+                    <div className="text-[10px] text-white/40">Won</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.draw}</div>
+                    <div className="text-[10px] text-white/40">Draw</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.lost}</div>
+                    <div className="text-[10px] text-white/40">Lost</div>
                   </div>
                 </div>
-              )}
+                {standings.form && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-bold text-white/60">Form</p>
+                      <div className="flex gap-1">
+                        {standings.form.split('').map((result, i) => (
+                          <div key={i} className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
+                            result === 'W' ? 'bg-green-500/20 text-green-400' :
+                            result === 'D' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {result}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </GlassCard>
           </motion.div>
         )}
@@ -255,9 +257,35 @@ export default function TeamDetailPage() {
             >
               View Full League Table
             </button>
-            <div className="text-center py-8 text-white/40">
-              League table coming soon. Click above to view full standings.
-            </div>
+            {standings ? (
+              <GlassCard texture className="overflow-hidden">
+                <div className="px-3 py-2 bg-white/5 text-[10px] font-bold text-white/50 uppercase tracking-wider">
+                  Current Position
+                </div>
+                <div className="grid grid-cols-4 gap-2 px-3 py-3">
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.position}</div>
+                    <div className="text-[10px] text-white/40">Position</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.points}</div>
+                    <div className="text-[10px] text-white/40">Points</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.won}</div>
+                    <div className="text-[10px] text-white/40">Won</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-white">{standings.matches_played}</div>
+                    <div className="text-[10px] text-white/40">Played</div>
+                  </div>
+                </div>
+              </GlassCard>
+            ) : (
+              <div className="text-center py-8 text-white/40">
+                Standings data not available for this team
+              </div>
+            )}
           </motion.div>
         )}
       </div>

@@ -207,7 +207,7 @@ export default function HomePage() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg mx-4"
+                className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg mx-6 max-w-[calc(100vw-3rem)]"
               >
                 <div
                   className="rounded-2xl overflow-hidden"
@@ -249,8 +249,8 @@ export default function HomePage() {
                     )}
                     
                     {!searchLoading && searchQuery.trim().length < 2 && (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="text-sm text-center" style={{ color: "var(--text-secondary)" }}>
+                      <div className="flex items-center justify-center py-8 px-4">
+                        <div className="text-sm text-center w-full max-w-full" style={{ color: "var(--text-secondary)" }}>
                           Type at least 2 characters to search
                         </div>
                       </div>
