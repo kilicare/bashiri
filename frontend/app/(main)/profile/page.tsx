@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X, Flame, Sparkles, Power, Eye, Trash2 } from "lucide-react";
+import { Crown, Target, TrendingUp, Zap, Settings, LogOut, Award, Calendar, Camera, Loader2, Edit2, Share2, MapPin, ChevronLeft, BarChart3, X, Flame, Sparkles, Power, Eye, Trash2, Trophy } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { PremiumButton } from "@/components/ui/Button";
 import { PremiumCard, GlassCard } from "@/components/ui/GlassCard";
@@ -673,12 +673,12 @@ export default function ProfilePage() {
             transition={{ delay: 0.32 }}
           >
             <button
-              onClick={() => router.push("/track-record")}
+              onClick={() => router.push("/tips")}
               className="w-full rounded-2xl p-4 flex flex-col items-center gap-2 text-center"
               style={{ background: "#111111" }}
             >
-              <BarChart3 size={20} style={{ color: "var(--brand-accent)" }} />
-              <span className="text-xs font-bold text-white">Track Record</span>
+              <Trophy size={20} style={{ color: "var(--brand-accent)" }} />
+              <span className="text-xs font-bold text-white">Tips</span>
             </button>
           </motion.div>
 

@@ -5,6 +5,7 @@ import { getSavedMarkets, generateSavedMarketsPDF, unsaveMarket } from "@/lib/ap
 import { Spinner } from "@/components/ui/Spinner";
 import { Bookmark, Download, CheckCircle, Trash2, Share2, Copy, MessageCircle, Send, ArrowLeft } from "lucide-react";
 import { AlertModal } from "@/components/ui/AlertModal";
+import { useAuthStore } from "@/stores/auth.store";
 
 interface SavedMarket {
   id: number;
@@ -23,6 +24,7 @@ interface SavedMarket {
 
 export default function SavedMarketsPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const [savedMarkets, setSavedMarkets] = useState<SavedMarket[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
@@ -44,6 +46,25 @@ export default function SavedMarketsPage() {
   const [selectedMarkets, setSelectedMarkets] = useState<Set<number>>(new Set());
   const [showMultiDeleteModal, setShowMultiDeleteModal] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
+
+  // Check authentication
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-5" style={{ background: "#0a0a0a" }}>
+        <div className="text-center">
+          <Bookmark size={48} style={{ color: "#D4AF37", opacity: 0.5 }} className="mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Tafadhali Jiunge Ndogo</h2>
+          <p className="text-sm text-white/50 mb-6">Unahitaji kuwa na akaunti ili kuona saved markets zako.</p>
+          <button
+            onClick={() => router.push('/login')}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition"
+          >
+            Ingia / Jisajili
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Convert market key to readable label
   const getMarketLabel = (key: string) => {

@@ -6,7 +6,8 @@ import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
+import { useAuthStore } from "@/stores/auth.store";
 
 const DERBY_TABS = [
   { key: "stats", label: "Derby Stats" },
@@ -23,6 +24,7 @@ export default function MatchOverviewPage() {
   const matchId = Number(params.matchId);
   const [data, setData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>("stats");
+  const { user } = useAuthStore();
 
   useEffect(() => {
     getMatchOverview(matchId).then(setData);
@@ -254,9 +256,20 @@ export default function MatchOverviewPage() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <BashiriButton className="w-full" size="lg" onClick={() => router.push(`/create/${matchId}/predict`)}>
-          Ona Predictions →
-        </BashiriButton>
+        <div className="flex gap-3">
+          <BashiriButton className="flex-1" size="lg" onClick={() => router.push(`/create/${matchId}/predict`)}>
+            Ona Predictions →
+          </BashiriButton>
+          {user && (
+            <button
+              onClick={() => router.push(`/tips/create/${matchId}`)}
+              className="flex-1 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-2"
+            >
+              <Plus size={20} />
+              Create Tip
+            </button>
+          )}
+        </div>
       </motion.div>
     </div>
   );

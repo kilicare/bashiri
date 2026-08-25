@@ -19,6 +19,13 @@ from channels.security.websocket import AllowedHostsOriginValidator  # noqa: E40
 
 from matchroom.middleware import JWTAuthMiddlewareStack  # noqa: E402
 import matchroom.routing  # noqa: E402
+from tips.consumers import TipConsumer  # noqa: E402
+from django.urls import path  # noqa: E402
+
+# WebSocket URL patterns
+tips_websocket_urlpatterns = [
+    path('ws/tips/', TipConsumer.as_asgi()),
+]
 
 # Wrap Django ASGI app with static files handler for production
 if not settings.DEBUG:
@@ -28,7 +35,9 @@ application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AllowedHostsOriginValidator(
         JWTAuthMiddlewareStack(
-            URLRouter(matchroom.routing.websocket_urlpatterns)
+            URLRouter(
+                matchroom.routing.websocket_urlpatterns + tips_websocket_urlpatterns
+            )
         )
     ),
 })

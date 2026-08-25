@@ -22,6 +22,12 @@ export interface BashiriUser {
   favorite_league_ids: number[];
   date_joined: string;
   is_staff: boolean;
+  // Tip-specific fields
+  tip_count: number;
+  tip_accuracy: number;
+  verified_tipster: boolean;
+  followers_count: number;
+  following_count: number;
 }
 
 interface AuthState {

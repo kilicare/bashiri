@@ -76,7 +76,7 @@ export default function BashiriPulsePage() {
               <BentoGrid data={data} mode="community" />
             </section>
 
-            {/* AI INSIGHTS - DERBY & TRACK RECORD */}
+            {/* AI INSIGHTS - DERBY & TIPS */}
             <section className="px-4 md:px-6 lg:px-8 pt-6">
               <BentoGrid data={data} mode="ai-insights" />
             </section>

@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getFixtures, getLiveMatches, getFinishedMatches, searchMatches, Match, getLeagues, League } from "@/lib/api/predictions";
 import { commandSearch, CommandSearchResults } from "@/lib/api/command-search";
-import { Search, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon, X, Target, Calendar, TrendingUp, Flame } from "lucide-react";
+import { Search, ChevronDown, ArrowLeft, ChevronDown as LoadMoreIcon, X, Target, Calendar, TrendingUp, Flame, Plus } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { BookButton } from "@/components/ui/BookButton";
@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { MatchOddsCard } from "@/components/predictions/MatchOddsCard";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
+import { useAuthStore } from "@/stores/auth.store";
 
 function formatMatchDate(kickoffAt: string): string {
   const date = new Date(kickoffAt);
@@ -26,6 +27,7 @@ function formatMatchDate(kickoffAt: string): string {
 export default function MatchesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuthStore();
   
   // Initialize state from URL params
   const [tab, setTab] = useState<"fixtures" | "live" | "finished" | "live-odds">(
@@ -598,12 +600,26 @@ export default function MatchesPage() {
                     )}
                     
                     {/* Integrated Odds Card */}
-                    <MatchOddsCard 
-                      matchId={m.id} 
-                      homeTeam={m.home_team.name} 
+                    <MatchOddsCard
+                      matchId={m.id}
+                      homeTeam={m.home_team.name}
                       awayTeam={m.away_team.name}
                       compact={true}
                     />
+
+                    {/* Create Tip Button */}
+                    {user && m.status === "SCHEDULED" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/tips/create/${m.id}`);
+                        }}
+                        className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition text-sm"
+                      >
+                        <Plus size={16} />
+                        Create Tip
+                      </button>
+                    )}
                   </div>
                 </GlassCard>
               </motion.div>

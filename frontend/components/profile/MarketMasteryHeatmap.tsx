@@ -56,7 +56,7 @@ export const MarketMasteryHeatmap: React.FC<MarketMasteryHeatmapProps> = ({ data
             >
               <div className="relative z-10">
                 <p className={`text-xs font-bold mb-1 ${getTextColor(item.accuracy)}`}>{item.market}</p>
-                <p className={`text-2xl font-black ${getTextColor(item.accuracy)}`}>{item.accuracy}%</p>
+                <p className={`text-2xl font-black ${getTextColor(item.accuracy)}`}>{item.accuracy.toFixed(1)}%</p>
                 <p className={`text-[10px] mt-1 ${getTextColor(item.accuracy)}/80`}>{item.predictions} picks</p>
               </div>
               
@@ -67,7 +67,7 @@ export const MarketMasteryHeatmap: React.FC<MarketMasteryHeatmapProps> = ({ data
             {/* Tooltip */}
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
               <div className="px-3 py-2 rounded-lg bg-black/90 backdrop-blur-sm border border-white/20">
-                <p className="text-xs font-bold text-white">{item.accuracy}% Accuracy</p>
+                <p className="text-xs font-bold text-white">{item.accuracy.toFixed(1)}% Accuracy</p>
               </div>
             </div>
           </motion.div>

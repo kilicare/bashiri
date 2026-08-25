@@ -2,6 +2,7 @@ from celery import shared_task
 from django.utils import timezone
 from django.db.models import F
 from django.core.cache import cache
+from asgiref.sync import async_to_sync
 import logging
 
 from .models import UserTip, TipPerformance, TipVote, TipShare
@@ -128,7 +129,13 @@ def verify_tips_task(self):
                 tip.user.current_streak = perf.current_streak
                 tip.user.best_streak = perf.best_streak
                 updated_users.add(tip.user.id)
-                
+
+                # ⭐ BROADCAST TIP VERIFICATION via WebSocket
+                from tips.consumers import broadcast_tip_verified
+                async_to_sync(broadcast_tip_verified)(
+                    tip.id, tip.status, is_correct
+                )
+
                 verified_count += 1
                 
             except Exception as e:
@@ -151,7 +158,18 @@ def verify_tips_task(self):
         # Invalidate leaderboard cache
         cache.delete("tips:leaderboard")
         cache.delete_pattern("tips:list:*")
-        
+
+        # ⭐ BROADCAST LEADERBOARD UPDATE
+        from tips.consumers import broadcast_leaderboard_update
+        from tips.serializers import TipPerformanceSerializer
+
+        leaderboard = TipPerformance.objects.filter(
+            total_tips__gte=10
+        ).select_related('user').order_by('-accuracy_percentage')[:50]
+
+        serializer = TipPerformanceSerializer(leaderboard, many=True)
+        async_to_sync(broadcast_leaderboard_update)(serializer.data)
+
         logger.info(f"verify_tips_task: verified {verified_count} tips")
         return {
             'status': 'success',

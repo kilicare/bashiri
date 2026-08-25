@@ -193,7 +193,7 @@ function AIInsightsCard({ data, hasDerby, router }: { data: PulseSummary, hasDer
     <motion.button
       variants={cardVariants}
       layout
-      onClick={() => router.push("/track-record")}
+      onClick={() => router.push("/tips")}
       className={hasDerby ? "rounded-3xl p-6 text-left" : "w-full rounded-3xl p-6 text-left"}
       style={{ background: "#1A1A1A", border: "1px solid rgba(232,212,184,0.25)", minHeight: '140px', boxShadow: "0 0 20px rgba(232,212,184,0.06)" }}
       whileHover={{ scale: 1.02 }}
@@ -202,54 +202,13 @@ function AIInsightsCard({ data, hasDerby, router }: { data: PulseSummary, hasDer
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Trophy size={18} style={{ color: "#E8D4B8" }} />
-          <p className="text-base font-semibold text-white leading-snug">Track Record</p>
+          <p className="text-base font-semibold text-white leading-snug">Tips Marketplace</p>
         </div>
-        {data.track_record.latest_accuracy !== null && (
-          <span className="text-base font-semibold leading-snug" style={{ color: "#E8D4B8" }}>{data.track_record.latest_accuracy}%</span>
-        )}
+        <span className="text-base font-semibold leading-snug" style={{ color: "#E8D4B8" }}>Live</span>
       </div>
-      {data.track_record.weekly_trend.length > 1 && (
-        <div
-          className="h-14 cursor-pointer relative chart-glass"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleChartClick(e, { accuracy_percentage: data.track_record.weekly_trend[data.track_record.weekly_trend.length - 1]?.accuracy_percentage });
-          }}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={data.track_record.weekly_trend}
-              margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
-            >
-              <Line 
-                type="monotone" 
-                dataKey="accuracy_percentage" 
-                stroke="#E8D4B8" 
-                strokeWidth={2} 
-                dot={false}
-                isAnimationActive={!shouldReduceMotion()}
-                animationDuration={getAnimationDuration(600)}
-                animationEasing={getAnimationEasing('ease-out')}
-                animationBegin={0}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-
-          {/* Mobile Tooltip */}
-          {tooltip.visible && (
-            <div
-              className="fixed bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm z-50 pointer-events-none border border-white/10"
-              style={{
-                left: `${tooltip.x}px`,
-                top: `${tooltip.y - 40}px`,
-                transform: 'translateX(-50%)',
-              }}
-            >
-              {tooltip.content}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(248,250,252,0.7)" }}>
+        <span>Discover predictions from top tipsters</span>
+      </div>
     </motion.button>
   );
 }

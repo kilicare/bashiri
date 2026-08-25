@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, F
 from django.core.cache import cache
 from django.utils import timezone
+from asgiref.sync import async_to_sync
 import logging
 
 from .models import UserTip, TipPerformance, TipComment, TipVote, TipShare
@@ -15,6 +16,7 @@ from .serializers import (
     UpdateTipSerializer, TipPerformanceSerializer, TipCommentSerializer
 )
 from .permissions import IsTipOwnerOrReadOnly, CanViewTip
+from .cache import TipsCache
 from predictions.models import Match
 
 logger = logging.getLogger(__name__)
@@ -28,57 +30,66 @@ class TipListView(APIView):
     permission_classes = [AllowAny]
     
     def get(self, request):
-        """List public tips with advanced filtering"""
-        
-        # Start with public pending tips
+        """List public tips with caching"""
+
+        # Build filter dict
+        filters = {
+            'league': request.query_params.get('league'),
+            'market': request.query_params.get('market'),
+            'user': request.query_params.get('user'),
+            'status': request.query_params.get('status', 'PENDING'),
+            'sort': request.query_params.get('sort', '-created_at'),
+            'page_size': request.query_params.get('page_size', 20),
+        }
+
+        # Try to get from cache
+        cached_data = TipsCache.get_cached_tips_list(filters)
+        if cached_data:
+            return Response(cached_data)
+
+        # Query if not cached
         tips = UserTip.objects.filter(
             visibility="PUBLIC",
             status="PENDING"
-        ).select_related('user', 'match').prefetch_related('votes')
-        
-        # Filtering
-        league = request.query_params.get('league')
-        market = request.query_params.get('market')
-        user = request.query_params.get('user')
-        status_filter = request.query_params.get('status', 'PENDING')
-        
-        if league:
-            tips = tips.filter(match__league__code__iexact=league)
-        
-        if market:
-            tips = tips.filter(market_key__iexact=market)
-        
-        if user:
-            tips = tips.filter(user__username__iexact=user)
-        
-        if status_filter:
-            tips = tips.filter(status=status_filter.upper())
-        
-        # Sorting
-        sort = request.query_params.get('sort', '-created_at')
+        ).select_related('user', 'match')
+
+        # Apply filters
+        if filters['league']:
+            tips = tips.filter(match__league__code__iexact=filters['league'])
+        if filters['market']:
+            tips = tips.filter(market_key__iexact=filters['market'])
+        if filters['user']:
+            tips = tips.filter(user__username__iexact=filters['user'])
+
+        # Sort
+        sort = filters['sort']
         allowed_sorts = [
             '-created_at', 'created_at',
             '-views_count', 'views_count',
             '-upvotes_count', 'upvotes_count',
             '-confidence', 'confidence'
         ]
-        
+
         if sort in allowed_sorts:
             tips = tips.order_by(sort)
         else:
             tips = tips.order_by('-created_at')
-        
+
         # Pagination
         paginator = LimitOffsetPagination()
-        paginator.page_size = request.query_params.get('page_size', 20)
+        paginator.page_size = filters['page_size']
         result = paginator.paginate_queryset(tips, request)
-        
+
         serializer = UserTipListSerializer(
             result, many=True,
             context={'request': request}
         )
-        
-        return paginator.get_paginated_response(serializer.data)
+        response_data = paginator.get_paginated_response(serializer.data)
+
+        # Cache the response
+        TipsCache.cache_tips_list(filters, response_data.data)
+
+        return response_data
     
     def post(self, request):
         """Create new tip"""
@@ -110,7 +121,7 @@ class TipListView(APIView):
             cache.set(cache_key, tips_today + 1, 86400)  # 24 hours
             
             # Invalidate leaderboard cache
-            cache.delete("tips:leaderboard")
+            TipsCache.invalidate_leaderboard()
             
             return Response(
                 UserTipSerializer(tip, context={'request': request}).data,
@@ -129,23 +140,34 @@ class TipDetailView(APIView):
     permission_classes = [AllowAny]
     
     def get(self, request, tip_id):
-        """Get tip details"""
+        """Get tip details with caching"""
+        # Try to get from cache
+        cached_data = TipsCache.get_cached_tip_detail(tip_id)
+        if cached_data:
+            return Response(cached_data)
+
         tip = get_object_or_404(UserTip, pk=tip_id)
-        
+
         # Check visibility permissions
         if tip.visibility == "PRIVATE" and tip.user != request.user:
             return Response(
                 {'detail': 'Not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
-        # Increment view count
-        tip.views_count = F('views_count') + 1
-        tip.save(update_fields=['views_count'])
-        tip.refresh_from_db()
-        
+
+        # Increment view count (async, no refresh needed)
+        UserTip.objects.filter(pk=tip_id).update(
+            views_count=F('views_count') + 1
+        )
+        tip.views_count += 1  # Increment locally for response
+
         serializer = UserTipSerializer(tip, context={'request': request})
-        return Response(serializer.data)
+        response_data = serializer.data
+
+        # Cache the response
+        TipsCache.cache_tip_detail(tip_id, response_data)
+
+        return Response(response_data)
     
     def put(self, request, tip_id):
         """Update tip"""
@@ -195,8 +217,8 @@ class TipDetailView(APIView):
         request.user.save(update_fields=['tip_count'])
         
         # Invalidate cache
-        cache.delete_pattern("tips:list:*")
-        cache.delete("tips:leaderboard")
+        TipsCache.invalidate_tips_lists()
+        TipsCache.invalidate_leaderboard()
         
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -234,7 +256,17 @@ class TipVoteView(APIView):
         tip.upvotes_count = tip.votes.filter(vote='UP').count()
         tip.downvotes_count = tip.votes.filter(vote='DOWN').count()
         tip.save(update_fields=['upvotes_count', 'downvotes_count'])
-        
+
+        # ⭐ BROADCAST VOTE UPDATE via WebSocket
+        from tips.consumers import broadcast_tip_voted
+        from asgiref.sync import async_to_sync
+
+        async_to_sync(broadcast_tip_voted)(
+            tip.id,
+            tip.upvotes_count,
+            tip.downvotes_count
+        )
+
         # Update performance stats
         perf, _ = TipPerformance.objects.get_or_create(user=tip.user)
         perf.total_upvotes_received = TipVote.objects.filter(
@@ -244,8 +276,8 @@ class TipVoteView(APIView):
         perf.save(update_fields=['total_upvotes_received'])
         
         # Invalidate cache
-        cache.delete(f"tip:detail:{tip_id}")
-        cache.delete("tips:leaderboard")
+        TipsCache.invalidate_tip_detail(tip_id)
+        TipsCache.invalidate_leaderboard()
         
         return Response(
             UserTipSerializer(tip, context={'request': request}).data
@@ -308,7 +340,7 @@ class TipCommentView(APIView):
         )
         
         # Cache will be updated by comment model save()
-        cache.delete(f"tip:detail:{tip_id}")
+        TipsCache.invalidate_tip_detail(tip_id)
         
         serializer = TipCommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -321,33 +353,33 @@ class TipLeaderboardView(APIView):
     permission_classes = [AllowAny]
     
     def get(self, request):
-        """Get top tipsters"""
-        # Check cache first
-        cache_key = "tips:leaderboard"
-        cached_data = cache.get(cache_key)
-        
+        """Get top tipsters with caching"""
+        # Try to get from cache
+        cached_data = TipsCache.get_cached_leaderboard()
         if cached_data:
             return Response(cached_data)
-        
+
         # Get top tipsters (min 10 tips, ordered by accuracy)
         leaderboard = TipPerformance.objects.filter(
             total_tips__gte=10
         ).select_related('user').order_by(
             '-accuracy_percentage', '-total_tips'
         )[:100]
-        
+
         serializer = TipPerformanceSerializer(
             leaderboard, many=True,
             context={'request': request}
         )
-        
-        # Cache for 5 minutes
-        cache.set(cache_key, serializer.data, 300)
-        
-        return Response({
+
+        response_data = {
             'count': len(serializer.data),
             'results': serializer.data
-        })
+        }
+
+        # Cache the response
+        TipsCache.cache_leaderboard(response_data)
+
+        return Response(response_data)
 
 
 class UserTipsView(APIView):
