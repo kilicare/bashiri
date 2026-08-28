@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { FeedContainer } from "@/components/feed/FeedContainer";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { PulseIndicatorButton } from "@/components/pulse/PulseIndicatorButton";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
-import { Bell, Target, Search, X } from "lucide-react";
+import { Bell, Target, Search, X, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ReviewPromptModal } from "@/components/review/ReviewPromptModal";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
@@ -173,6 +174,66 @@ export default function HomePage() {
           <div className="pb-8">
             <HeroCarousel />
           </div>
+          
+          {/* Live Odds Section */}
+          <div className="mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <GlassCard hover glow texture className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(212,175,55,0.2)" }}>
+                      <TrendingUp size={24} style={{ color: "#D4AF37" }} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white">Live Odds</h2>
+                      <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+                        Real-time betting odds from top bookmakers
+                      </p>
+                    </div>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => router.push("/live-odds")}
+                    className="px-6 py-3 rounded-xl font-bold text-sm transition-all"
+                    style={{
+                      background: "linear-gradient(135deg, #D4AF37 0%, #F5D77A 100%)",
+                      color: "#0A0A0A",
+                      boxShadow: "0 10px 30px rgba(212,175,55,0.3)"
+                    }}
+                  >
+                    View All Odds
+                  </motion.button>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                    <div className="text-2xl font-bold" style={{ color: "#00C878" }}>LIVE</div>
+                    <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      Live Matches
+                    </div>
+                  </div>
+                  <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                    <div className="text-2xl font-bold" style={{ color: "#D4AF37" }}>$</div>
+                    <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      Best Odds
+                    </div>
+                  </div>
+                  <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                    <div className="text-2xl font-bold" style={{ color: "#D4AF37" }}>%</div>
+                    <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      Market Coverage
+                    </div>
+                  </div>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+          
           <FeedContainer externalRefreshKey={refreshKey} />
         </div>
 

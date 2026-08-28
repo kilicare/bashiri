@@ -75,13 +75,10 @@ export default function LiveOddsPage() {
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
   const previousOddsRef = useRef<OddsBookmaker[]>([]);
 
-  // Handle back button
+  // Handle back button - simple navigation
   const handleBack = () => {
-    if (from === "matches") {
-      router.push("/matches");
-    } else {
-      router.back();
-    }
+    // Just use router.back() to go back to previous page with its state
+    router.back();
   };
 
   // Fetch leagues

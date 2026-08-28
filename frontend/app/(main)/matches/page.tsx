@@ -30,7 +30,7 @@ export default function MatchesPage() {
   const { user } = useAuthStore();
   
   // Initialize state from URL params or localStorage
-  const [tab, setTab] = useState<"fixtures" | "live" | "finished" | "live-odds">(() => {
+  const [tab, setTab] = useState<"fixtures" | "live" | "finished">(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('matches_tab');
       if (saved) return saved as any;
@@ -205,18 +205,6 @@ export default function MatchesPage() {
   }, [selectedLeague]);
 
   useEffect(() => {
-    if (tab === "live-odds") {
-      // Store current state before redirecting
-      const currentState = {
-        tab: tab,
-        selectedDate: format(selectedDate, 'yyyy-MM-dd'),
-        selectedLeague: selectedLeague,
-        query: query,
-        useDateInSearch: useDateInSearch
-      };
-      router.push(`/live-odds?from=matches&state=${encodeURIComponent(JSON.stringify(currentState))}`);
-      return;
-    }
     setLoading(true);
     setOffset(0);
     if (tab === "fixtures") {
@@ -240,7 +228,7 @@ export default function MatchesPage() {
         setLoading(false);
       });
     }
-  }, [tab, selectedDate, selectedLeague, router, query, useDateInSearch]);
+  }, [tab, selectedDate, selectedLeague, query, useDateInSearch]);
 
   // Poll live matches every 30 seconds when on live tab
   useEffect(() => {
@@ -485,8 +473,7 @@ export default function MatchesPage() {
         )}
 
         {/* League filter dropdown */}
-        {tab !== "live-odds" && (
-          <div className="mb-4 relative max-w-md mx-auto sm:mx-0">
+        <div className="mb-4 relative max-w-md mx-auto sm:mx-0">
             <button
               onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}
               className="w-full flex items-center justify-between px-4 py-4 rounded-2xl"
@@ -523,10 +510,9 @@ export default function MatchesPage() {
               </div>
             )}
           </div>
-        )}
         
         <div className="flex gap-2 flex-wrap max-w-lg mx-auto sm:max-w-none justify-center sm:justify-start">
-          {(["fixtures", "live", "finished", "live-odds"] as const).map((t) => (
+          {(["fixtures", "live", "finished"] as const).map((t) => (
             <button
               key={t}
               onClick={() => updateTab(t)}
@@ -536,7 +522,7 @@ export default function MatchesPage() {
                 color: tab === t ? "#000" : "rgba(255,255,255,0.5)",
               }}
             >
-              {t === "fixtures" ? "Fixtures" : t === "live" ? "Live" : t === "finished" ? "Finished" : "Live Odds"}
+              {t === "fixtures" ? "Fixtures" : t === "live" ? "Live" : "Finished"}
             </button>
           ))}
         </div>
