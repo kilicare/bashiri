@@ -1,9 +1,36 @@
 """chat/tools.py — Wrapper functions za Groq function-calling."""
 
 from django.db.models import Q
-from predictions.ml.poisson_model import predict_fixture, find_best_team_match
+from predictions.ml.poisson_model import predict_fixture
 from predictions.services import team_form, head_to_head
 from predictions.models import Team, Match, ActiveDerby, AITrackRecordSnapshot
+from difflib import SequenceMatcher
+
+
+def find_best_team_match(query: str, team_list: list, threshold: float = 0.7):
+    """
+    Simple fuzzy matching for team names using SequenceMatcher.
+    Returns (matched_name, match_score) or (None, 0) if no match found.
+    """
+    if not query or not team_list:
+        return None, 0.0
+
+    query_normalized = query.lower().strip()
+    best_match = None
+    best_score = 0.0
+
+    for team in team_list:
+        team_normalized = team.lower().strip()
+        score = SequenceMatcher(None, query_normalized, team_normalized).ratio()
+
+        if score > best_score:
+            best_score = score
+            best_match = team
+
+    if best_score >= threshold:
+        return best_match, best_score
+
+    return None, 0.0
 
 
 def tool_predict_fixture(league_code: str, home_team: str, away_team: str) -> dict:

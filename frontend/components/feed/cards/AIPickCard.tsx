@@ -8,13 +8,31 @@ import { clsx } from "clsx";
 export function AIPickCard({ data }: { data: any }) {
   const { match, ai_pick } = data;
   const selectionLabel: Record<string, string> = {
+    // 1X2
     "home_win": match.home_team,
     "draw": "Sare",
     "away_win": match.away_team,
-    "over_2.5": "Over 2.5",
-    "under_2.5": "Under 2.5",
+    // BTTS
     "yes": "Ndiyo (BTTS)",
     "no": "Hapana (BTTS)",
+    // Over/Under (all lines)
+    "over_0_5": "Over 0.5",
+    "under_0_5": "Under 0.5",
+    "over_1_5": "Over 1.5",
+    "under_1_5": "Under 1.5",
+    "over_2_5": "Over 2.5",
+    "under_2_5": "Under 2.5",
+    "over_3_5": "Over 3.5",
+    "under_3_5": "Under 3.5",
+    "over_4_5": "Over 4.5",
+    "under_4_5": "Under 4.5",
+    // Double Chance
+    "1x": "1X (Home au Draw)",
+    "x2": "X2 (Away au Draw)",
+    "12": "12 (Home au Away)",
+    // Draw No Bet
+    "home_dnb": "Home DNB",
+    "away_dnb": "Away DNB",
   };
 
   const isStrong = ai_pick.confidence >= 70;

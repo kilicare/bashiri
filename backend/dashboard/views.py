@@ -460,7 +460,7 @@ class AdminMLModelStatusView(APIView):
     permission_classes = [IsBashiriAdmin]
 
     def get(self, request):
-        path = os.path.join(os.path.dirname(__file__), "..", "predictions", "ml", "data", "bashiri_prediction_models.json")
+        path = os.path.join(os.path.dirname(__file__), "..", "predictions", "ml", "data", "BASHIRI_PRODUCTION_MODEL.json")
         path = os.path.abspath(path)
 
         if not os.path.exists(path):
@@ -469,14 +469,22 @@ class AdminMLModelStatusView(APIView):
         with open(path, "r") as f:
             data = json.load(f)
 
-        leagues_info = {
-            key: {"home_advantage": val["home_advantage"], "team_count": len(val["teams"])}
-            for key, val in data.get("leagues", {}).items()
-        }
+        leagues_info = {}
+        for key, val in data.get("leagues", {}).items():
+            # Extract home coefficient from coefficients dict
+            home_coefficient = val.get("coefficients", {}).get("home", 0.0)
+            leagues_info[key] = {
+                "home_coefficient": home_coefficient,
+                "team_count": len(val.get("teams", [])),
+                "elo_coefficient": val.get("coefficients", {}).get("elo_scaled", 0.0),
+                "intercept": val.get("coefficients", {}).get("Intercept", 0.0)
+            }
 
         return Response({
             "loaded": True,
-            "generated_at": data.get("generated_at"),
+            "schema_version": data.get("schema_version"),
+            "pipeline_version": data.get("pipeline_version"),
+            "artifact_status": data.get("artifact_status"),
             "leagues": leagues_info,
         })
 

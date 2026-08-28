@@ -16,32 +16,32 @@ MARKET_DEFINITIONS = {
         {"key": "away_win", "label": "Ushindi Ugenini"},
     ]},
     "DOUBLE_CHANCE": {"label": "Double Chance", "source_key": "double_chance", "options": [
-        {"key": "1X", "label": "1X"}, {"key": "X2", "label": "X2"}, {"key": "12", "label": "12"},
+        {"key": "1x", "label": "1X"}, {"key": "x2", "label": "X2"}, {"key": "12", "label": "12"},
     ]},
     "DRAW_NO_BET": {"label": "Draw No Bet", "source_key": "draw_no_bet", "options": [
         {"key": "home_dnb", "label": "Home DNB"}, {"key": "away_dnb", "label": "Away DNB"},
     ]},
     "OVER_UNDER_0_5": {"label": "Over/Under 0.5", "source_key": "over_under", "options": [
-        {"key": "over_0.5", "label": "Over 0.5"}, {"key": "under_0.5", "label": "Under 0.5"},
+        {"key": "over_0_5", "label": "Over 0.5"}, {"key": "under_0_5", "label": "Under 0.5"},
     ]},
     "OVER_UNDER_1_5": {"label": "Over/Under 1.5", "source_key": "over_under", "options": [
-        {"key": "over_1.5", "label": "Over 1.5"}, {"key": "under_1.5", "label": "Under 1.5"},
+        {"key": "over_1_5", "label": "Over 1.5"}, {"key": "under_1_5", "label": "Under 1.5"},
     ]},
     "OVER_UNDER_2_5": {"label": "Over/Under 2.5", "source_key": "over_under", "options": [
-        {"key": "over_2.5", "label": "Over 2.5"}, {"key": "under_2.5", "label": "Under 2.5"},
+        {"key": "over_2_5", "label": "Over 2.5"}, {"key": "under_2_5", "label": "Under 2.5"},
     ]},
     "OVER_UNDER_3_5": {"label": "Over/Under 3.5", "source_key": "over_under", "options": [
-        {"key": "over_3.5", "label": "Over 3.5"}, {"key": "under_3.5", "label": "Under 3.5"},
+        {"key": "over_3_5", "label": "Over 3.5"}, {"key": "under_3_5", "label": "Under 3.5"},
     ]},
     "OVER_UNDER_4_5": {"label": "Over/Under 4.5", "source_key": "over_under", "options": [
-        {"key": "over_4.5", "label": "Over 4.5"}, {"key": "under_4.5", "label": "Under 4.5"},
+        {"key": "over_4_5", "label": "Over 4.5"}, {"key": "under_4_5", "label": "Under 4.5"},
     ]},
     "BTTS": {"label": "Timu Zote Kufunga (BTTS)", "source_key": "btts", "options": [
         {"key": "yes", "label": "Ndiyo"}, {"key": "no", "label": "Hapana"},
     ]},
 }
 
-MODEL_VERSION = "bashiri-ml-v2.0"
+MODEL_VERSION = "bashiri-ml-v4.0"
 
 
 class UnknownTeamError(Exception):
@@ -150,7 +150,7 @@ def build_prediction_dashboard(match, viewer_is_subscriber: bool):
             options.append({
                 "key": opt["key"],
                 "label": opt["label"],
-                "prob": None if is_locked else round(prob_pct / 100, 4),
+                "prob": None if is_locked else round(prob_pct / 100, 4),  # Production returns percentages (0-100), convert to probability (0-1) for frontend
             })
 
         markets.append({

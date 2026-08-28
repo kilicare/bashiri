@@ -29,17 +29,38 @@ const MARKET_OPTIONS = [
     { key: 'draw', label: 'Draw' },
     { key: 'away_win', label: 'Away Win' },
   ]},
-  { key: 'OVER_UNDER_2_5', label: 'Over/Under 2.5 Goals', selections: [
-    { key: 'over_2.5', label: 'Over 2.5' },
-    { key: 'under_2.5', label: 'Under 2.5' },
-  ]},
-  { key: 'BTTS', label: 'Both Teams Score', selections: [
-    { key: 'both_teams_score_yes', label: 'Both Score' },
-    { key: 'both_teams_score_no', label: 'One Team Doesn\'t Score' },
+  { key: 'DOUBLE_CHANCE', label: 'Double Chance', selections: [
+    { key: '1x', label: '1X (Home or Draw)' },
+    { key: 'x2', label: 'X2 (Away or Draw)' },
+    { key: '12', label: '12 (Home or Away)' },
   ]},
   { key: 'DRAW_NO_BET', label: 'Draw No Bet', selections: [
-    { key: 'home_win', label: 'Home' },
-    { key: 'away_win', label: 'Away' },
+    { key: 'home_dnb', label: 'Home DNB' },
+    { key: 'away_dnb', label: 'Away DNB' },
+  ]},
+  { key: 'BTTS', label: 'Both Teams Score', selections: [
+    { key: 'yes', label: 'Yes (Both Score)' },
+    { key: 'no', label: 'No (One Doesn\'t Score)' },
+  ]},
+  { key: 'OVER_UNDER_0_5', label: 'Over/Under 0.5 Goals', selections: [
+    { key: 'over_0_5', label: 'Over 0.5' },
+    { key: 'under_0_5', label: 'Under 0.5' },
+  ]},
+  { key: 'OVER_UNDER_1_5', label: 'Over/Under 1.5 Goals', selections: [
+    { key: 'over_1_5', label: 'Over 1.5' },
+    { key: 'under_1_5', label: 'Under 1.5' },
+  ]},
+  { key: 'OVER_UNDER_2_5', label: 'Over/Under 2.5 Goals', selections: [
+    { key: 'over_2_5', label: 'Over 2.5' },
+    { key: 'under_2_5', label: 'Under 2.5' },
+  ]},
+  { key: 'OVER_UNDER_3_5', label: 'Over/Under 3.5 Goals', selections: [
+    { key: 'over_3_5', label: 'Over 3.5' },
+    { key: 'under_3_5', label: 'Under 3.5' },
+  ]},
+  { key: 'OVER_UNDER_4_5', label: 'Over/Under 4.5 Goals', selections: [
+    { key: 'over_4_5', label: 'Over 4.5' },
+    { key: 'under_4_5', label: 'Under 4.5' },
   ]},
 ]
 

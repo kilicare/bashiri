@@ -1,0 +1,2316 @@
+{
+  "schema_version": "4.0",
+  "pipeline_version": "4.0.0",
+  "artifact_status": "PRODUCTION",
+  "model_info": {
+    "name": "BASHIRI ML",
+    "model_type": "Independent Poisson Ridge GLM + Dynamic Elo + Fold-Aware Time Decay",
+    "dixon_coles": false,
+    "prediction_source": "exact_fitted_coefficient_vector",
+    "formula": "log(lambda)=Intercept + home*beta_home + team_attack_log + opponent_log + elo_scaled*beta_elo"
+  },
+  "elo": {
+    "initial_rating": 1500.0,
+    "k_factor": 20.0,
+    "home_advantage_points": 65.0,
+    "scale": 100.0,
+    "ratings": {
+      "SE Palmeiras": 1728.32133191623,
+      "Cuiabá EC": 1417.8290022223262,
+      "América FC": 1337.2209372999398,
+      "Fluminense FC": 1615.942003870864,
+      "Fortaleza EC": 1508.258719610168,
+      "SC Internacional": 1493.6218661644716,
+      "CA Paranaense": 1580.8631640209057,
+      "Goiás EC": 1413.625410479436,
+      "RB Bragantino": 1536.7203392684269,
+      "EC Bahia": 1560.4158989685095,
+      "Botafogo FR": 1584.17864497269,
+      "São Paulo FC": 1503.7649572748146,
+      "CA Mineiro": 1558.078996326467,
+      "CR Vasco da Gama": 1429.0215252987625,
+      "SC Corinthians Paulista": 1548.9569758222794,
+      "Cruzeiro EC": 1618.3478130057017,
+      "CR Flamengo": 1721.1301912993756,
+      "Coritiba FBC": 1475.1132434432002,
+      "Grêmio FBPA": 1488.9129843563344,
+      "Santos FC": 1494.332381974991,
+      "Sheffield Wednesday FC": 1228.498081964027,
+      "Southampton FC": 1568.6330396397018,
+      "Blackburn Rovers FC": 1436.4085219748188,
+      "West Bromwich Albion FC": 1463.603446247705,
+      "Bristol City FC": 1416.6888601274723,
+      "Preston North End FC": 1369.7154246016596,
+      "Middlesbrough FC": 1518.1448767072252,
+      "Millwall FC": 1567.6721412828588,
+      "Norwich City FC": 1481.7686362792147,
+      "Hull City AFC": 1525.1720555925729,
+      "Plymouth Argyle FC": 1389.9576539112481,
+      "Huddersfield Town AFC": 1390.5350402680733,
+      "Watford FC": 1387.2906345294002,
+      "Queens Park Rangers FC": 1425.5971926805719,
+      "Stoke City FC": 1346.593305518905,
+      "Rotherham United FC": 1328.535833414886,
+      "Swansea City AFC": 1480.7937449912206,
+      "Birmingham City FC": 1454.266510424429,
+      "Leicester City FC": 1374.9152648823892,
+      "Coventry City FC": 1630.20974002186,
+      "Leeds United FC": 1641.8101292770968,
+      "Cardiff City FC": 1372.0261069808732,
+      "Sunderland AFC": 1552.2638848673384,
+      "Ipswich Town FC": 1579.4248438623927,
+      "UD Almería": 1368.9608540907516,
+      "Rayo Vallecano de Madrid": 1527.8018094993304,
+      "Burnley FC": 1426.3977559278912,
+      "Manchester City FC": 1767.6650785696122,
+      "OGC Nice": 1468.2156899246477,
+      "Lille OSC": 1631.5124955709937,
+      "Sevilla FC": 1475.8112483300429,
+      "Valencia CF": 1534.5662066778918,
+      "Arsenal FC": 1873.7842902936547,
+      "Nottingham Forest FC": 1593.2962754174407,
+      "AFC Bournemouth": 1644.1037136934174,
+      "West Ham United FC": 1507.4812438048682,
+      "Brighton & Hove Albion FC": 1632.6961850919904,
+      "Luton Town FC": 1389.1787087028886,
+      "Everton FC": 1572.5458357968541,
+      "Fulham FC": 1565.8232663086112,
+      "Sheffield United FC": 1475.9703321490715,
+      "Crystal Palace FC": 1540.4645832282151,
+      "Real Sociedad de Fútbol": 1494.4204274315919,
+      "Girona FC": 1461.5124806138267,
+      "Olympique de Marseille": 1588.2529251338956,
+      "Stade de Reims": 1416.6036462501497,
+      "Newcastle United FC": 1625.5172537024011,
+      "Aston Villa FC": 1634.9480813030439,
+      "UD Las Palmas": 1378.1838975536073,
+      "RCD Mallorca": 1477.7590363321317,
+      "Paris Saint-Germain FC": 1854.133692166191,
+      "FC Lorient": 1495.9281080705434,
+      "Athletic Club": 1476.280826559364,
+      "Real Madrid CF": 1785.2221566646201,
+      "Stade Brestois 29": 1473.8907180349497,
+      "Racing Club de Lens": 1658.917186053461,
+      "Brentford FC": 1612.5633519422547,
+      "Tottenham Hotspur FC": 1529.0435317523552,
+      "Clermont Foot 63": 1361.614280849246,
+      "AS Monaco FC": 1592.4800675676995,
+      "FC Nantes": 1386.079441818969,
+      "Toulouse FC": 1506.591916872992,
+      "Montpellier HSC": 1292.3534786864504,
+      "Le Havre AC": 1428.9104076898475,
+      "RC Celta de Vigo": 1533.567790756711,
+      "CA Osasuna": 1492.735243129003,
+      "Stade Rennais FC 1901": 1602.920162806277,
+      "FC Metz": 1308.4320622694595,
+      "Chelsea FC": 1601.1411018286003,
+      "Liverpool FC": 1678.2257797264792,
+      "Villarreal CF": 1607.4742405927814,
+      "Real Betis Balompié": 1614.2661449476434,
+      "RC Strasbourg Alsace": 1566.2386212416511,
+      "Olympique Lyonnais": 1619.5929996546372,
+      "Getafe CF": 1495.6325336631985,
+      "FC Barcelona": 1826.175394632856,
+      "Cádiz CF": 1392.332779241837,
+      "Deportivo Alavés": 1482.9480419541437,
+      "Manchester United FC": 1664.1322653195493,
+      "Wolverhampton Wanderers FC": 1426.5488831452938,
+      "Club Atlético de Madrid": 1660.5043082572843,
+      "Granada CF": 1345.9557329945515,
+      "SV Werder Bremen": 1424.4624950364694,
+      "FC Bayern München": 1907.6866003315358,
+      "Bayer 04 Leverkusen": 1655.040385636076,
+      "RB Leipzig": 1607.6856556988093,
+      "VfL Wolfsburg": 1422.6835676180006,
+      "1. FC Heidenheim 1846": 1371.383829056034,
+      "TSG 1899 Hoffenheim": 1558.924975904924,
+      "SC Freiburg": 1517.9797463980578,
+      "FC Augsburg": 1473.7261418591982,
+      "Borussia Mönchengladbach": 1474.923023934137,
+      "VfB Stuttgart": 1644.12283505445,
+      "VfL Bochum 1848": 1351.4569822690848,
+      "Borussia Dortmund": 1707.492770198655,
+      "1. FC Köln": 1389.2357197419772,
+      "Empoli FC": 1377.759867439969,
+      "Hellas Verona FC": 1320.1358758224942,
+      "Frosinone Calcio": 1398.8336878221287,
+      "SSC Napoli": 1656.0921953494715,
+      "Genoa CFC": 1453.4033827271692,
+      "ACF Fiorentina": 1531.1642845789167,
+      "FC Internazionale Milano": 1780.9827110967437,
+      "AC Monza": 1291.5598456933496,
+      "1. FC Union Berlin": 1441.6893998768126,
+      "1. FSV Mainz 05": 1524.7556378105878,
+      "Eintracht Frankfurt": 1487.2438127653604,
+      "SV Darmstadt 98": 1305.074673088113,
+      "AS Roma": 1700.959222500888,
+      "US Salernitana 1919": 1294.3041588891551,
+      "US Sassuolo Calcio": 1464.6972766062559,
+      "Atalanta BC": 1625.4082533820554,
+      "US Lecce": 1430.4886238652564,
+      "SS Lazio": 1568.956957784965,
+      "Udinese Calcio": 1515.8186037160983,
+      "Juventus FC": 1649.0658655977904,
+      "Torino FC": 1463.3398017880356,
+      "Cagliari Calcio": 1445.884950563819,
+      "Bologna FC 1909": 1530.1624135723398,
+      "AC Milan": 1623.5391990724577,
+      "BSC Young Boys": 1396.3147618979601,
+      "Feyenoord Rotterdam": 1527.3621824436625,
+      "Celtic FC": 1495.5106487194128,
+      "FK Crvena Zvezda": 1445.5736935736766,
+      "Royal Antwerp FC": 1445.8437622140646,
+      "FK Shakhtar Donetsk": 1472.6550390657571,
+      "FC Porto": 1549.3369983361474,
+      "Galatasaray SK": 1527.696322547059,
+      "FC København": 1480.9253160212083,
+      "PSV": 1565.4829450693537,
+      "Sporting Clube de Braga": 1465.876193375049,
+      "Sport Lisboa e Benfica": 1547.9319932658793,
+      "FC Red Bull Salzburg": 1413.4188552557146,
+      "Criciúma EC": 1419.2527118955181,
+      "EC Juventude": 1423.1041805594657,
+      "AC Goianiense": 1392.444250514115,
+      "EC Vitória": 1473.5820939431726,
+      "Derby County FC": 1472.9695317312394,
+      "Portsmouth FC": 1450.048625052818,
+      "Oxford United FC": 1390.7729434310495,
+      "Parma Calcio 1913": 1440.9316900526496,
+      "CD Leganés": 1448.65888344451,
+      "AS Saint-Étienne": 1397.166744343174,
+      "AJ Auxerre": 1492.611723857898,
+      "Angers SCO": 1395.6285204774667,
+      "Venezia FC": 1384.9758797343552,
+      "Real Valladolid CF": 1279.4750639985791,
+      "RCD Espanyol de Barcelona": 1478.4320968661855,
+      "Como 1907": 1667.7365996244057,
+      "Holstein Kiel": 1390.6465985310247,
+      "FC St. Pauli 1910": 1343.7082128708344,
+      "GNK Dinamo Zagreb": 1515.6059469251727,
+      "Sporting Clube de Portugal": 1590.2026577852446,
+      "AC Sparta Praha": 1461.8689000193906,
+      "Club Brugge KV": 1544.9292256178321,
+      "ŠK Slovan Bratislava": 1412.9825836773393,
+      "SK Sturm Graz": 1470.0033231672824,
+      "SC Recife": 1306.8364709537777,
+      "Mirassol FC": 1524.2574596290867,
+      "Ceará SC": 1473.4749506655492,
+      "Charlton Athletic FC": 1421.634848403451,
+      "Wrexham AFC": 1483.6249706806504,
+      "Real Oviedo": 1398.781537826156,
+      "Levante UD": 1477.5591623943576,
+      "Paris FC": 1539.0069107725344,
+      "Elche CF": 1472.9897784385969,
+      "US Cremonese": 1419.5154252006655,
+      "Hamburger SV": 1468.7996304226601,
+      "AC Pisa 1909": 1328.825682542976,
+      "Royale Union Saint-Gilloise": 1502.5253172711873,
+      "Qarabağ Ağdam FK": 1464.5600747039327,
+      "SK Slavia Praha": 1459.3894079498393,
+      "FK Bodø/Glimt": 1561.5292577631328,
+      "PAE Olympiakos SFP": 1520.4122437743245,
+      "Paphos FC": 1508.7917543929714,
+      "AFC Ajax": 1460.6398072593247,
+      "FK Kairat": 1430.050313944377,
+      "Clube do Remo": 1473.062525707849,
+      "Chapecoense AF": 1399.3289685355717,
+      "Bolton Wanderers FC": 1505.0198013035501,
+      "Lincoln City FC": 1468.888785880631,
+      "Real Racing Club de Santander": 1492.6069331998715,
+      "RC Deportivo La Coruña": 1499.285346419706,
+      "Málaga CF": 1490.7248617585,
+      "Le Mans FC": 1497.3654600492187,
+      "ES Troyes AC": 1499.2312521686815
+    }
+  },
+  "time_decay": {
+    "enabled": true,
+    "lambda": 0.05,
+    "min_weight": 0.1,
+    "formula": "exp(-lambda * days_ago / 365)",
+    "reference_date": "2026-08-27T19:00:00+00:00"
+  },
+  "calibration": {
+    "production_enabled": false,
+    "method": null,
+    "reason": "No hard-coded multipliers; calibration is enabled only after fold-separated positive OOS validation."
+  },
+  "training_data": {
+    "rows": 8875,
+    "date_start": "2023-04-15T19:00:00+00:00",
+    "date_end": "2026-08-27T19:00:00+00:00",
+    "competitions": [
+      "Bundesliga",
+      "Campeonato Brasileiro Série A",
+      "Championship",
+      "EPL",
+      "LaLiga",
+      "Ligue1",
+      "Serie A",
+      "UEFA Champions League"
+    ],
+    "data_hash": "ff5e9acaa16a0133"
+  },
+  "leagues": {
+    "Bundesliga": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-05-16T13:30:00+00:00",
+      "coefficients": {
+        "Intercept": 0.31734743408993665,
+        "C(team)[T.1. FC Köln]": -0.13572236889217848,
+        "C(team)[T.1. FC Union Berlin]": -0.1787124141839224,
+        "C(team)[T.1. FSV Mainz 05]": -0.056041719253676424,
+        "C(team)[T.Bayer 04 Leverkusen]": 0.285725869143789,
+        "C(team)[T.Borussia Dortmund]": 0.23572147573313634,
+        "C(team)[T.Borussia Mönchengladbach]": 0.05400161727327726,
+        "C(team)[T.Eintracht Frankfurt]": 0.16008730601908935,
+        "C(team)[T.FC Augsburg]": -0.08711965202668788,
+        "C(team)[T.FC Bayern München]": 0.5659433279602158,
+        "C(team)[T.FC St. Pauli 1910]": -0.37187561560351706,
+        "C(team)[T.Hamburger SV]": -0.1071201503128939,
+        "C(team)[T.Holstein Kiel]": 0.05366934724476903,
+        "C(team)[T.RB Leipzig]": 0.2013106919107855,
+        "C(team)[T.SC Freiburg]": -0.006081938215459577,
+        "C(team)[T.SV Darmstadt 98]": -0.2663026787125587,
+        "C(team)[T.SV Werder Bremen]": -0.042089949917614077,
+        "C(team)[T.TSG 1899 Hoffenheim]": 0.17553601851776238,
+        "C(team)[T.VfB Stuttgart]": 0.2802369459986954,
+        "C(team)[T.VfL Bochum 1848]": -0.17485028755766963,
+        "C(team)[T.VfL Wolfsburg]": -0.0061391196171761645,
+        "C(opponent)[T.1. FC Köln]": 0.018697173790746906,
+        "C(opponent)[T.1. FC Union Berlin]": -0.07406335371640128,
+        "C(opponent)[T.1. FSV Mainz 05]": -0.1404613796556629,
+        "C(opponent)[T.Bayer 04 Leverkusen]": -0.22136088243749472,
+        "C(opponent)[T.Borussia Dortmund]": -0.16511281348781104,
+        "C(opponent)[T.Borussia Mönchengladbach]": 0.00851780375734933,
+        "C(opponent)[T.Eintracht Frankfurt]": -0.017072054584516157,
+        "C(opponent)[T.FC Augsburg]": -0.0214171018434444,
+        "C(opponent)[T.FC Bayern München]": -0.1818694450218425,
+        "C(opponent)[T.FC St. Pauli 1910]": -0.15702947796402855,
+        "C(opponent)[T.Hamburger SV]": -0.06161009847809852,
+        "C(opponent)[T.Holstein Kiel]": 0.21802342827149981,
+        "C(opponent)[T.RB Leipzig]": -0.14879410128036,
+        "C(opponent)[T.SC Freiburg]": -0.01943498533025295,
+        "C(opponent)[T.SV Darmstadt 98]": 0.282582348168355,
+        "C(opponent)[T.SV Werder Bremen]": -0.011731500637742929,
+        "C(opponent)[T.TSG 1899 Hoffenheim]": 0.07788867240351531,
+        "C(opponent)[T.VfB Stuttgart]": -0.09777682138705439,
+        "C(opponent)[T.VfL Bochum 1848]": 0.13608044191706656,
+        "C(opponent)[T.VfL Wolfsburg]": 0.020305345402562847,
+        "home": 0.17725320406188447,
+        "elo_scaled": 0.060589107992680274
+      },
+      "teams": [
+        "1. FC Heidenheim 1846",
+        "1. FC Köln",
+        "1. FC Union Berlin",
+        "1. FSV Mainz 05",
+        "Bayer 04 Leverkusen",
+        "Borussia Dortmund",
+        "Borussia Mönchengladbach",
+        "Eintracht Frankfurt",
+        "FC Augsburg",
+        "FC Bayern München",
+        "FC St. Pauli 1910",
+        "Hamburger SV",
+        "Holstein Kiel",
+        "RB Leipzig",
+        "SC Freiburg",
+        "SV Darmstadt 98",
+        "SV Werder Bremen",
+        "TSG 1899 Hoffenheim",
+        "VfB Stuttgart",
+        "VfL Bochum 1848",
+        "VfL Wolfsburg"
+      ],
+      "home_coefficient": 0.17725320406188447,
+      "elo_coefficient": 0.060589107992680274,
+      "intercept": 0.31734743408993665,
+      "derived_team_strengths": {
+        "1. FC Heidenheim 1846": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "1. FC Köln": {
+          "attack_strength": 0.8730849943977769,
+          "defensive_weakness": 1.0188730604288707
+        },
+        "1. FC Union Berlin": {
+          "attack_strength": 0.8363463861730763,
+          "defensive_weakness": 0.928612860901828
+        },
+        "1. FSV Mainz 05": {
+          "attack_strength": 0.9454996895261673,
+          "defensive_weakness": 0.8689572237119405
+        },
+        "Bayer 04 Leverkusen": {
+          "attack_strength": 1.3307276117475533,
+          "defensive_weakness": 0.8014274070203928
+        },
+        "Borussia Dortmund": {
+          "attack_strength": 1.2658216990030815,
+          "defensive_weakness": 0.8477980556371838
+        },
+        "Borussia Mönchengladbach": {
+          "attack_strength": 1.055486309163502,
+          "defensive_weakness": 1.008554183466154
+        },
+        "Eintracht Frankfurt": {
+          "attack_strength": 1.1736133300268947,
+          "defensive_weakness": 0.983072847177306
+        },
+        "FC Augsburg": {
+          "attack_strength": 0.9165674199224328,
+          "defensive_weakness": 0.9788106157016548
+        },
+        "FC Bayern München": {
+          "attack_strength": 1.7611083020938356,
+          "defensive_weakness": 0.8337101783250362
+        },
+        "FC St. Pauli 1910": {
+          "attack_strength": 0.6894399927685274,
+          "defensive_weakness": 0.8546788642535282
+        },
+        "Hamburger SV": {
+          "attack_strength": 0.898417721334895,
+          "defensive_weakness": 0.9402494200103445
+        },
+        "Holstein Kiel": {
+          "attack_strength": 1.0551356609556373,
+          "defensive_weakness": 1.2436162030558109
+        },
+        "RB Leipzig": {
+          "attack_strength": 1.2230046904656269,
+          "defensive_weakness": 0.8617465291406532
+        },
+        "SC Freiburg": {
+          "attack_strength": 0.9939365193325891,
+          "defensive_weakness": 0.980752656425997
+        },
+        "SV Darmstadt 98": {
+          "attack_strength": 0.7662071777975421,
+          "defensive_weakness": 1.3265510096449287
+        },
+        "SV Werder Bremen": {
+          "attack_strength": 0.9587835341937049,
+          "defensive_weakness": 0.9883370451058734
+        },
+        "TSG 1899 Hoffenheim": {
+          "attack_strength": 1.1918849178062179,
+          "defensive_weakness": 1.0810023065823668
+        },
+        "VfB Stuttgart": {
+          "attack_strength": 1.323443359797666,
+          "defensive_weakness": 0.9068512709798678
+        },
+        "VfL Bochum 1848": {
+          "attack_strength": 0.839582707338205,
+          "defensive_weakness": 1.145774058149628
+        },
+        "VfL Wolfsburg": {
+          "attack_strength": 0.9938796862741087,
+          "defensive_weakness": 1.0205129013801142
+        }
+      }
+    },
+    "Campeonato Brasileiro Série A": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-08-24T23:00:00+00:00",
+      "coefficients": {
+        "Intercept": 0.032676590410246883,
+        "C(team)[T.América FC]": 0.006117615124614239,
+        "C(team)[T.Botafogo FR]": 0.17084240407184864,
+        "C(team)[T.CA Mineiro]": 0.03896626473953161,
+        "C(team)[T.CA Paranaense]": 0.036225851046781075,
+        "C(team)[T.CR Flamengo]": 0.27659354498516286,
+        "C(team)[T.CR Vasco da Gama]": 0.034234756409273225,
+        "C(team)[T.Ceará SC]": -0.15461846644048105,
+        "C(team)[T.Chapecoense AF]": -0.04482144880664257,
+        "C(team)[T.Clube do Remo]": 0.023149336394579407,
+        "C(team)[T.Coritiba FBC]": 0.024272727665500277,
+        "C(team)[T.Criciúma EC]": -0.01666510246184691,
+        "C(team)[T.Cruzeiro EC]": -0.007086414846683225,
+        "C(team)[T.Cuiabá EC]": -0.17432132290851005,
+        "C(team)[T.EC Bahia]": 0.08945664404194183,
+        "C(team)[T.EC Juventude]": -0.018844593191165413,
+        "C(team)[T.EC Vitória]": -0.08464787817205814,
+        "C(team)[T.Fluminense FC]": 0.02181023378982706,
+        "C(team)[T.Fortaleza EC]": 0.030892583974612368,
+        "C(team)[T.Goiás EC]": -0.10972363095020675,
+        "C(team)[T.Grêmio FBPA]": 0.0791244388762169,
+        "C(team)[T.Mirassol FC]": 0.11854898896029933,
+        "C(team)[T.RB Bragantino]": 0.009090382990771041,
+        "C(team)[T.SC Corinthians Paulista]": 0.023080652468208698,
+        "C(team)[T.SC Internacional]": 0.007266202533437523,
+        "C(team)[T.SC Recife]": -0.19903726910830766,
+        "C(team)[T.SE Palmeiras]": 0.23075980076592464,
+        "C(team)[T.Santos FC]": 0.02710894852113791,
+        "C(team)[T.São Paulo FC]": -0.011010669125971423,
+        "C(opponent)[T.América FC]": 0.30077506004076193,
+        "C(opponent)[T.Botafogo FR]": -0.12294076595854544,
+        "C(opponent)[T.CA Mineiro]": -0.10074493559613186,
+        "C(opponent)[T.CA Paranaense]": -0.12693399554101323,
+        "C(opponent)[T.CR Flamengo]": -0.17476904228023715,
+        "C(opponent)[T.CR Vasco da Gama]": 0.09631496328044298,
+        "C(opponent)[T.Ceará SC]": -0.14052561549834983,
+        "C(opponent)[T.Chapecoense AF]": 0.22072675131670416,
+        "C(opponent)[T.Clube do Remo]": 0.09079008170041208,
+        "C(opponent)[T.Coritiba FBC]": 0.1375477663254678,
+        "C(opponent)[T.Criciúma EC]": 0.12298690390698915,
+        "C(opponent)[T.Cruzeiro EC]": -0.20577701930067896,
+        "C(opponent)[T.Cuiabá EC]": -0.10826605986493797,
+        "C(opponent)[T.EC Bahia]": -0.012393215326937629,
+        "C(opponent)[T.EC Juventude]": 0.17262526447926171,
+        "C(opponent)[T.EC Vitória]": 0.016749769673754817,
+        "C(opponent)[T.Fluminense FC]": -0.12783136169684864,
+        "C(opponent)[T.Fortaleza EC]": -0.03203798040916882,
+        "C(opponent)[T.Goiás EC]": 0.02394089648153283,
+        "C(opponent)[T.Grêmio FBPA]": 0.0390974418416533,
+        "C(opponent)[T.Mirassol FC]": -0.013540638885622423,
+        "C(opponent)[T.RB Bragantino]": -0.06887266887953301,
+        "C(opponent)[T.SC Corinthians Paulista]": -0.07807646750877484,
+        "C(opponent)[T.SC Internacional]": -0.06133673394831139,
+        "C(opponent)[T.SC Recife]": 0.23696234794422757,
+        "C(opponent)[T.SE Palmeiras]": -0.2513849383923085,
+        "C(opponent)[T.Santos FC]": 0.08702725661179078,
+        "C(opponent)[T.São Paulo FC]": -0.10964548459291303,
+        "home": 0.33003477023497907,
+        "elo_scaled": 0.06602012798450672
+      },
+      "teams": [
+        "AC Goianiense",
+        "América FC",
+        "Botafogo FR",
+        "CA Mineiro",
+        "CA Paranaense",
+        "CR Flamengo",
+        "CR Vasco da Gama",
+        "Ceará SC",
+        "Chapecoense AF",
+        "Clube do Remo",
+        "Coritiba FBC",
+        "Criciúma EC",
+        "Cruzeiro EC",
+        "Cuiabá EC",
+        "EC Bahia",
+        "EC Juventude",
+        "EC Vitória",
+        "Fluminense FC",
+        "Fortaleza EC",
+        "Goiás EC",
+        "Grêmio FBPA",
+        "Mirassol FC",
+        "RB Bragantino",
+        "SC Corinthians Paulista",
+        "SC Internacional",
+        "SC Recife",
+        "SE Palmeiras",
+        "Santos FC",
+        "São Paulo FC"
+      ],
+      "home_coefficient": 0.33003477023497907,
+      "elo_coefficient": 0.06602012798450672,
+      "intercept": 0.032676590410246883,
+      "derived_team_strengths": {
+        "AC Goianiense": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "América FC": {
+          "attack_strength": 1.006136365949296,
+          "defensive_weakness": 1.35090543474548
+        },
+        "Botafogo FR": {
+          "attack_strength": 1.1863037776442276,
+          "defensive_weakness": 0.8843160426225918
+        },
+        "CA Mineiro": {
+          "attack_strength": 1.0397354073137226,
+          "defensive_weakness": 0.9041636234325039
+        },
+        "CA Paranaense": {
+          "attack_strength": 1.036890002740227,
+          "defensive_weakness": 0.8807918068652675
+        },
+        "CR Flamengo": {
+          "attack_strength": 1.3186302982001734,
+          "defensive_weakness": 0.8396509222392219
+        },
+        "CR Vasco da Gama": {
+          "attack_strength": 1.0348275106059883,
+          "defensive_weakness": 1.1011058172841621
+        },
+        "Ceará SC": {
+          "attack_strength": 0.8567419909558941,
+          "defensive_weakness": 0.8689014073051426
+        },
+        "Chapecoense AF": {
+          "attack_strength": 0.9561681915640875,
+          "defensive_weakness": 1.2469826476403822
+        },
+        "Clube do Remo": {
+          "attack_strength": 1.0234193618936123,
+          "defensive_weakness": 1.0950391123814953
+        },
+        "Coritiba FBC": {
+          "attack_strength": 1.024569708294829,
+          "defensive_weakness": 1.1474565144443911
+        },
+        "Criciúma EC": {
+          "attack_strength": 0.9834729921736088,
+          "defensive_weakness": 1.1308696108769054
+        },
+        "Cruzeiro EC": {
+          "attack_strength": 0.9929386345858573,
+          "defensive_weakness": 0.8140145655849547
+        },
+        "Cuiabá EC": {
+          "attack_strength": 0.8400269343902779,
+          "defensive_weakness": 0.8973888055211112
+        },
+        "EC Bahia": {
+          "attack_strength": 1.0935799190794087,
+          "defensive_weakness": 0.9876832642972895
+        },
+        "EC Juventude": {
+          "attack_strength": 0.9813318560453672,
+          "defensive_weakness": 1.1884206781889077
+        },
+        "EC Vitória": {
+          "attack_strength": 0.918835769575781,
+          "defensive_weakness": 1.0168908335611277
+        },
+        "Fluminense FC": {
+          "attack_strength": 1.0220498155465423,
+          "defensive_weakness": 0.8800017686372492
+        },
+        "Fortaleza EC": {
+          "attack_strength": 1.0313747117639815,
+          "defensive_weakness": 0.9684697985014596
+        },
+        "Goiás EC": {
+          "attack_strength": 0.8960817503402636,
+          "defensive_weakness": 1.024229780517906
+        },
+        "Grêmio FBPA": {
+          "attack_strength": 1.082338998739323,
+          "defensive_weakness": 1.0398718057374066
+        },
+        "Mirassol FC": {
+          "attack_strength": 1.1258620275611897,
+          "defensive_weakness": 0.9865506231851316
+        },
+        "RB Bragantino": {
+          "attack_strength": 1.0091318260046667,
+          "defensive_weakness": 0.9334455291765719
+        },
+        "SC Corinthians Paulista": {
+          "attack_strength": 1.0233490718474394,
+          "defensive_weakness": 0.9248936995223301
+        },
+        "SC Internacional": {
+          "attack_strength": 1.007292665439181,
+          "defensive_weakness": 0.9405064859856871
+        },
+        "SC Recife": {
+          "attack_strength": 0.8195193500083522,
+          "defensive_weakness": 1.2673933969100288
+        },
+        "SE Palmeiras": {
+          "attack_strength": 1.259556658566176,
+          "defensive_weakness": 0.7777229385134043
+        },
+        "Santos FC": {
+          "attack_strength": 1.0274797390638017,
+          "defensive_weakness": 1.0909264142708104
+        },
+        "São Paulo FC": {
+          "attack_strength": 0.9890497264229534,
+          "defensive_weakness": 0.8961517786010812
+        }
+      }
+    },
+    "Championship": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-08-23T11:00:00+00:00",
+      "coefficients": {
+        "Intercept": 0.10757496772318977,
+        "C(team)[T.Blackburn Rovers FC]": -0.08130861229652862,
+        "C(team)[T.Bolton Wanderers FC]": -0.022810078784808382,
+        "C(team)[T.Bristol City FC]": -0.038226744461758985,
+        "C(team)[T.Burnley FC]": 0.09363709342572447,
+        "C(team)[T.Cardiff City FC]": -0.06774200903069702,
+        "C(team)[T.Charlton Athletic FC]": -0.1366882652690046,
+        "C(team)[T.Coventry City FC]": 0.19961928198673115,
+        "C(team)[T.Derby County FC]": 0.0029844085839301863,
+        "C(team)[T.Huddersfield Town AFC]": -0.09051896373758161,
+        "C(team)[T.Hull City AFC]": 0.02538405066366308,
+        "C(team)[T.Ipswich Town FC]": 0.2710274365058774,
+        "C(team)[T.Leeds United FC]": 0.23600193652466162,
+        "C(team)[T.Leicester City FC]": 0.15172759792755794,
+        "C(team)[T.Lincoln City FC]": -0.018818737057848492,
+        "C(team)[T.Luton Town FC]": -0.0783077402712952,
+        "C(team)[T.Middlesbrough FC]": 0.09817078615419572,
+        "C(team)[T.Millwall FC]": -0.09053918465791494,
+        "C(team)[T.Norwich City FC]": 0.14401639124185656,
+        "C(team)[T.Oxford United FC]": -0.12954121272699753,
+        "C(team)[T.Plymouth Argyle FC]": -0.0036194258282958684,
+        "C(team)[T.Portsmouth FC]": -0.03078224636805199,
+        "C(team)[T.Preston North End FC]": -0.06812388951619308,
+        "C(team)[T.Queens Park Rangers FC]": -0.042574824302358795,
+        "C(team)[T.Rotherham United FC]": -0.19317046380287792,
+        "C(team)[T.Sheffield United FC]": 0.07629288078354263,
+        "C(team)[T.Sheffield Wednesday FC]": -0.17017066123699104,
+        "C(team)[T.Southampton FC]": 0.2829111697324574,
+        "C(team)[T.Stoke City FC]": -0.13294941827927037,
+        "C(team)[T.Sunderland AFC]": -0.05411765088855974,
+        "C(team)[T.Swansea City AFC]": -0.030292618847166528,
+        "C(team)[T.Watford FC]": -0.03139799823180608,
+        "C(team)[T.West Bromwich Albion FC]": -0.023044087834054032,
+        "C(team)[T.West Ham United FC]": 0.02081362104111216,
+        "C(team)[T.Wolverhampton Wanderers FC]": 0.06687715392148325,
+        "C(team)[T.Wrexham AFC]": 0.08419323928355282,
+        "C(opponent)[T.Blackburn Rovers FC]": -0.011504803231671586,
+        "C(opponent)[T.Bolton Wanderers FC]": -0.033940130908573715,
+        "C(opponent)[T.Bristol City FC]": -0.022061467525946735,
+        "C(opponent)[T.Burnley FC]": -0.4436209204890036,
+        "C(opponent)[T.Cardiff City FC]": 0.1239340326382728,
+        "C(opponent)[T.Charlton Athletic FC]": -0.022639034172212278,
+        "C(opponent)[T.Coventry City FC]": -0.022749799508545204,
+        "C(opponent)[T.Derby County FC]": -0.0050862515981329615,
+        "C(opponent)[T.Huddersfield Town AFC]": 0.14213697833510364,
+        "C(opponent)[T.Hull City AFC]": 0.005463682727065504,
+        "C(opponent)[T.Ipswich Town FC]": -0.057014808753131495,
+        "C(opponent)[T.Leeds United FC]": -0.2584475872885768,
+        "C(opponent)[T.Leicester City FC]": -0.033631968618925964,
+        "C(opponent)[T.Lincoln City FC]": 0.0656655654172316,
+        "C(opponent)[T.Luton Town FC]": 0.04628429927271873,
+        "C(opponent)[T.Middlesbrough FC]": -0.029808010167075072,
+        "C(opponent)[T.Millwall FC]": -0.13498929693001335,
+        "C(opponent)[T.Norwich City FC]": 0.07658519510073815,
+        "C(opponent)[T.Oxford United FC]": 0.01434887626344298,
+        "C(opponent)[T.Plymouth Argyle FC]": 0.20507017466148575,
+        "C(opponent)[T.Portsmouth FC]": 0.1029162418376327,
+        "C(opponent)[T.Preston North End FC]": 0.05052822317718009,
+        "C(opponent)[T.Queens Park Rangers FC]": 0.05914590374453614,
+        "C(opponent)[T.Rotherham United FC]": 0.2165457775867716,
+        "C(opponent)[T.Sheffield United FC]": -0.11437475631474792,
+        "C(opponent)[T.Sheffield Wednesday FC]": 0.16283270285287008,
+        "C(opponent)[T.Southampton FC]": -0.007932223910163369,
+        "C(opponent)[T.Stoke City FC]": -0.004177388386215996,
+        "C(opponent)[T.Sunderland AFC]": -0.12474084250867624,
+        "C(opponent)[T.Swansea City AFC]": -0.0016487318675596724,
+        "C(opponent)[T.Watford FC]": 0.03692001709678974,
+        "C(opponent)[T.West Bromwich Albion FC]": -0.09834704678010654,
+        "C(opponent)[T.West Ham United FC]": 0.045684750974183876,
+        "C(opponent)[T.Wolverhampton Wanderers FC]": 0.01851570417859676,
+        "C(opponent)[T.Wrexham AFC]": 0.07929307368656274,
+        "home": 0.22722068818208263,
+        "elo_scaled": 0.07183125037564958
+      },
+      "teams": [
+        "Birmingham City FC",
+        "Blackburn Rovers FC",
+        "Bolton Wanderers FC",
+        "Bristol City FC",
+        "Burnley FC",
+        "Cardiff City FC",
+        "Charlton Athletic FC",
+        "Coventry City FC",
+        "Derby County FC",
+        "Huddersfield Town AFC",
+        "Hull City AFC",
+        "Ipswich Town FC",
+        "Leeds United FC",
+        "Leicester City FC",
+        "Lincoln City FC",
+        "Luton Town FC",
+        "Middlesbrough FC",
+        "Millwall FC",
+        "Norwich City FC",
+        "Oxford United FC",
+        "Plymouth Argyle FC",
+        "Portsmouth FC",
+        "Preston North End FC",
+        "Queens Park Rangers FC",
+        "Rotherham United FC",
+        "Sheffield United FC",
+        "Sheffield Wednesday FC",
+        "Southampton FC",
+        "Stoke City FC",
+        "Sunderland AFC",
+        "Swansea City AFC",
+        "Watford FC",
+        "West Bromwich Albion FC",
+        "West Ham United FC",
+        "Wolverhampton Wanderers FC",
+        "Wrexham AFC"
+      ],
+      "home_coefficient": 0.22722068818208263,
+      "elo_coefficient": 0.07183125037564958,
+      "intercept": 0.10757496772318977,
+      "derived_team_strengths": {
+        "Birmingham City FC": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "Blackburn Rovers FC": {
+          "attack_strength": 0.921909135042708,
+          "defensive_weakness": 0.9885611239484096
+        },
+        "Bolton Wanderers FC": {
+          "attack_strength": 0.9774481042778345,
+          "defensive_weakness": 0.9666293741275674
+        },
+        "Bristol City FC": {
+          "attack_strength": 0.9624946758097231,
+          "defensive_weakness": 0.9781801068921634
+        },
+        "Burnley FC": {
+          "attack_strength": 1.0981611436952041,
+          "defensive_weakness": 0.6417086333208922
+        },
+        "Cardiff City FC": {
+          "attack_strength": 0.9345015354369275,
+          "defensive_weakness": 1.1319411973617706
+        },
+        "Charlton Athletic FC": {
+          "attack_strength": 0.8722420919087894,
+          "defensive_weakness": 0.9776153058092164
+        },
+        "Coventry City FC": {
+          "attack_strength": 1.220937836636297,
+          "defensive_weakness": 0.9775070259180042
+        },
+        "Derby County FC": {
+          "attack_strength": 1.0029888663647382,
+          "defensive_weakness": 0.9949266614772004
+        },
+        "Huddersfield Town AFC": {
+          "attack_strength": 0.9134570111776495,
+          "defensive_weakness": 1.1527345373808295
+        },
+        "Hull City AFC": {
+          "attack_strength": 1.0257089691009929,
+          "defensive_weakness": 1.0054786358621945
+        },
+        "Ipswich Town FC": {
+          "attack_strength": 1.3113110476843068,
+          "defensive_weakness": 0.9445800812097145
+        },
+        "Leeds United FC": {
+          "attack_strength": 1.2661767621470315,
+          "defensive_weakness": 0.7722495056789709
+        },
+        "Leicester City FC": {
+          "attack_strength": 1.1638431599591583,
+          "defensive_weakness": 0.9669272987509487
+        },
+        "Lincoln City FC": {
+          "attack_strength": 0.9813572298206977,
+          "defensive_weakness": 1.0678695249415813
+        },
+        "Luton Town FC": {
+          "attack_strength": 0.9246798215344338,
+          "defensive_weakness": 1.0473721357699233
+        },
+        "Middlesbrough FC": {
+          "attack_strength": 1.103151171967273,
+          "defensive_weakness": 0.9706318671108592
+        },
+        "Millwall FC": {
+          "attack_strength": 0.913438540422947,
+          "defensive_weakness": 0.8737252631806304
+        },
+        "Norwich City FC": {
+          "attack_strength": 1.1549030386647965,
+          "defensive_weakness": 1.0795941625527539
+        },
+        "Oxford United FC": {
+          "attack_strength": 0.8784983823561765,
+          "defensive_weakness": 1.0144523155421057
+        },
+        "Plymouth Argyle FC": {
+          "attack_strength": 0.9963871163979531,
+          "defensive_weakness": 1.2276112091416107
+        },
+        "Portsmouth FC": {
+          "attack_strength": 0.9696867028894557,
+          "defensive_weakness": 1.1083985677607464
+        },
+        "Preston North End FC": {
+          "attack_strength": 0.9341447356686485,
+          "defensive_weakness": 1.0518265488231424
+        },
+        "Queens Park Rangers FC": {
+          "attack_strength": 0.958318757305769,
+          "defensive_weakness": 1.0609300231112835
+        },
+        "Rotherham United FC": {
+          "attack_strength": 0.8243414417845722,
+          "defensive_weakness": 1.2417799297412047
+        },
+        "Sheffield United FC": {
+          "attack_strength": 1.0792786278421824,
+          "defensive_weakness": 0.891923639226609
+        },
+        "Sheffield Wednesday FC": {
+          "attack_strength": 0.8435208480004562,
+          "defensive_weakness": 1.1768397912789452
+        },
+        "Southampton FC": {
+          "attack_strength": 1.3269872799463924,
+          "defensive_weakness": 0.992099153159791
+        },
+        "Stoke City FC": {
+          "attack_strength": 0.8755093757595309,
+          "defensive_weakness": 0.9958313247636892
+        },
+        "Sunderland AFC": {
+          "attack_strength": 0.9473206468294116,
+          "defensive_weakness": 0.8827256379059261
+        },
+        "Swansea City AFC": {
+          "attack_strength": 0.9701616044387736,
+          "defensive_weakness": 0.9983526265441711
+        },
+        "Watford FC": {
+          "attack_strength": 0.969089800285699,
+          "defensive_weakness": 1.0376100264568195
+        },
+        "West Bromwich Albion FC": {
+          "attack_strength": 0.977219399336822,
+          "defensive_weakness": 0.9063343087639327
+        },
+        "West Ham United FC": {
+          "attack_strength": 1.0210317350708038,
+          "defensive_weakness": 1.0467443737936064
+        },
+        "Wolverhampton Wanderers FC": {
+          "attack_strength": 1.0691641274864545,
+          "defensive_weakness": 1.0186881827051162
+        },
+        "Wrexham AFC": {
+          "attack_strength": 1.0878390867451493,
+          "defensive_weakness": 1.082521534161586
+        }
+      }
+    },
+    "EPL": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-08-24T19:00:00+00:00",
+      "coefficients": {
+        "Intercept": 0.27745202563255394,
+        "C(team)[T.Arsenal FC]": 0.22912633424944456,
+        "C(team)[T.Aston Villa FC]": 0.10676225606796205,
+        "C(team)[T.Brentford FC]": 0.09661257120166034,
+        "C(team)[T.Brighton & Hove Albion FC]": 0.07029275149617178,
+        "C(team)[T.Burnley FC]": -0.19970961523675626,
+        "C(team)[T.Chelsea FC]": 0.16486064363779926,
+        "C(team)[T.Coventry City FC]": -0.031931535439430545,
+        "C(team)[T.Crystal Palace FC]": -0.07539313591718368,
+        "C(team)[T.Everton FC]": -0.1747101060376255,
+        "C(team)[T.Fulham FC]": -0.017564919390948286,
+        "C(team)[T.Hull City AFC]": 0.02622207527349306,
+        "C(team)[T.Ipswich Town FC]": -0.21822718045741732,
+        "C(team)[T.Leeds United FC]": -0.061567095926456664,
+        "C(team)[T.Leicester City FC]": -0.2772620368283356,
+        "C(team)[T.Liverpool FC]": 0.26550295998599005,
+        "C(team)[T.Luton Town FC]": -0.005591448414312824,
+        "C(team)[T.Manchester City FC]": 0.30109486037269834,
+        "C(team)[T.Manchester United FC]": 0.04889233329418829,
+        "C(team)[T.Newcastle United FC]": 0.19880098509247782,
+        "C(team)[T.Nottingham Forest FC]": -0.032416497586894424,
+        "C(team)[T.Sheffield United FC]": -0.2182976556453293,
+        "C(team)[T.Southampton FC]": -0.37199896543384803,
+        "C(team)[T.Sunderland AFC]": -0.13740322146091344,
+        "C(team)[T.Tottenham Hotspur FC]": 0.10907209868019237,
+        "C(team)[T.West Ham United FC]": -0.027393351232814424,
+        "C(team)[T.Wolverhampton Wanderers FC]": -0.14244775989610833,
+        "C(opponent)[T.Arsenal FC]": -0.4456130918960571,
+        "C(opponent)[T.Aston Villa FC]": -0.021216261175022528,
+        "C(opponent)[T.Brentford FC]": -0.011724785519141018,
+        "C(opponent)[T.Brighton & Hove Albion FC]": -0.03910305239439064,
+        "C(opponent)[T.Burnley FC]": 0.2038066043899238,
+        "C(opponent)[T.Chelsea FC]": -0.04825715632366147,
+        "C(opponent)[T.Coventry City FC]": 0.033369560733341776,
+        "C(opponent)[T.Crystal Palace FC]": -0.07135008850401676,
+        "C(opponent)[T.Everton FC]": -0.17753861006367855,
+        "C(opponent)[T.Fulham FC]": -0.042181571551938746,
+        "C(opponent)[T.Hull City AFC]": -0.0605994969422483,
+        "C(opponent)[T.Ipswich Town FC]": 0.2528807005430752,
+        "C(opponent)[T.Leeds United FC]": -0.03009455654181174,
+        "C(opponent)[T.Leicester City FC]": 0.22921365014858483,
+        "C(opponent)[T.Liverpool FC]": -0.12758772552671857,
+        "C(opponent)[T.Luton Town FC]": 0.2688007317195424,
+        "C(opponent)[T.Manchester City FC]": -0.2779875072570537,
+        "C(opponent)[T.Manchester United FC]": -0.06219315999966785,
+        "C(opponent)[T.Newcastle United FC]": -0.021595576684790757,
+        "C(opponent)[T.Nottingham Forest FC]": -0.06456173186800493,
+        "C(opponent)[T.Sheffield United FC]": 0.4152245564900213,
+        "C(opponent)[T.Southampton FC]": 0.27029801595318753,
+        "C(opponent)[T.Sunderland AFC]": -0.1321636611396397,
+        "C(opponent)[T.Tottenham Hotspur FC]": 0.06544050797861106,
+        "C(opponent)[T.West Ham United FC]": 0.1063443427403937,
+        "C(opponent)[T.Wolverhampton Wanderers FC]": 0.09251321910722099,
+        "home": 0.16667889453273319,
+        "elo_scaled": 0.04050806947964392
+      },
+      "teams": [
+        "AFC Bournemouth",
+        "Arsenal FC",
+        "Aston Villa FC",
+        "Brentford FC",
+        "Brighton & Hove Albion FC",
+        "Burnley FC",
+        "Chelsea FC",
+        "Coventry City FC",
+        "Crystal Palace FC",
+        "Everton FC",
+        "Fulham FC",
+        "Hull City AFC",
+        "Ipswich Town FC",
+        "Leeds United FC",
+        "Leicester City FC",
+        "Liverpool FC",
+        "Luton Town FC",
+        "Manchester City FC",
+        "Manchester United FC",
+        "Newcastle United FC",
+        "Nottingham Forest FC",
+        "Sheffield United FC",
+        "Southampton FC",
+        "Sunderland AFC",
+        "Tottenham Hotspur FC",
+        "West Ham United FC",
+        "Wolverhampton Wanderers FC"
+      ],
+      "home_coefficient": 0.16667889453273319,
+      "elo_coefficient": 0.04050806947964392,
+      "intercept": 0.27745202563255394,
+      "derived_team_strengths": {
+        "AFC Bournemouth": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "Arsenal FC": {
+          "attack_strength": 1.25750089440686,
+          "defensive_weakness": 0.640431512274328
+        },
+        "Aston Villa FC": {
+          "attack_strength": 1.112669692563807,
+          "defensive_weakness": 0.9790072204224217
+        },
+        "Brentford FC": {
+          "attack_strength": 1.1014335638650548,
+          "defensive_weakness": 0.9883436819286334
+        },
+        "Brighton & Hove Albion FC": {
+          "attack_strength": 1.0728222055922398,
+          "defensive_weakness": 0.961651603539605
+        },
+        "Burnley FC": {
+          "attack_strength": 0.8189685345362602,
+          "defensive_weakness": 1.2260610157081264
+        },
+        "Chelsea FC": {
+          "attack_strength": 1.179228774228253,
+          "defensive_weakness": 0.9528887142092318
+        },
+        "Coventry City FC": {
+          "attack_strength": 0.968572892726687,
+          "defensive_weakness": 1.033932569523881
+        },
+        "Crystal Palace FC": {
+          "attack_strength": 0.927378828726841,
+          "defensive_weakness": 0.9311358551014659
+        },
+        "Everton FC": {
+          "attack_strength": 0.8397004095679684,
+          "defensive_weakness": 0.837328669398382
+        },
+        "Fulham FC": {
+          "attack_strength": 0.9825884445510823,
+          "defensive_weakness": 0.9586956929034812
+        },
+        "Hull City AFC": {
+          "attack_strength": 1.0265688987303925,
+          "defensive_weakness": 0.9412001178257119
+        },
+        "Ipswich Town FC": {
+          "attack_strength": 0.8039427808301728,
+          "defensive_weakness": 1.2877296422235665
+        },
+        "Leeds United FC": {
+          "attack_strength": 0.9402898540039609,
+          "defensive_weakness": 0.9703537759130499
+        },
+        "Leicester City FC": {
+          "attack_strength": 0.7578558849373683,
+          "defensive_weakness": 1.2576106990218994
+        },
+        "Liverpool FC": {
+          "attack_strength": 1.3040867142949795,
+          "defensive_weakness": 0.8802161950178181
+        },
+        "Luton Town FC": {
+          "attack_strength": 0.9944241546386049,
+          "defensive_weakness": 1.3083943935670121
+        },
+        "Manchester City FC": {
+          "attack_strength": 1.3513375238393617,
+          "defensive_weakness": 0.7573062822879562
+        },
+        "Manchester United FC": {
+          "attack_strength": 1.050107283061409,
+          "defensive_weakness": 0.939701356545744
+        },
+        "Newcastle United FC": {
+          "attack_strength": 1.2199391556609986,
+          "defensive_weakness": 0.978635938220541
+        },
+        "Nottingham Forest FC": {
+          "attack_strength": 0.9681032854167436,
+          "defensive_weakness": 0.9374782401927498
+        },
+        "Sheffield United FC": {
+          "attack_strength": 0.8038861248080686,
+          "defensive_weakness": 1.5147108406545668
+        },
+        "Southampton FC": {
+          "attack_strength": 0.6893549557071573,
+          "defensive_weakness": 1.310354899214723
+        },
+        "Sunderland AFC": {
+          "attack_strength": 0.8716186998998787,
+          "defensive_weakness": 0.8761975838491484
+        },
+        "Tottenham Hotspur FC": {
+          "attack_strength": 1.1152427549736068,
+          "defensive_weakness": 1.0676292200037383
+        },
+        "West Ham United FC": {
+          "attack_strength": 0.9729784439718897,
+          "defensive_weakness": 1.1122047902213121
+        },
+        "Wolverhampton Wanderers FC": {
+          "attack_strength": 0.8672328574434951,
+          "defensive_weakness": 1.0969276418685747
+        }
+      }
+    },
+    "LaLiga": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-08-27T19:00:00+00:00",
+      "coefficients": {
+        "Intercept": 0.06850351870614291,
+        "C(team)[T.CA Osasuna]": -0.006796512067703621,
+        "C(team)[T.CD Leganés]": -0.0791408317313789,
+        "C(team)[T.Club Atlético de Madrid]": 0.17567415681496007,
+        "C(team)[T.Cádiz CF]": -0.2857884533977029,
+        "C(team)[T.Deportivo Alavés]": -0.08432613034420927,
+        "C(team)[T.Elche CF]": 0.05071877455957528,
+        "C(team)[T.FC Barcelona]": 0.42517821647432685,
+        "C(team)[T.Getafe CF]": -0.19857974126124542,
+        "C(team)[T.Girona FC]": 0.13543853771133407,
+        "C(team)[T.Granada CF]": -0.06317673246951241,
+        "C(team)[T.Levante UD]": 0.02355096387542217,
+        "C(team)[T.Málaga CF]": -0.04763471037115095,
+        "C(team)[T.RC Celta de Vigo]": 0.11090124056582276,
+        "C(team)[T.RC Deportivo La Coruña]": -0.02381673196592128,
+        "C(team)[T.RCD Espanyol de Barcelona]": -0.04256484184769343,
+        "C(team)[T.RCD Mallorca]": -0.12795955737572534,
+        "C(team)[T.Rayo Vallecano de Madrid]": -0.16601203159061395,
+        "C(team)[T.Real Betis Balompié]": 0.10048578749972926,
+        "C(team)[T.Real Madrid CF]": 0.2755450921089646,
+        "C(team)[T.Real Oviedo]": -0.2597002527369415,
+        "C(team)[T.Real Racing Club de Santander]": -0.012665947301818553,
+        "C(team)[T.Real Sociedad de Fútbol]": 0.01420466980820993,
+        "C(team)[T.Real Valladolid CF]": -0.24156935651135059,
+        "C(team)[T.Sevilla FC]": 0.04441654600073364,
+        "C(team)[T.UD Almería]": 0.0233849422000521,
+        "C(team)[T.UD Las Palmas]": -0.14684528429718655,
+        "C(team)[T.Valencia CF]": -0.05924022172842333,
+        "C(team)[T.Villarreal CF]": 0.3223904326646801,
+        "C(opponent)[T.CA Osasuna]": 0.0031816485236214865,
+        "C(opponent)[T.CD Leganés]": 0.026260960294512862,
+        "C(opponent)[T.Club Atlético de Madrid]": -0.08147624736659091,
+        "C(opponent)[T.Cádiz CF]": 0.019064549775675083,
+        "C(opponent)[T.Deportivo Alavés]": -0.06486161730471639,
+        "C(opponent)[T.Elche CF]": 0.07642592558624382,
+        "C(opponent)[T.FC Barcelona]": -0.017352705506696965,
+        "C(opponent)[T.Getafe CF]": -0.16355355440865924,
+        "C(opponent)[T.Girona FC]": 0.06052441547383519,
+        "C(opponent)[T.Granada CF]": 0.2642652787577214,
+        "C(opponent)[T.Levante UD]": 0.07896393552036524,
+        "C(opponent)[T.Málaga CF]": -0.000389804822271084,
+        "C(opponent)[T.RC Celta de Vigo]": 0.03851530022287987,
+        "C(opponent)[T.RC Deportivo La Coruña]": -0.017195535358513217,
+        "C(opponent)[T.RCD Espanyol de Barcelona]": -0.007923900815697568,
+        "C(opponent)[T.RCD Mallorca]": -0.08018948283789354,
+        "C(opponent)[T.Rayo Vallecano de Madrid]": -0.12102195511209439,
+        "C(opponent)[T.Real Betis Balompié]": -0.03041997195397303,
+        "C(opponent)[T.Real Madrid CF]": -0.12805770351324333,
+        "C(opponent)[T.Real Oviedo]": 0.03532599171796709,
+        "C(opponent)[T.Real Racing Club de Santander]": 0.008327288696178192,
+        "C(opponent)[T.Real Sociedad de Fútbol]": -0.012879426876779418,
+        "C(opponent)[T.Real Valladolid CF]": 0.3518358913417841,
+        "C(opponent)[T.Sevilla FC]": 0.037210508792603514,
+        "C(opponent)[T.UD Almería]": 0.2101286932112186,
+        "C(opponent)[T.UD Las Palmas]": 0.008791016381945972,
+        "C(opponent)[T.Valencia CF]": -0.02040733615726259,
+        "C(opponent)[T.Villarreal CF]": 0.10774314246579149,
+        "home": 0.26955650650843704,
+        "elo_scaled": 0.0988235669074137
+      },
+      "teams": [
+        "Athletic Club",
+        "CA Osasuna",
+        "CD Leganés",
+        "Club Atlético de Madrid",
+        "Cádiz CF",
+        "Deportivo Alavés",
+        "Elche CF",
+        "FC Barcelona",
+        "Getafe CF",
+        "Girona FC",
+        "Granada CF",
+        "Levante UD",
+        "Málaga CF",
+        "RC Celta de Vigo",
+        "RC Deportivo La Coruña",
+        "RCD Espanyol de Barcelona",
+        "RCD Mallorca",
+        "Rayo Vallecano de Madrid",
+        "Real Betis Balompié",
+        "Real Madrid CF",
+        "Real Oviedo",
+        "Real Racing Club de Santander",
+        "Real Sociedad de Fútbol",
+        "Real Valladolid CF",
+        "Sevilla FC",
+        "UD Almería",
+        "UD Las Palmas",
+        "Valencia CF",
+        "Villarreal CF"
+      ],
+      "home_coefficient": 0.26955650650843704,
+      "elo_coefficient": 0.0988235669074137,
+      "intercept": 0.06850351870614291,
+      "derived_team_strengths": {
+        "Athletic Club": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "CA Osasuna": {
+          "attack_strength": 0.9932265319844916,
+          "defensive_weakness": 1.0031867153394693
+        },
+        "CD Leganés": {
+          "attack_strength": 0.9239097994657421,
+          "defensive_weakness": 1.026608817659717
+        },
+        "Club Atlético de Madrid": {
+          "attack_strength": 1.1920495741316297,
+          "defensive_weakness": 0.9217546036930627
+        },
+        "Cádiz CF": {
+          "attack_strength": 0.751421559812147,
+          "defensive_weakness": 1.0192474386875428
+        },
+        "Deportivo Alavés": {
+          "attack_strength": 0.9191314505535971,
+          "defensive_weakness": 0.9371971462713754
+        },
+        "Elche CF": {
+          "attack_strength": 1.0520269949230947,
+          "defensive_weakness": 1.079422229806819
+        },
+        "FC Barcelona": {
+          "attack_strength": 1.5298630421673245,
+          "defensive_weakness": 0.9827969855883901
+        },
+        "Getafe CF": {
+          "attack_strength": 0.8198943887209725,
+          "defensive_weakness": 0.8491210236095914
+        },
+        "Girona FC": {
+          "attack_strength": 1.1450388169653327,
+          "defensive_weakness": 1.062393536095256
+        },
+        "Granada CF": {
+          "attack_strength": 0.9387775465530838,
+          "defensive_weakness": 1.3024736690724708
+        },
+        "Levante UD": {
+          "attack_strength": 1.0238304777859693,
+          "defensive_weakness": 1.082165293638355
+        },
+        "Málaga CF": {
+          "attack_strength": 0.953482020563998,
+          "defensive_weakness": 0.9996102711417579
+        },
+        "RC Celta de Vigo": {
+          "attack_strength": 1.1172845590147396,
+          "defensive_weakness": 1.0392666292473993
+        },
+        "RC Deportivo La Coruña": {
+          "attack_strength": 0.9764646481169756,
+          "defensive_weakness": 0.9829514640756349
+        },
+        "RCD Espanyol de Barcelona": {
+          "attack_strength": 0.9583283237270669,
+          "defensive_weakness": 0.9921074105291255
+        },
+        "RCD Mallorca": {
+          "attack_strength": 0.8798889634438297,
+          "defensive_weakness": 0.9229414482522372
+        },
+        "Rayo Vallecano de Madrid": {
+          "attack_strength": 0.8470360429371874,
+          "defensive_weakness": 0.8860145068315178
+        },
+        "Real Betis Balompié": {
+          "attack_strength": 1.1057079267181953,
+          "defensive_weakness": 0.9700380592114453
+        },
+        "Real Madrid CF": {
+          "attack_strength": 1.317248500972601,
+          "defensive_weakness": 0.8798026099783219
+        },
+        "Real Oviedo": {
+          "attack_strength": 0.7712827410484331,
+          "defensive_weakness": 1.0359573672815994
+        },
+        "Real Racing Club de Santander": {
+          "attack_strength": 0.9874139282200105,
+          "defensive_weakness": 1.0083620570062697
+        },
+        "Real Sociedad de Fútbol": {
+          "attack_strength": 1.014306035517194,
+          "defensive_weakness": 0.9872031580126712
+        },
+        "Real Valladolid CF": {
+          "attack_strength": 0.7853943296891983,
+          "defensive_weakness": 1.4216751953647695
+        },
+        "Sevilla FC": {
+          "attack_strength": 1.0454177287795412,
+          "defensive_weakness": 1.0379114873368194
+        },
+        "UD Almería": {
+          "attack_strength": 1.0236605138439918,
+          "defensive_weakness": 1.23383683616438
+        },
+        "UD Las Palmas": {
+          "attack_strength": 0.8634275528836147,
+          "defensive_weakness": 1.0088297708469283
+        },
+        "Valencia CF": {
+          "attack_strength": 0.9424803377055827,
+          "defensive_weakness": 0.9797994842534037
+        },
+        "Villarreal CF": {
+          "attack_strength": 1.380423633234171,
+          "defensive_weakness": 1.1137616305765423
+        }
+      }
+    },
+    "Ligue1": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-08-23T18:45:00+00:00",
+      "coefficients": {
+        "Intercept": 0.1881326353250812,
+        "C(team)[T.AS Monaco FC]": 0.2563570190486599,
+        "C(team)[T.AS Saint-Étienne]": -0.04670615681498655,
+        "C(team)[T.Angers SCO]": -0.2671581579027472,
+        "C(team)[T.Clermont Foot 63]": -0.2855998540577401,
+        "C(team)[T.ES Troyes AC]": -0.06897188461574306,
+        "C(team)[T.FC Lorient]": 0.04287712526108321,
+        "C(team)[T.FC Metz]": -0.15639939230144306,
+        "C(team)[T.FC Nantes]": -0.20072053381492017,
+        "C(team)[T.Le Havre AC]": -0.16017837527575934,
+        "C(team)[T.Le Mans FC]": 0.02270196387039857,
+        "C(team)[T.Lille OSC]": 0.06813778067609588,
+        "C(team)[T.Montpellier HSC]": -0.18386916843408743,
+        "C(team)[T.OGC Nice]": 0.009051787574350875,
+        "C(team)[T.Olympique Lyonnais]": 0.1720144957749601,
+        "C(team)[T.Olympique de Marseille]": 0.2706803859471631,
+        "C(team)[T.Paris FC]": 0.04118403900831079,
+        "C(team)[T.Paris Saint-Germain FC]": 0.38962785866040345,
+        "C(team)[T.RC Strasbourg Alsace]": 0.09744763100624472,
+        "C(team)[T.Racing Club de Lens]": 0.10117733790868719,
+        "C(team)[T.Stade Brestois 29]": 0.0692343192603562,
+        "C(team)[T.Stade Rennais FC 1901]": 0.16994653674739707,
+        "C(team)[T.Stade de Reims]": -0.14240263659471492,
+        "C(team)[T.Toulouse FC]": -0.006670585506957283,
+        "C(opponent)[T.AS Monaco FC]": 0.006352667353337936,
+        "C(opponent)[T.AS Saint-Étienne]": 0.33013121462351447,
+        "C(opponent)[T.Angers SCO]": -0.024394419854693396,
+        "C(opponent)[T.Clermont Foot 63]": 0.11743877113734846,
+        "C(opponent)[T.ES Troyes AC]": -0.06512926592607898,
+        "C(opponent)[T.FC Lorient]": 0.10207175771327325,
+        "C(opponent)[T.FC Metz]": 0.20838488914777448,
+        "C(opponent)[T.FC Nantes]": 0.011809548232679077,
+        "C(opponent)[T.Le Havre AC]": 0.01383752699107664,
+        "C(opponent)[T.Le Mans FC]": 0.03690056239450215,
+        "C(opponent)[T.Lille OSC]": -0.2131976024152263,
+        "C(opponent)[T.Montpellier HSC]": 0.18810707641671337,
+        "C(opponent)[T.OGC Nice]": -0.07248824477747495,
+        "C(opponent)[T.Olympique Lyonnais]": -0.010348757982367392,
+        "C(opponent)[T.Olympique de Marseille]": -0.028766414945610316,
+        "C(opponent)[T.Paris FC]": -0.03414379870156044,
+        "C(opponent)[T.Paris Saint-Germain FC]": -0.16560822979176584,
+        "C(opponent)[T.RC Strasbourg Alsace]": -0.005039581687477534,
+        "C(opponent)[T.Racing Club de Lens]": -0.19066150902686024,
+        "C(opponent)[T.Stade Brestois 29]": 0.04077013695778733,
+        "C(opponent)[T.Stade Rennais FC 1901]": 0.018331731470252428,
+        "C(opponent)[T.Stade de Reims]": -0.03944777836360969,
+        "C(opponent)[T.Toulouse FC]": -0.0618626197404817,
+        "home": 0.18597108572861099,
+        "elo_scaled": 0.06677839972629272
+      },
+      "teams": [
+        "AJ Auxerre",
+        "AS Monaco FC",
+        "AS Saint-Étienne",
+        "Angers SCO",
+        "Clermont Foot 63",
+        "ES Troyes AC",
+        "FC Lorient",
+        "FC Metz",
+        "FC Nantes",
+        "Le Havre AC",
+        "Le Mans FC",
+        "Lille OSC",
+        "Montpellier HSC",
+        "OGC Nice",
+        "Olympique Lyonnais",
+        "Olympique de Marseille",
+        "Paris FC",
+        "Paris Saint-Germain FC",
+        "RC Strasbourg Alsace",
+        "Racing Club de Lens",
+        "Stade Brestois 29",
+        "Stade Rennais FC 1901",
+        "Stade de Reims",
+        "Toulouse FC"
+      ],
+      "home_coefficient": 0.18597108572861099,
+      "elo_coefficient": 0.06677839972629272,
+      "intercept": 0.1881326353250812,
+      "derived_team_strengths": {
+        "AJ Auxerre": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "AS Monaco FC": {
+          "attack_strength": 1.2922139906046162,
+          "defensive_weakness": 1.0063728883409808
+        },
+        "AS Saint-Étienne": {
+          "attack_strength": 0.954367790863869,
+          "defensive_weakness": 1.3911506557979432
+        },
+        "Angers SCO": {
+          "attack_strength": 0.7655519837939394,
+          "defensive_weakness": 0.9759007192190745
+        },
+        "Clermont Foot 63": {
+          "attack_strength": 0.7515632907871255,
+          "defensive_weakness": 1.1246127690748442
+        },
+        "ES Troyes AC": {
+          "attack_strength": 0.9333529212853386,
+          "defensive_weakness": 0.9369463403126627
+        },
+        "FC Lorient": {
+          "attack_strength": 1.0438096291348071,
+          "defensive_weakness": 1.1074629378847018
+        },
+        "FC Metz": {
+          "attack_strength": 0.8552175548447962,
+          "defensive_weakness": 1.231687141343873
+        },
+        "FC Nantes": {
+          "attack_strength": 0.8181410423638427,
+          "defensive_weakness": 1.0118795562637215
+        },
+        "Le Havre AC": {
+          "attack_strength": 0.8519918011387062,
+          "defensive_weakness": 1.0139337086946203
+        },
+        "Le Mans FC": {
+          "attack_strength": 1.0229616145898044,
+          "defensive_weakness": 1.037589840259023
+        },
+        "Lille OSC": {
+          "attack_strength": 1.0705127942947605,
+          "defensive_weakness": 0.8079964593887762
+        },
+        "Montpellier HSC": {
+          "attack_strength": 0.832044654411016,
+          "defensive_weakness": 1.2069627456766352
+        },
+        "OGC Nice": {
+          "attack_strength": 1.009092878893214,
+          "defensive_weakness": 0.9300766798543543
+        },
+        "Olympique Lyonnais": {
+          "attack_strength": 1.1876950496492837,
+          "defensive_weakness": 0.9897046061706426
+        },
+        "Olympique de Marseille": {
+          "attack_strength": 1.3108560354132583,
+          "defensive_weakness": 0.9716433993375575
+        },
+        "Paris FC": {
+          "attack_strength": 1.0420438646188241,
+          "defensive_weakness": 0.9664325229031104
+        },
+        "Paris Saint-Germain FC": {
+          "attack_strength": 1.4764312505316903,
+          "defensive_weakness": 0.8473781466814198
+        },
+        "RC Strasbourg Alsace": {
+          "attack_strength": 1.1023537108970887,
+          "defensive_weakness": 0.9949730956991324
+        },
+        "Racing Club de Lens": {
+          "attack_strength": 1.1064728439460314,
+          "defensive_weakness": 0.8264122739077812
+        },
+        "Stade Brestois 29": {
+          "attack_strength": 1.0716872967045692,
+          "defensive_weakness": 1.0416126497730338
+        },
+        "Stade Rennais FC 1901": {
+          "attack_strength": 1.1852414827616475,
+          "defensive_weakness": 1.018500789119367
+        },
+        "Stade de Reims": {
+          "attack_strength": 0.8672719907360048,
+          "defensive_weakness": 0.9613201543913705
+        },
+        "Toulouse FC": {
+          "attack_strength": 0.9933516134610813,
+          "defensive_weakness": 0.9400120170157619
+        }
+      }
+    },
+    "Serie A": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-08-24T18:45:00+00:00",
+      "coefficients": {
+        "Intercept": 0.16447497601734107,
+        "C(team)[T.AC Monza]": -0.19214503812684125,
+        "C(team)[T.AC Pisa 1909]": -0.2591427846264947,
+        "C(team)[T.ACF Fiorentina]": 0.06987351567485982,
+        "C(team)[T.AS Roma]": 0.13483414543329222,
+        "C(team)[T.Atalanta BC]": 0.17787972521868178,
+        "C(team)[T.Bologna FC 1909]": 0.03919683185561732,
+        "C(team)[T.Cagliari Calcio]": -0.026498395814982322,
+        "C(team)[T.Como 1907]": 0.130876898680138,
+        "C(team)[T.Empoli FC]": -0.23155711026381828,
+        "C(team)[T.FC Internazionale Milano]": 0.29741652891157966,
+        "C(team)[T.Frosinone Calcio]": -0.031007285074555975,
+        "C(team)[T.Genoa CFC]": -0.08952917955059747,
+        "C(team)[T.Hellas Verona FC]": -0.20395949502784536,
+        "C(team)[T.Juventus FC]": 0.04722469071820565,
+        "C(team)[T.Parma Calcio 1913]": -0.15418634731463296,
+        "C(team)[T.SS Lazio]": -0.000950786191910254,
+        "C(team)[T.SSC Napoli]": 0.07382160126026888,
+        "C(team)[T.Torino FC]": -0.12395149817398114,
+        "C(team)[T.US Cremonese]": -0.19566914485863438,
+        "C(team)[T.US Lecce]": -0.2825147536056072,
+        "C(team)[T.US Salernitana 1919]": -0.1493718347723147,
+        "C(team)[T.US Sassuolo Calcio]": 0.02867956297385786,
+        "C(team)[T.Udinese Calcio]": -0.054291573504959986,
+        "C(team)[T.Venezia FC]": -0.1823219269544579,
+        "C(opponent)[T.AC Monza]": 0.11814218292774777,
+        "C(opponent)[T.AC Pisa 1909]": 0.18728659557010777,
+        "C(opponent)[T.ACF Fiorentina]": 0.002334406684345645,
+        "C(opponent)[T.AS Roma]": -0.1449874201676898,
+        "C(opponent)[T.Atalanta BC]": -0.0726530447016206,
+        "C(opponent)[T.Bologna FC 1909]": -0.06871410948116695,
+        "C(opponent)[T.Cagliari Calcio]": 0.057727136795845145,
+        "C(opponent)[T.Como 1907]": -0.1245153445040627,
+        "C(opponent)[T.Empoli FC]": 0.0430278158859425,
+        "C(opponent)[T.FC Internazionale Milano]": -0.12503469346614052,
+        "C(opponent)[T.Frosinone Calcio]": 0.20670896740851474,
+        "C(opponent)[T.Genoa CFC]": -0.04103003716339456,
+        "C(opponent)[T.Hellas Verona FC]": 0.05235180627837012,
+        "C(opponent)[T.Juventus FC]": -0.19992676485848304,
+        "C(opponent)[T.Parma Calcio 1913]": -0.02552005694347777,
+        "C(opponent)[T.SS Lazio]": -0.06984805330651245,
+        "C(opponent)[T.SSC Napoli]": -0.1464437425538328,
+        "C(opponent)[T.Torino FC]": -0.023092762771751252,
+        "C(opponent)[T.US Cremonese]": 0.06277430163513997,
+        "C(opponent)[T.US Lecce]": -0.03124980703876349,
+        "C(opponent)[T.US Salernitana 1919]": 0.28810678268279394,
+        "C(opponent)[T.US Sassuolo Calcio]": 0.11791928245530109,
+        "C(opponent)[T.Udinese Calcio]": -0.008409226135626224,
+        "C(opponent)[T.Venezia FC]": 0.04824283086165156,
+        "home": 0.1278128710368862,
+        "elo_scaled": 0.11280960642453941
+      },
+      "teams": [
+        "AC Milan",
+        "AC Monza",
+        "AC Pisa 1909",
+        "ACF Fiorentina",
+        "AS Roma",
+        "Atalanta BC",
+        "Bologna FC 1909",
+        "Cagliari Calcio",
+        "Como 1907",
+        "Empoli FC",
+        "FC Internazionale Milano",
+        "Frosinone Calcio",
+        "Genoa CFC",
+        "Hellas Verona FC",
+        "Juventus FC",
+        "Parma Calcio 1913",
+        "SS Lazio",
+        "SSC Napoli",
+        "Torino FC",
+        "US Cremonese",
+        "US Lecce",
+        "US Salernitana 1919",
+        "US Sassuolo Calcio",
+        "Udinese Calcio",
+        "Venezia FC"
+      ],
+      "home_coefficient": 0.1278128710368862,
+      "elo_coefficient": 0.11280960642453941,
+      "intercept": 0.16447497601734107,
+      "derived_team_strengths": {
+        "AC Milan": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "AC Monza": {
+          "attack_strength": 0.8251871762095891,
+          "defensive_weakness": 1.1254041132440256
+        },
+        "AC Pisa 1909": {
+          "attack_strength": 0.7717128264490152,
+          "defensive_weakness": 1.2059728620070682
+        },
+        "ACF Fiorentina": {
+          "attack_strength": 1.072372534359487,
+          "defensive_weakness": 1.0023371335330746
+        },
+        "AS Roma": {
+          "attack_strength": 1.144346973439803,
+          "defensive_weakness": 0.8650331750145793
+        },
+        "Atalanta BC": {
+          "attack_strength": 1.1946816225224146,
+          "defensive_weakness": 0.9299234159173542
+        },
+        "Bologna FC 1909": {
+          "attack_strength": 1.0399751637469916,
+          "defensive_weakness": 0.9335935474726215
+        },
+        "Cagliari Calcio": {
+          "attack_strength": 0.9738496060692295,
+          "defensive_weakness": 1.0594258779276633
+        },
+        "Como 1907": {
+          "attack_strength": 1.139827458410655,
+          "defensive_weakness": 0.8829247132205946
+        },
+        "Empoli FC": {
+          "attack_strength": 0.7932973887862373,
+          "defensive_weakness": 1.0439669333118902
+        },
+        "FC Internazionale Milano": {
+          "attack_strength": 1.3463759871931855,
+          "defensive_weakness": 0.8824662862392831
+        },
+        "Frosinone Calcio": {
+          "attack_strength": 0.969468510399922,
+          "defensive_weakness": 1.2296246588500959
+        },
+        "Genoa CFC": {
+          "attack_strength": 0.9143615840749291,
+          "defensive_weakness": 0.9598002998363814
+        },
+        "Hellas Verona FC": {
+          "attack_strength": 0.8154954021368851,
+          "defensive_weakness": 1.0537463919076329
+        },
+        "Juventus FC": {
+          "attack_strength": 1.048357538826326,
+          "defensive_weakness": 0.818790715136186
+        },
+        "Parma Calcio 1913": {
+          "attack_strength": 0.8571122855560308,
+          "defensive_weakness": 0.9748028272044602
+        },
+        "SS Lazio": {
+          "attack_strength": 0.9990496656620642,
+          "defensive_weakness": 0.9325355048279163
+        },
+        "SSC Napoli": {
+          "attack_strength": 1.0766147216534527,
+          "defensive_weakness": 0.8637743247054809
+        },
+        "Torino FC": {
+          "attack_strength": 0.8834226874571621,
+          "defensive_weakness": 0.9771718344010623
+        },
+        "US Cremonese": {
+          "attack_strength": 0.8222842466480933,
+          "defensive_weakness": 1.0647864915392198
+        },
+        "US Lecce": {
+          "attack_strength": 0.7538855193476464,
+          "defensive_weakness": 0.9692334215008055
+        },
+        "US Salernitana 1919": {
+          "attack_strength": 0.8612488130966508,
+          "defensive_weakness": 1.333899733910897
+        },
+        "US Sassuolo Calcio": {
+          "attack_strength": 1.0290947815643958,
+          "defensive_weakness": 1.125153288091051
+        },
+        "Udinese Calcio": {
+          "attack_strength": 0.9471559006709018,
+          "defensive_weakness": 0.9916260325046274
+        },
+        "Venezia FC": {
+          "attack_strength": 0.8333330248663043,
+          "defensive_weakness": 1.0494254572743589
+        }
+      }
+    },
+    "UEFA Champions League": {
+      "type": "poisson_ridge_glm",
+      "formula": "goals ~ home + C(team) + C(opponent) + elo_scaled",
+      "regularization": {
+        "method": "elastic_net",
+        "l1_weight": 0.0,
+        "alpha": 0.01,
+        "penalized_terms": [
+          "C(team)",
+          "C(opponent)"
+        ],
+        "unpenalized_terms": [
+          "Intercept",
+          "home",
+          "elo_scaled"
+        ]
+      },
+      "reference_date": "2026-05-30T16:00:00+00:00",
+      "coefficients": {
+        "Intercept": 0.2547783227025451,
+        "C(team)[T.AC Milan]": -0.14895420810625856,
+        "C(team)[T.AC Sparta Praha]": -0.17614489224452518,
+        "C(team)[T.AFC Ajax]": -0.12080431499728987,
+        "C(team)[T.AS Monaco FC]": -0.01963703942978373,
+        "C(team)[T.Arsenal FC]": 0.1901095044990135,
+        "C(team)[T.Aston Villa FC]": 0.19578055567149547,
+        "C(team)[T.Atalanta BC]": 0.05063254963581111,
+        "C(team)[T.Athletic Club]": -0.06861172173340065,
+        "C(team)[T.BSC Young Boys]": -0.351695054347669,
+        "C(team)[T.Bayer 04 Leverkusen]": -0.11467653767396993,
+        "C(team)[T.Bologna FC 1909]": -0.30730425275410356,
+        "C(team)[T.Borussia Dortmund]": 0.19222513164274627,
+        "C(team)[T.Celtic FC]": -0.05887884867447267,
+        "C(team)[T.Chelsea FC]": 0.08955156192289572,
+        "C(team)[T.Club Atlético de Madrid]": 0.36939645038776336,
+        "C(team)[T.Club Brugge KV]": 0.16879926984020535,
+        "C(team)[T.Eintracht Frankfurt]": -0.0710118918382959,
+        "C(team)[T.FC Barcelona]": 0.33122906678312064,
+        "C(team)[T.FC Bayern München]": 0.27615907617979085,
+        "C(team)[T.FC Internazionale Milano]": -0.08818948043995635,
+        "C(team)[T.FC København]": 0.006659544144427775,
+        "C(team)[T.FC Porto]": 0.23943806678101612,
+        "C(team)[T.FC Red Bull Salzburg]": -0.30621231986800995,
+        "C(team)[T.FK Bodø/Glimt]": 0.31258324278318844,
+        "C(team)[T.FK Crvena Zvezda]": 0.023532055998014393,
+        "C(team)[T.FK Kairat]": -0.11229194752600041,
+        "C(team)[T.FK Shakhtar Donetsk]": -0.05634191937070502,
+        "C(team)[T.Feyenoord Rotterdam]": 0.18944498507779906,
+        "C(team)[T.GNK Dinamo Zagreb]": 0.06004995835616,
+        "C(team)[T.Galatasaray SK]": 0.0923411601435442,
+        "C(team)[T.Girona FC]": -0.31200977760234283,
+        "C(team)[T.Juventus FC]": -0.023111967475816352,
+        "C(team)[T.Lille OSC]": 0.18119161054728958,
+        "C(team)[T.Liverpool FC]": 0.10929350309108692,
+        "C(team)[T.Manchester City FC]": 0.16125137998803513,
+        "C(team)[T.Manchester United FC]": 0.1846063911350368,
+        "C(team)[T.Newcastle United FC]": 0.1935216760465293,
+        "C(team)[T.Olympique de Marseille]": -0.05484900759479238,
+        "C(team)[T.PAE Olympiakos SFP]": -0.11890921789891191,
+        "C(team)[T.PSV]": 0.2883713132408627,
+        "C(team)[T.Paphos FC]": -0.14356583553989813,
+        "C(team)[T.Paris Saint-Germain FC]": 0.3760213188465591,
+        "C(team)[T.Qarabağ Ağdam FK]": 0.09220917706489389,
+        "C(team)[T.RB Leipzig]": -0.1012446062254115,
+        "C(team)[T.Racing Club de Lens]": -0.10725406992007802,
+        "C(team)[T.Real Madrid CF]": 0.27514906014815754,
+        "C(team)[T.Real Sociedad de Fútbol]": -0.15605085862208412,
+        "C(team)[T.Royal Antwerp FC]": -0.13393018407589297,
+        "C(team)[T.Royale Union Saint-Gilloise]": -0.05214139370825413,
+        "C(team)[T.SK Slavia Praha]": -0.20262220102948492,
+        "C(team)[T.SK Sturm Graz]": -0.2361027197146766,
+        "C(team)[T.SS Lazio]": -0.16187105518460368,
+        "C(team)[T.SSC Napoli]": -0.20024184212907256,
+        "C(team)[T.Sevilla FC]": -0.03224411584058105,
+        "C(team)[T.Sport Lisboa e Benfica]": 0.03393723786399563,
+        "C(team)[T.Sporting Clube de Braga]": -0.1516590651925074,
+        "C(team)[T.Sporting Clube de Portugal]": 0.2028377003693857,
+        "C(team)[T.Stade Brestois 29]": -0.16838039137711333,
+        "C(team)[T.Tottenham Hotspur FC]": 0.2731701505365811,
+        "C(team)[T.VfB Stuttgart]": -0.08138658241435894,
+        "C(team)[T.Villarreal CF]": -0.3832335574231428,
+        "C(team)[T.ŠK Slovan Bratislava]": -0.14747364253448625,
+        "C(opponent)[T.AC Milan]": -0.17240326365369874,
+        "C(opponent)[T.AC Sparta Praha]": 0.1956960278987277,
+        "C(opponent)[T.AFC Ajax]": 0.27792790515009,
+        "C(opponent)[T.AS Monaco FC]": -0.00873214712414127,
+        "C(opponent)[T.Arsenal FC]": -0.4552362742880661,
+        "C(opponent)[T.Aston Villa FC]": -0.3000820309321743,
+        "C(opponent)[T.Atalanta BC]": -0.03648014654140404,
+        "C(opponent)[T.Athletic Club]": -0.06065374001567981,
+        "C(opponent)[T.BSC Young Boys]": 0.26090970723942436,
+        "C(opponent)[T.Bayer 04 Leverkusen]": -0.103493831724128,
+        "C(opponent)[T.Bologna FC 1909]": -0.2141786073485241,
+        "C(opponent)[T.Borussia Dortmund]": -0.1719696971588421,
+        "C(opponent)[T.Celtic FC]": 0.014943683459993279,
+        "C(opponent)[T.Chelsea FC]": 0.02763467743748136,
+        "C(opponent)[T.Club Atlético de Madrid]": 0.03273177813490202,
+        "C(opponent)[T.Club Brugge KV]": -0.025778342559986202,
+        "C(opponent)[T.Eintracht Frankfurt]": 0.1991942811175231,
+        "C(opponent)[T.FC Barcelona]": 0.14675973432626385,
+        "C(opponent)[T.FC Bayern München]": -0.11006718726100095,
+        "C(opponent)[T.FC Internazionale Milano]": -0.15899122809553812,
+        "C(opponent)[T.FC København]": 0.06933841484614098,
+        "C(opponent)[T.FC Porto]": -0.0369690832436185,
+        "C(opponent)[T.FC Red Bull Salzburg]": 0.19763593965728163,
+        "C(opponent)[T.FK Bodø/Glimt]": -0.0698445649131434,
+        "C(opponent)[T.FK Crvena Zvezda]": 0.29927646055778556,
+        "C(opponent)[T.FK Kairat]": 0.18688210229539792,
+        "C(opponent)[T.FK Shakhtar Donetsk]": 0.039168618908004306,
+        "C(opponent)[T.Feyenoord Rotterdam]": 0.11205983349437265,
+        "C(opponent)[T.GNK Dinamo Zagreb]": 0.17726577778458624,
+        "C(opponent)[T.Galatasaray SK]": -0.04959195703893585,
+        "C(opponent)[T.Girona FC]": -0.05060375433348315,
+        "C(opponent)[T.Juventus FC]": -0.06476448927035902,
+        "C(opponent)[T.Lille OSC]": -0.1532150116360183,
+        "C(opponent)[T.Liverpool FC]": -0.26389655242808757,
+        "C(opponent)[T.Manchester City FC]": 0.13008941152825518,
+        "C(opponent)[T.Manchester United FC]": 0.16831297134947207,
+        "C(opponent)[T.Newcastle United FC]": -0.1859104522160662,
+        "C(opponent)[T.Olympique de Marseille]": 0.038500365356662715,
+        "C(opponent)[T.PAE Olympiakos SFP]": -0.13711679580449113,
+        "C(opponent)[T.PSV]": 0.018455338454573488,
+        "C(opponent)[T.Paphos FC]": -0.10600859554053664,
+        "C(opponent)[T.Paris Saint-Germain FC]": -0.1297969049379725,
+        "C(opponent)[T.Qarabağ Ağdam FK]": 0.37932003587853014,
+        "C(opponent)[T.RB Leipzig]": 0.02881788888820045,
+        "C(opponent)[T.Racing Club de Lens]": 0.008350703094807177,
+        "C(opponent)[T.Real Madrid CF]": 0.062312574299156,
+        "C(opponent)[T.Real Sociedad de Fútbol]": -0.307184807670781,
+        "C(opponent)[T.Royal Antwerp FC]": 0.20353190879064179,
+        "C(opponent)[T.Royale Union Saint-Gilloise]": -0.051192633819846727,
+        "C(opponent)[T.SK Slavia Praha]": 0.0686416149395918,
+        "C(opponent)[T.SK Sturm Graz]": -0.037123144169534994,
+        "C(opponent)[T.SS Lazio]": -0.22508483980565794,
+        "C(opponent)[T.SSC Napoli]": 0.07281381271655647,
+        "C(opponent)[T.Sevilla FC]": 0.04481495577547955,
+        "C(opponent)[T.Sport Lisboa e Benfica]": -0.14871622335288265,
+        "C(opponent)[T.Sporting Clube de Braga]": 0.08673993856193005,
+        "C(opponent)[T.Sporting Clube de Portugal]": -0.2714487593973731,
+        "C(opponent)[T.Stade Brestois 29]": 0.03747390028698635,
+        "C(opponent)[T.Tottenham Hotspur FC]": -0.19964324176467899,
+        "C(opponent)[T.VfB Stuttgart]": 0.19684806977334096,
+        "C(opponent)[T.Villarreal CF]": 0.25367202742750383,
+        "C(opponent)[T.ŠK Slovan Bratislava]": 0.3343494747974685,
+        "home": 0.2774567840979017,
+        "elo_scaled": 0.14048396619466005
+      },
+      "teams": [
+        "1. FC Union Berlin",
+        "AC Milan",
+        "AC Sparta Praha",
+        "AFC Ajax",
+        "AS Monaco FC",
+        "Arsenal FC",
+        "Aston Villa FC",
+        "Atalanta BC",
+        "Athletic Club",
+        "BSC Young Boys",
+        "Bayer 04 Leverkusen",
+        "Bologna FC 1909",
+        "Borussia Dortmund",
+        "Celtic FC",
+        "Chelsea FC",
+        "Club Atlético de Madrid",
+        "Club Brugge KV",
+        "Eintracht Frankfurt",
+        "FC Barcelona",
+        "FC Bayern München",
+        "FC Internazionale Milano",
+        "FC København",
+        "FC Porto",
+        "FC Red Bull Salzburg",
+        "FK Bodø/Glimt",
+        "FK Crvena Zvezda",
+        "FK Kairat",
+        "FK Shakhtar Donetsk",
+        "Feyenoord Rotterdam",
+        "GNK Dinamo Zagreb",
+        "Galatasaray SK",
+        "Girona FC",
+        "Juventus FC",
+        "Lille OSC",
+        "Liverpool FC",
+        "Manchester City FC",
+        "Manchester United FC",
+        "Newcastle United FC",
+        "Olympique de Marseille",
+        "PAE Olympiakos SFP",
+        "PSV",
+        "Paphos FC",
+        "Paris Saint-Germain FC",
+        "Qarabağ Ağdam FK",
+        "RB Leipzig",
+        "Racing Club de Lens",
+        "Real Madrid CF",
+        "Real Sociedad de Fútbol",
+        "Royal Antwerp FC",
+        "Royale Union Saint-Gilloise",
+        "SK Slavia Praha",
+        "SK Sturm Graz",
+        "SS Lazio",
+        "SSC Napoli",
+        "Sevilla FC",
+        "Sport Lisboa e Benfica",
+        "Sporting Clube de Braga",
+        "Sporting Clube de Portugal",
+        "Stade Brestois 29",
+        "Tottenham Hotspur FC",
+        "VfB Stuttgart",
+        "Villarreal CF",
+        "ŠK Slovan Bratislava"
+      ],
+      "home_coefficient": 0.2774567840979017,
+      "elo_coefficient": 0.14048396619466005,
+      "intercept": 0.2547783227025451,
+      "derived_team_strengths": {
+        "1. FC Union Berlin": {
+          "attack_strength": 1.0,
+          "defensive_weakness": 1.0
+        },
+        "AC Milan": {
+          "attack_strength": 0.8616085686836435,
+          "defensive_weakness": 0.8416397020235773
+        },
+        "AC Sparta Praha": {
+          "attack_strength": 0.8384964828976174,
+          "defensive_weakness": 1.2161571712919113
+        },
+        "AFC Ajax": {
+          "attack_strength": 0.8862073601160474,
+          "defensive_weakness": 1.320391000386541
+        },
+        "AS Monaco FC": {
+          "attack_strength": 0.980554511349827,
+          "defensive_weakness": 0.9913058673427813
+        },
+        "Arsenal FC": {
+          "attack_strength": 1.2093820231790882,
+          "defensive_weakness": 0.6342980819140915
+        },
+        "Aston Villa FC": {
+          "attack_strength": 1.2162599746937461,
+          "defensive_weakness": 0.7407574531649458
+        },
+        "Atalanta BC": {
+          "attack_strength": 1.0519362878863197,
+          "defensive_weakness": 0.9641772359591386
+        },
+        "Athletic Club": {
+          "attack_strength": 0.9336891409069911,
+          "defensive_weakness": 0.9411490656232336
+        },
+        "BSC Young Boys": {
+          "attack_strength": 0.7034946168948927,
+          "defensive_weakness": 1.298110450165847
+        },
+        "Bayer 04 Leverkusen": {
+          "attack_strength": 0.8916545139089854,
+          "defensive_weakness": 0.9016815845454642
+        },
+        "Bologna FC 1909": {
+          "attack_strength": 0.7354268112319082,
+          "defensive_weakness": 0.8072041995449736
+        },
+        "Borussia Dortmund": {
+          "attack_strength": 1.2119433330474663,
+          "defensive_weakness": 0.8420046879162254
+        },
+        "Celtic FC": {
+          "attack_strength": 0.9428209862504031,
+          "defensive_weakness": 1.0150558985699163
+        },
+        "Chelsea FC": {
+          "attack_strength": 1.0936837242943889,
+          "defensive_weakness": 1.0280200568914926
+        },
+        "Club Atlético de Madrid": {
+          "attack_strength": 1.446861098629671,
+          "defensive_weakness": 1.0332733555630205
+        },
+        "Club Brugge KV": {
+          "attack_strength": 1.1838824741533087,
+          "defensive_weakness": 0.9745510821677221
+        },
+        "Eintracht Frankfurt": {
+          "attack_strength": 0.9314508153992536,
+          "defensive_weakness": 1.2204190472452576
+        },
+        "FC Barcelona": {
+          "attack_strength": 1.392678772219221,
+          "defensive_weakness": 1.158075683766319
+        },
+        "FC Bayern München": {
+          "attack_strength": 1.3180575189061647,
+          "defensive_weakness": 0.8957739486765762
+        },
+        "FC Internazionale Milano": {
+          "attack_strength": 0.9155873743876778,
+          "defensive_weakness": 0.8530038414045162
+        },
+        "FC København": {
+          "attack_strength": 1.006681768215203,
+          "defensive_weakness": 1.0717988604280424
+        },
+        "FC Porto": {
+          "attack_strength": 1.270534993867144,
+          "defensive_weakness": 0.9637059295499284
+        },
+        "FC Red Bull Salzburg": {
+          "attack_strength": 0.7362302865431319,
+          "defensive_weakness": 1.2185186987255823
+        },
+        "FK Bodø/Glimt": {
+          "attack_strength": 1.3669517253039754,
+          "defensive_weakness": 0.9325387578842617
+        },
+        "FK Crvena Zvezda": {
+          "attack_strength": 1.0238111195078214,
+          "defensive_weakness": 1.3488824847339365
+        },
+        "FK Kairat": {
+          "attack_strength": 0.8937832815887347,
+          "defensive_weakness": 1.205485152739113
+        },
+        "FK Shakhtar Donetsk": {
+          "attack_strength": 0.9452158930087262,
+          "defensive_weakness": 1.0399458233960688
+        },
+        "Feyenoord Rotterdam": {
+          "attack_strength": 1.2085786323010024,
+          "defensive_weakness": 1.1185797871802026
+        },
+        "GNK Dinamo Zagreb": {
+          "attack_strength": 1.0618895954788434,
+          "defensive_weakness": 1.1939483759161742
+        },
+        "Galatasaray SK": {
+          "attack_strength": 1.0967389218712356,
+          "defensive_weakness": 0.9516176461719122
+        },
+        "Girona FC": {
+          "attack_strength": 0.7319743712389964,
+          "defensive_weakness": 0.9506552889493889
+        },
+        "Juventus FC": {
+          "attack_strength": 0.9771530682853613,
+          "defensive_weakness": 0.9372881788088322
+        },
+        "Lille OSC": {
+          "attack_strength": 1.1986448302826573,
+          "defensive_weakness": 0.8579452337702397
+        },
+        "Liverpool FC": {
+          "attack_strength": 1.1154897019753451,
+          "defensive_weakness": 0.7680529887640144
+        },
+        "Manchester City FC": {
+          "attack_strength": 1.1749802982256738,
+          "defensive_weakness": 1.138930212263068
+        },
+        "Manchester United FC": {
+          "attack_strength": 1.2027449358770226,
+          "defensive_weakness": 1.1833068938561804
+        },
+        "Newcastle United FC": {
+          "attack_strength": 1.2135156904889872,
+          "defensive_weakness": 0.8303479474714227
+        },
+        "Olympique de Marseille": {
+          "attack_strength": 0.9466280708123282,
+          "defensive_weakness": 1.0392511080552311
+        },
+        "PAE Olympiakos SFP": {
+          "attack_strength": 0.8878884014779614,
+          "defensive_weakness": 0.8718683896152107
+        },
+        "PSV": {
+          "attack_strength": 1.3342526378267932,
+          "defensive_weakness": 1.0186266907114363
+        },
+        "Paphos FC": {
+          "attack_strength": 0.8662637673670532,
+          "defensive_weakness": 0.899416917068128
+        },
+        "Paris Saint-Germain FC": {
+          "attack_strength": 1.4564781838750274,
+          "defensive_weakness": 0.8782737858774626
+        },
+        "Qarabağ Ağdam FK": {
+          "attack_strength": 1.096594180443771,
+          "defensive_weakness": 1.4612906263459466
+        },
+        "RB Leipzig": {
+          "attack_strength": 0.9037119522786139,
+          "defensive_weakness": 1.029237141886835
+        },
+        "Racing Club de Lens": {
+          "attack_strength": 0.8982974136425258,
+          "defensive_weakness": 1.0083856674738463
+        },
+        "Real Madrid CF": {
+          "attack_strength": 1.316726931751748,
+          "defensive_weakness": 1.064294963993674
+        },
+        "Real Sociedad de Fútbol": {
+          "attack_strength": 0.8555156789159605,
+          "defensive_weakness": 0.7355146595950766
+        },
+        "Royal Antwerp FC": {
+          "attack_strength": 0.8746511270484498,
+          "defensive_weakness": 1.2257242683962801
+        },
+        "Royale Union Saint-Gilloise": {
+          "attack_strength": 0.9491946472031839,
+          "defensive_weakness": 0.9500956323524413
+        },
+        "SK Slavia Praha": {
+          "attack_strength": 0.8165866887667496,
+          "defensive_weakness": 1.0710522912171416
+        },
+        "SK Sturm Graz": {
+          "attack_strength": 0.7896995520537987,
+          "defensive_weakness": 0.9635574715581922
+        },
+        "SS Lazio": {
+          "attack_strength": 0.850550871594705,
+          "defensive_weakness": 0.7984484756722586
+        },
+        "SSC Napoli": {
+          "attack_strength": 0.818532773430395,
+          "defensive_weakness": 1.0755302682126393
+        },
+        "Sevilla FC": {
+          "attack_strength": 0.9682701831363423,
+          "defensive_weakness": 1.0458343164021597
+        },
+        "Sport Lisboa e Benfica": {
+          "attack_strength": 1.0345196760259385,
+          "defensive_weakness": 0.8618136427876554
+        },
+        "Sporting Clube de Braga": {
+          "attack_strength": 0.8592811896738444,
+          "defensive_weakness": 1.0906130164455026
+        },
+        "Sporting Clube de Portugal": {
+          "attack_strength": 1.224873655572475,
+          "defensive_weakness": 0.7622743418639868
+        },
+        "Stade Brestois 29": {
+          "attack_strength": 0.8450323305279162,
+          "defensive_weakness": 1.0381849004002632
+        },
+        "Tottenham Hotspur FC": {
+          "attack_strength": 1.3141238246769866,
+          "defensive_weakness": 0.8190228941254167
+        },
+        "VfB Stuttgart": {
+          "attack_strength": 0.9218372564810462,
+          "defensive_weakness": 1.2175590426315468
+        },
+        "Villarreal CF": {
+          "attack_strength": 0.6816536754168498,
+          "defensive_weakness": 1.288749060602722
+        },
+        "ŠK Slovan Bratislava": {
+          "attack_strength": 0.8628851814880614,
+          "defensive_weakness": 1.397031285498444
+        }
+      }
+    }
+  },
+  "score_matrix": {
+    "support": "adaptive",
+    "tail_probability_tolerance": 1e-10,
+    "hard_cap": 100,
+    "renormalize_tail_only": true
+  },
+  "api_contract": {
+    "required": {
+      "home_team": {
+        "type": "string"
+      },
+      "away_team": {
+        "type": "string"
+      },
+      "competition": {
+        "type": "string"
+      }
+    },
+    "optional": {
+      "match_date": {
+        "type": "datetime|string",
+        "default": null,
+        "rule": "Metadata for prediction timing. Historical dates require an explicit pre-match elo_scaled; future/no-date predictions may use current Elo state."
+      },
+      "neutral_venue": {
+        "type": "boolean|null",
+        "default": null,
+        "rule": "Known true/false is honored; null means source did not provide venue truth and scheduled home/away is retained explicitly."
+      },
+      "elo_scaled": {
+        "type": "number|null",
+        "default": null,
+        "rule": "(home_pre_match_elo-away_pre_match_elo)/elo.scale"
+      }
+    },
+    "validation": {
+      "same_team": "reject",
+      "unknown_team": "reject unless explicit cold-start policy is configured",
+      "unknown_competition": "reject",
+      "invalid_date": "reject",
+      "future_date": "allowed only for prediction; never mutates historical Elo state"
+    }
+  },
+  "reproducibility": {
+    "python": "3.13.15",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "statsmodels": "0.14.6",
+    "random_seed": 0
+  }
+}

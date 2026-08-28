@@ -29,20 +29,46 @@ export default function MatchesPage() {
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
   
-  // Initialize state from URL params
-  const [tab, setTab] = useState<"fixtures" | "live" | "finished" | "live-odds">(
-    (searchParams.get("tab") as any) || "fixtures"
-  );
+  // Initialize state from URL params or localStorage
+  const [tab, setTab] = useState<"fixtures" | "live" | "finished" | "live-odds">(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('matches_tab');
+      if (saved) return saved as any;
+    }
+    return (searchParams.get("tab") as any) || "fixtures";
+  });
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [query, setQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('matches_query');
+      if (saved) return saved;
+    }
+    return searchParams.get("q") || "";
+  });
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(
-    searchParams.get("date") ? new Date(searchParams.get("date")!) : new Date()
-  );
-  const [useDateInSearch, setUseDateInSearch] = useState(searchParams.get("useDate") === "true");
-  const [selectedLeague, setSelectedLeague] = useState(searchParams.get("league") || "");
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('matches_date');
+      if (saved) return new Date(saved);
+    }
+    return searchParams.get("date") ? new Date(searchParams.get("date")!) : new Date();
+  });
+  const [useDateInSearch, setUseDateInSearch] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('matches_useDate');
+      if (saved) return saved === 'true';
+    }
+    return searchParams.get("useDate") === "true";
+  });
+  const [selectedLeague, setSelectedLeague] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('matches_league');
+      if (saved) return saved;
+    }
+    return searchParams.get("league") || "";
+  });
   const [leagues, setLeagues] = useState<League[]>([]);
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
   
@@ -112,6 +138,9 @@ export default function MatchesPage() {
   const updateSelectedDate = (newDate: Date) => {
     setSelectedDate(newDate);
     updateURLParams({ date: format(newDate, 'yyyy-MM-dd') });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('matches_date', newDate.toISOString());
+    }
   };
 
   const updateUseDateInSearch = (newValue: boolean) => {
@@ -147,6 +176,33 @@ export default function MatchesPage() {
   useEffect(() => {
     getLeagues().then(setLeagues);
   }, []);
+
+  // Save preferences to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('matches_tab', tab);
+    }
+  }, [tab]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('matches_query', query);
+    }
+  }, [query]);
+
+
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('matches_useDate', useDateInSearch.toString());
+    }
+  }, [useDateInSearch]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('matches_league', selectedLeague);
+    }
+  }, [selectedLeague]);
 
   useEffect(() => {
     if (tab === "live-odds") {

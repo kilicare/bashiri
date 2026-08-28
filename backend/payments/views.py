@@ -161,6 +161,15 @@ class MyPaymentHistoryView(APIView):
 
     def get(self, request):
         transactions = Transaction.objects.filter(user=request.user).order_by("-created_at")[:50]
+        
+        # Automatically deactivate expired subscriptions before returning
+        now = timezone.now()
+        Subscription.objects.filter(
+            user=request.user,
+            is_active=True,
+            ends_at__lt=now
+        ).update(is_active=False)
+        
         subscriptions = Subscription.objects.filter(user=request.user).order_by("-created_at")[:50]
 
         return Response({

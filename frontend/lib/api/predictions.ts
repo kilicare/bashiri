@@ -94,7 +94,7 @@ export interface TopPick {
 export interface Dashboard {
   match_id: number;
   model_version: string;
-  expected_goals: { home_xg: number; away_xg: number };
+  expected_goals: { home_xg: number; away_xg: number; total_xg: number };
   top_pick: TopPick;
   markets: Market[];
   match: Match;

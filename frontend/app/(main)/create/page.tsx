@@ -14,8 +14,20 @@ export default function CreatePredictionStep1() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("this_week");
-  const [selectedLeague, setSelectedLeague] = useState<string>("all");
+  const [activeFilter, setActiveFilter] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('create_active_filter');
+      return saved || 'today';
+    }
+    return 'today';
+  });
+  const [selectedLeague, setSelectedLeague] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('create_selected_league');
+      return saved || 'all';
+    }
+    return 'all';
+  });
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
@@ -52,6 +64,20 @@ export default function CreatePredictionStep1() {
     // Load matches
     loadMatches(activeFilter, 0);
   }, [activeFilter, selectedLeague]);
+
+  // Save filter preference to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('create_active_filter', activeFilter);
+    }
+  }, [activeFilter]);
+
+  // Save league preference to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('create_selected_league', selectedLeague);
+    }
+  }, [selectedLeague]);
 
   const handleLoadMore = () => {
     loadMatches(activeFilter, offset + 50);

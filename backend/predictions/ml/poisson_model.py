@@ -1,95 +1,79 @@
 """
 predictions/ml/poisson_model.py
 
-======================================================================
-BASHIRI ML v2.0 - PRODUCTION POISSON PREDICTION ENGINE
-======================================================================
+========================================================================
+BASHIRI ML — PRODUCTION POISSON INFERENCE ENGINE
+========================================================================
 
-CANONICAL RULE:
+CANONICAL PRODUCTION CONTRACT
+-----------------------------
 
-    This file is ONLY the prediction engine.
+This module performs inference ONLY.
 
-    It does NOT invent team parameters.
-    It does NOT calculate a new league average from historical data.
-    It does NOT silently replace missing teams.
-    It does NOT invent an Elo formula.
+The production JSON artifact is the single source of truth:
 
-    All trained team parameters and league baselines MUST come from:
-
-        predictions/ml/data/bashiri_prediction_models.json
-
-Expected JSON structure:
-
-{
-    "model_info": {
-        "version": "2.0"
-    },
-
-    "features_used": {
-        "elo_engine": {
-            "home_advantage_points": 65
-        }
-    },
-
-    "team_parameters": {
-        "per_league": {
-            "LaLiga": {
-                "baseline": {
-                    "home_advantage": 1.10,
-                    "avg_goals": 1.326
-                },
-                "teams": {
-                    "FC Barcelona": {
-                        "attack": 1.20,
-                        "defense": 0.90
-                    }
-                }
-            }
-        }
-    }
-}
+    predictions/ml/data/BASHIRI_PRODUCTION_MODEL.json
 
 IMPORTANT:
 
-    home_advantage_points = 65
-        -> Elo configuration/metadata.
+    This engine does NOT reconstruct:
 
-    baseline.home_advantage
-        -> multiplier actually used by the Poisson xG formula.
+        league_avg_goals
+        attack
+        defense
+        home_advantage multipliers
 
-    baseline.avg_goals
-        -> fixed trained league baseline.
+    It does NOT use legacy calibration multipliers.
 
-    teams.<team>.attack
-    teams.<team>.defense
-        -> trained team parameters.
+    It does NOT invent Elo formulas.
 
-BASHIRI ML v2.0 configuration:
+    It does NOT silently replace unknown teams.
 
-    Model version:
-        2.0
+    It does NOT silently substitute missing leagues.
 
-    Reference date:
-        2026-08-24
+    It does NOT train.
 
-    Home advantage points:
-        65
+    It does NOT calibrate.
 
-    BTTS calibration:
-        0.86
+    It does NOT mutate the model artifact.
 
-    Over/Under calibration:
-        0.83
-======================================================================
+Canonical mathematical source:
+
+    log(lambda) =
+        Intercept
+        + home * beta_home
+        + team coefficient
+        + opponent coefficient
+        + elo_scaled * beta_elo
+
+The coefficient vector stored in the production artifact is authoritative.
+
+Markets are derived from the same adaptive Poisson score matrix:
+
+    1X2
+    BTTS
+    Over/Under 0.5, 1.5, 2.5, 3.5, 4.5
+    Draw No Bet
+    Double Chance
+    AI Pick
+
+Calibration is intentionally disabled in production.
+
+========================================================================
 """
 
+from __future__ import annotations
+
+import hashlib
 import json
 import logging
+import math
 import os
-from difflib import SequenceMatcher
+import unicodedata
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 from scipy.stats import poisson
 
 
@@ -101,91 +85,87 @@ logger = logging.getLogger(__name__)
 
 
 # ======================================================================
-# MODEL CONFIGURATION
+# PRODUCTION CONSTANTS
 # ======================================================================
 
-MODEL_VERSION = "2.0"
-REFERENCE_DATE = "2026-08-24"
-
-EXPECTED_HOME_ADVANTAGE_POINTS = 65
-
-BTTS_CALIBRATION_MULTIPLIER = 0.86
-OVER_CALIBRATION_MULTIPLIER = 0.83
-
-DEFAULT_MAX_GOALS = 8
-
-MIN_XG = 0.05
-MAX_XG = 6.0
-
-MIN_ATTACK_DEFENSE = 0.5
-MAX_ATTACK_DEFENSE = 3.0
-
-MIN_HOME_ADVANTAGE = 0.5
-MAX_HOME_ADVANTAGE = 2.0
-
-MIN_LEAGUE_AVG_GOALS = 0.8
-MAX_LEAGUE_AVG_GOALS = 2.5
-
-
-# ======================================================================
-# MODEL FILE
-# ======================================================================
+MODEL_FILE_NAME = "BASHIRI_PRODUCTION_MODEL.json"
 
 MODEL_DATA_PATH = os.path.join(
     os.path.dirname(__file__),
     "data",
-    "bashiri_prediction_models.json",
+    MODEL_FILE_NAME,
 )
+
+EXPECTED_SCHEMA_VERSION = "4.0"
+
+OVER_UNDER_LINES = (
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+)
+
+DEFAULT_SCORE_TAIL_TOLERANCE = 1e-10
+DEFAULT_SCORE_MAX_GOALS = 100
+DEFAULT_PROBABILITY_TOLERANCE = 1e-10
+
+MIN_XG = 1e-12
+MAX_XG = float(math.exp(50.0))
 
 
 # ======================================================================
 # TEAM ALIASES
+#
+# Aliases are ONLY input-name conveniences.
+#
+# They never create new model parameters.
+# Resolution must end at an exact trained team contained in JSON.
 # ======================================================================
 
 TEAM_ALIASES = {
-    "man city": "manchester city fc",
-    "manchester city": "manchester city fc",
+    "man city": "Manchester City FC",
+    "manchester city": "Manchester City FC",
 
-    "man utd": "manchester united fc",
-    "manchester utd": "manchester united fc",
-    "man united": "manchester united fc",
-    "manchester united": "manchester united fc",
+    "man utd": "Manchester United FC",
+    "manchester utd": "Manchester United FC",
+    "man united": "Manchester United FC",
+    "manchester united": "Manchester United FC",
 
-    "spurs": "tottenham hotspur fc",
-    "tottenham": "tottenham hotspur fc",
+    "spurs": "Tottenham Hotspur FC",
+    "tottenham": "Tottenham Hotspur FC",
 
-    "real madrid": "real madrid cf",
+    "real madrid": "Real Madrid CF",
 
-    "barca": "fc barcelona",
-    "barcelona": "fc barcelona",
-    "fc barcelona": "fc barcelona",
+    "barca": "FC Barcelona",
+    "barcelona": "FC Barcelona",
+    "fc barcelona": "FC Barcelona",
 
-    "inter": "fc internazionale milano",
-    "inter milan": "fc internazionale milano",
+    "inter": "FC Internazionale Milano",
+    "inter milan": "FC Internazionale Milano",
 
-    "bayern": "fc bayern münchen",
-    "bayern munich": "fc bayern münchen",
-    "bayern münchen": "fc bayern münchen",
+    "bayern": "FC Bayern München",
+    "bayern munich": "FC Bayern München",
+    "bayern münchen": "FC Bayern München",
 
-    "dortmund": "borussia dortmund",
+    "dortmund": "Borussia Dortmund",
 
-    "juve": "juventus fc",
-    "juventus": "juventus fc",
+    "juve": "Juventus FC",
+    "juventus": "Juventus FC",
 
-    "ajax": "afc ajax",
+    "ajax": "AFC Ajax",
 
-    "psg": "paris saint-germain fc",
-    "paris sg": "paris saint-germain fc",
+    "psg": "Paris Saint-Germain FC",
+    "paris sg": "Paris Saint-Germain FC",
 
-    "west ham": "west ham united fc",
+    "west ham": "West Ham United FC",
 
-    "newcastle": "newcastle united fc",
+    "newcastle": "Newcastle United FC",
 
-    "wolves": "wolverhampton wanderers fc",
-    "wolverhampton": "wolverhampton wanderers fc",
+    "wolves": "Wolverhampton Wanderers FC",
+    "wolverhampton": "Wolverhampton Wanderers FC",
 
-    "brighton": "brighton & hove albion fc",
-    "hove": "brighton & hove albion fc",
+    "brighton": "Brighton & Hove Albion FC",
 }
 
 
@@ -197,65 +177,139 @@ def _safe_float(
     value: Any,
     default: Optional[float] = None,
 ) -> Optional[float]:
-
     try:
         if value is None:
             return default
 
-        return float(value)
+        result = float(value)
+
+        if not np.isfinite(result):
+            return default
+
+        return result
 
     except (TypeError, ValueError):
         return default
 
 
-def sanitize_parameter(
+def _require_finite_float(
     value: Any,
-    min_val: float = 0.05,
-    max_val: float = 6.0,
+    name: str,
 ) -> float:
+    result = _safe_float(value)
 
-    numeric_value = _safe_float(value)
-
-    if numeric_value is None:
+    if result is None:
         raise ValueError(
-            f"Parameter '{value}' haiwezi kuwa number."
+            f"❌ {name} must be a finite numeric value."
         )
 
-    sanitized = max(
-        min_val,
-        min(max_val, numeric_value),
-    )
-
-    if sanitized != numeric_value:
-        logger.warning(
-            "Parameter sanitized: %s -> %s [%s, %s]",
-            numeric_value,
-            sanitized,
-            min_val,
-            max_val,
-        )
-
-    return sanitized
+    return result
 
 
-def _round_probability(value: float) -> float:
-
-    value = max(
-        0.0,
-        min(100.0, float(value)),
-    )
-
-    return round(value, 1)
-
-
-def _normalize_team_name(name: str) -> str:
+def _normalize_team_name(
+    name: Any,
+) -> str:
 
     if name is None:
         return ""
 
-    return " ".join(
-        str(name).strip().lower().split()
+    value = str(name).strip()
+
+    value = unicodedata.normalize(
+        "NFKC",
+        value,
     )
+
+    return " ".join(
+        value.casefold().split()
+    )
+
+
+def _round_probability(
+    probability: float,
+) -> float:
+
+    value = _require_finite_float(
+        probability,
+        "probability",
+    )
+
+    value = min(
+        100.0,
+        max(0.0, value),
+    )
+
+    return round(
+        value,
+        1,
+    )
+
+
+def _validate_probability(
+    probability: float,
+    name: str,
+) -> float:
+
+    value = _require_finite_float(
+        probability,
+        name,
+    )
+
+    tolerance = (
+        DEFAULT_PROBABILITY_TOLERANCE
+    )
+
+    if (
+        value < -tolerance
+        or value > 1.0 + tolerance
+    ):
+        raise ValueError(
+            f"❌ Invalid probability "
+            f"{name}={value}"
+        )
+
+    return float(
+        min(
+            1.0,
+            max(0.0, value),
+        )
+    )
+
+
+# ======================================================================
+# JSON SAFE / FINITE VALIDATION
+# ======================================================================
+
+def _assert_json_finite(
+    obj: Any,
+    path: str = "root",
+) -> None:
+
+    if isinstance(obj, dict):
+
+        for key, value in obj.items():
+
+            _assert_json_finite(
+                value,
+                f"{path}.{key}",
+            )
+
+    elif isinstance(obj, (list, tuple)):
+
+        for index, value in enumerate(obj):
+
+            _assert_json_finite(
+                value,
+                f"{path}[{index}]",
+            )
+
+    elif isinstance(obj, (float, np.floating)):
+
+        if not np.isfinite(float(obj)):
+
+            raise ValueError(
+                f"❌ Non-finite JSON value at {path}"
+            )
 
 
 # ======================================================================
@@ -263,124 +317,287 @@ def _normalize_team_name(name: str) -> str:
 # ======================================================================
 
 def _validate_model_structure(
-    models: Dict[str, Any],
+    artifact: Dict[str, Any],
 ) -> None:
 
-    if not isinstance(models, dict):
+    if not isinstance(
+        artifact,
+        dict,
+    ):
         raise ValueError(
-            "❌ Model JSON lazima iwe object/dictionary."
+            "❌ Production JSON must be an object."
         )
 
-    if "leagues" not in models:
+    required_top_level = {
+        "schema_version",
+        "pipeline_version",
+        "model_info",
+        "elo",
+        "time_decay",
+        "calibration",
+        "training_data",
+        "leagues",
+        "score_matrix",
+        "api_contract",
+        "reproducibility",
+    }
+
+    missing = (
+        required_top_level
+        - set(artifact.keys())
+    )
+
+    if missing:
+
         raise ValueError(
-            "\n"
-            "❌ CRITICAL MODEL ERROR:\n"
-            "JSON haina 'leagues'.\n\n"
-            "Prediction engine haiwezi kufanya prediction "
-            "bila trained team parameters."
+            "❌ Production artifact is missing "
+            f"required keys: {sorted(missing)}"
         )
 
-    leagues = models["leagues"]
+    schema_version = str(
+        artifact["schema_version"]
+    )
 
-    if not isinstance(leagues, dict):
+    if schema_version != EXPECTED_SCHEMA_VERSION:
+
         raise ValueError(
-            "❌ 'leagues' lazima iwe dictionary."
+            "❌ Unsupported production artifact "
+            f"schema_version={schema_version}. "
+            f"Expected={EXPECTED_SCHEMA_VERSION}."
         )
 
-    if not leagues:
+    leagues = artifact["leagues"]
+
+    if not isinstance(
+        leagues,
+        dict,
+    ) or not leagues:
+
         raise ValueError(
-            "❌ 'leagues' iko EMPTY."
+            "❌ Production artifact contains "
+            "no trained leagues."
         )
 
     # --------------------------------------------------------------
-    # Validate every league immediately.
+    # Validate each league.
     # --------------------------------------------------------------
 
-    for league_code, league_data in leagues.items():
+    for competition, state in leagues.items():
 
-        if not isinstance(league_data, dict):
+        if not isinstance(
+            state,
+            dict,
+        ):
             raise ValueError(
-                f"❌ League '{league_code}' ina invalid structure."
+                f"❌ League '{competition}' "
+                "has invalid state."
             )
 
-        baseline = league_data.get("baseline")
+        teams = state.get(
+            "teams"
+        )
 
-        if not isinstance(baseline, dict):
+        coefficients = state.get(
+            "coefficients"
+        )
+
+        if not isinstance(
+            teams,
+            list,
+        ) or not teams:
+
             raise ValueError(
-                f"❌ League '{league_code}' haina valid 'baseline'."
+                f"❌ League '{competition}' "
+                "has no trained team list."
             )
 
-        if "avg_goals" not in baseline:
+        if not isinstance(
+            coefficients,
+            dict,
+        ) or not coefficients:
+
             raise ValueError(
-                f"❌ League '{league_code}' haina baseline.avg_goals."
+                f"❌ League '{competition}' "
+                "has no coefficient vector."
             )
 
-        if "home_advantage" not in baseline:
+        if len(set(teams)) != len(teams):
+
             raise ValueError(
-                f"❌ League '{league_code}' "
-                "haina baseline.home_advantage."
+                f"❌ League '{competition}' "
+                "contains duplicate team names."
             )
 
-        teams = league_data.get("teams")
+        # Every coefficient must be finite.
+        for name, value in coefficients.items():
 
-        if not isinstance(teams, dict) or not teams:
+            numeric = _safe_float(value)
+
+            if numeric is None:
+
+                raise ValueError(
+                    f"❌ Non-finite coefficient "
+                    f"'{name}' in '{competition}'."
+                )
+
+        # Required canonical coefficients.
+        if "Intercept" not in coefficients:
+
             raise ValueError(
-                "\n"
-                f"❌ CRITICAL MODEL ERROR: League '{league_code}' "
-                "haina trained team parameters.\n"
-                "Expected:\n"
-                "teams -> team -> attack/defense"
+                f"❌ League '{competition}' "
+                "has no Intercept coefficient."
             )
 
-        for team_name, params in teams.items():
+        if "elo_scaled" not in coefficients:
 
-            if not isinstance(params, dict):
-                raise ValueError(
-                    f"❌ Team '{team_name}' "
-                    f"kwenye league '{league_code}' "
-                    "ina invalid parameters."
-                )
+            raise ValueError(
+                f"❌ League '{competition}' "
+                "has no elo_scaled coefficient."
+            )
 
-            if "attack" not in params:
-                raise ValueError(
-                    f"❌ Team '{team_name}' "
-                    f"kwenye '{league_code}' "
-                    "haina attack parameter."
-                )
+    # --------------------------------------------------------------
+    # Elo.
+    # --------------------------------------------------------------
 
-            if "defense" not in params:
-                raise ValueError(
-                    f"❌ Team '{team_name}' "
-                    f"kwenye '{league_code}' "
-                    "haina defense parameter."
-                )
+    elo = artifact["elo"]
 
-            if _safe_float(params["attack"]) is None:
-                raise ValueError(
-                    f"❌ Team '{team_name}' attack "
-                    "parameter si number."
-                )
+    if not isinstance(
+        elo,
+        dict,
+    ):
+        raise ValueError(
+            "❌ artifact.elo must be an object."
+        )
 
-            if _safe_float(params["defense"]) is None:
-                raise ValueError(
-                    f"❌ Team '{team_name}' defense "
-                    "parameter si number."
-                )
+    scale = _safe_float(
+        elo.get("scale")
+    )
+
+    if scale is None or scale <= 0:
+
+        raise ValueError(
+            "❌ artifact.elo.scale must be > 0."
+        )
+
+    ratings = elo.get(
+        "ratings",
+        {},
+    )
+
+    if not isinstance(
+        ratings,
+        dict,
+    ):
+        raise ValueError(
+            "❌ artifact.elo.ratings must "
+            "be an object."
+        )
+
+    for team, rating in ratings.items():
+
+        numeric = _safe_float(
+            rating
+        )
+
+        if numeric is None:
+
+            raise ValueError(
+                f"❌ Invalid Elo rating "
+                f"for '{team}'."
+            )
+
+    # --------------------------------------------------------------
+    # Score matrix configuration.
+    # --------------------------------------------------------------
+
+    score_config = artifact[
+        "score_matrix"
+    ]
+
+    if not isinstance(
+        score_config,
+        dict,
+    ):
+        raise ValueError(
+            "❌ score_matrix configuration "
+            "must be an object."
+        )
+
+    tail_tol = _safe_float(
+        score_config.get(
+            "tail_probability_tolerance",
+            DEFAULT_SCORE_TAIL_TOLERANCE,
+        )
+    )
+
+    hard_cap = _safe_float(
+        score_config.get(
+            "hard_cap",
+            DEFAULT_SCORE_MAX_GOALS,
+        )
+    )
+
+    if (
+        tail_tol is None
+        or tail_tol <= 0
+        or tail_tol >= 1
+    ):
+        raise ValueError(
+            "❌ Invalid score-matrix "
+            "tail_probability_tolerance."
+        )
+
+    if (
+        hard_cap is None
+        or hard_cap < 8
+    ):
+        raise ValueError(
+            "❌ Invalid score-matrix hard_cap."
+        )
+
+    # --------------------------------------------------------------
+    # Calibration must be fail-closed.
+    # --------------------------------------------------------------
+
+    calibration = artifact[
+        "calibration"
+    ]
+
+    if not isinstance(
+        calibration,
+        dict,
+    ):
+        raise ValueError(
+            "❌ calibration metadata invalid."
+        )
+
+    if calibration.get(
+        "production_enabled"
+    ) is not False:
+
+        raise ValueError(
+            "❌ Production calibration must "
+            "remain disabled/fail-closed."
+        )
 
 
 # ======================================================================
-# LOAD MODEL
+# MODEL LOADING
 # ======================================================================
 
 @lru_cache(maxsize=1)
 def load_models() -> Dict[str, Any]:
 
-    if not os.path.exists(MODEL_DATA_PATH):
+    if not os.path.exists(
+        MODEL_DATA_PATH
+    ):
 
         raise FileNotFoundError(
             "\n"
-            "❌ BASHIRI ML JSON haipo.\n"
-            f"Expected path:\n{MODEL_DATA_PATH}\n"
+            "❌ BASHIRI production artifact "
+            "haipo.\n\n"
+            f"Expected path:\n"
+            f"{MODEL_DATA_PATH}\n"
         )
 
     try:
@@ -391,119 +608,45 @@ def load_models() -> Dict[str, Any]:
             encoding="utf-8",
         ) as model_file:
 
-            models = json.load(model_file)
+            artifact = json.load(
+                model_file
+            )
 
     except json.JSONDecodeError as exc:
 
         raise ValueError(
-            f"❌ JSON imeharibika: {exc}"
+            "❌ Production JSON imeharibika: "
+            f"{exc}"
         ) from exc
 
     except OSError as exc:
 
         raise OSError(
-            f"❌ Imeshindikana kusoma JSON: {exc}"
+            "❌ Production JSON "
+            f"imeshindwa kusomwa: {exc}"
         ) from exc
 
-    _validate_model_structure(models)
-
-    model_info = models.get(
-        "model_info",
-        {},
+    _assert_json_finite(
+        artifact
     )
 
-    version = model_info.get(
-        "version",
-        "UNKNOWN",
+    _validate_model_structure(
+        artifact
     )
 
     logger.info(
-        "✅ Loaded BASHIRI ML model v%s",
-        version,
+        "✅ Loaded BASHIRI production artifact "
+        "schema=%s pipeline=%s",
+        artifact["schema_version"],
+        artifact["pipeline_version"],
     )
-
-    # --------------------------------------------------------------
-    # Verify home advantage points.
-    # --------------------------------------------------------------
-
-    elo_config = models.get("elo", {})
-
-    home_advantage_points = elo_config.get(
-        "home_advantage_points"
-    )
-
-    if home_advantage_points == EXPECTED_HOME_ADVANTAGE_POINTS:
-
-        logger.info(
-            "✅ Elo home_advantage_points = 65"
-        )
-
-    elif home_advantage_points is not None:
-
-        logger.warning(
-            "⚠️ JSON home_advantage_points=%s "
-            "(expected=%s)",
-            home_advantage_points,
-            EXPECTED_HOME_ADVANTAGE_POINTS,
-        )
-
-    else:
-
-        logger.warning(
-            "⚠️ JSON does not contain elo.home_advantage_points"
-        )
-
-    # --------------------------------------------------------------
-    # Log calibration metadata.
-    # --------------------------------------------------------------
-
-    calibration = models.get(
-        "calibration",
-        {},
-    )
-
-    if isinstance(calibration, dict):
-
-        logger.info(
-            "Calibration multipliers: BTTS=%s, Over=%s",
-            calibration.get("btts_multiplier", "N/A"),
-            calibration.get("over_2_5_multiplier", "N/A"),
-        )
-
-    # --------------------------------------------------------------
-    # IMPORTANT:
-    # Print summary of trained parameters.
-    # --------------------------------------------------------------
-
-    leagues = models["leagues"]
-
-    total_teams = 0
-
-    for league_code, league_data in leagues.items():
-
-        teams = league_data.get(
-            "teams",
-            {},
-        )
-
-        total_teams += len(teams)
-
-        logger.info(
-            "📦 League=%s | teams=%s | avg_goals=%s | home_advantage=%s | elo_coefficient=%s",
-            league_code,
-            len(teams),
-            league_data["baseline"]["avg_goals"],
-            league_data["baseline"]["home_advantage"],
-            league_data.get("elo_coefficient", 0.0),
-        )
 
     logger.info(
-        "📊 Model contains %s leagues and %s teams.",
-        len(leagues),
-        total_teams,
+        "📦 Production leagues=%d",
+        len(artifact["leagues"]),
     )
 
-    return models
+    return artifact
 
 
 def reload_models() -> Dict[str, Any]:
@@ -511,10 +654,30 @@ def reload_models() -> Dict[str, Any]:
     load_models.cache_clear()
 
     logger.info(
-        "🔄 Model cache cleared."
+        "🔄 Production artifact cache cleared."
     )
 
     return load_models()
+
+
+# ======================================================================
+# MODEL FINGERPRINT
+# ======================================================================
+
+def get_model_fingerprint() -> str:
+
+    artifact = load_models()
+
+    canonical = json.dumps(
+        artifact,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return hashlib.sha256(
+        canonical.encode("utf-8")
+    ).hexdigest()
 
 
 # ======================================================================
@@ -523,208 +686,51 @@ def reload_models() -> Dict[str, Any]:
 
 def get_available_leagues() -> List[str]:
 
-    models = load_models()
+    artifact = load_models()
 
     return list(
-        models["leagues"].keys()
+        artifact["leagues"].keys()
     )
 
 
-def get_league_params(
+def get_league_state(
     league_code: str,
-) -> Tuple[Dict[str, Any], float, float, float]:
+) -> Dict[str, Any]:
 
     if not league_code:
 
         raise ValueError(
-            "❌ league_code haiwezi kuwa empty."
+            "❌ competition haijawekwa."
         )
 
-    models = load_models()
-
-    leagues = models["leagues"]
+    artifact = load_models()
 
     requested = str(
         league_code
     ).strip()
 
-    league_data = leagues.get(
-        requested
-    )
+    if requested in artifact["leagues"]:
 
-    # Case-insensitive lookup.
-    if league_data is None:
+        return artifact[
+            "leagues"
+        ][requested]
 
-        for code, data in leagues.items():
+    requested_cf = requested.casefold()
 
-            if (
-                str(code).strip().lower()
-                == requested.lower()
-            ):
+    for code, state in artifact[
+        "leagues"
+    ].items():
 
-                league_code = code
-                league_data = data
-                break
+        if str(code).casefold() == requested_cf:
 
-    if league_data is None:
+            return state
 
-        raise ValueError(
-            f"\n"
-            f"❌ League '{league_code}' haipo kwenye trained model.\n"
-            f"Available leagues: {list(leagues.keys())}\n"
-        )
-
-    teams = league_data.get(
-        "teams",
-        {},
-    )
-
-    if not teams:
-
-        raise ValueError(
-            f"❌ League '{league_code}' haina team parameters."
-        )
-
-    baseline = league_data.get(
-        "baseline",
-        {},
-    )
-
-    elo_coefficient = _safe_float(
-        league_data.get("elo_coefficient", 0.0)
-    )
-
-    if elo_coefficient is None:
-        elo_coefficient = 0.0
-
-    home_advantage = sanitize_parameter(
-        baseline["home_advantage"],
-        MIN_HOME_ADVANTAGE,
-        MAX_HOME_ADVANTAGE,
-    )
-
-    league_avg_goals = sanitize_parameter(
-        baseline["avg_goals"],
-        MIN_LEAGUE_AVG_GOALS,
-        MAX_LEAGUE_AVG_GOALS,
-    )
-
-    logger.info(
-        "League loaded: %s | teams=%s | "
-        "avg_goals=%.4f | home_advantage=%.4f | elo_coefficient=%.6f",
-        league_code,
-        len(teams),
-        league_avg_goals,
-        home_advantage,
-        elo_coefficient,
-    )
-
-    return (
-        teams,
-        home_advantage,
-        league_avg_goals,
-        elo_coefficient,
-    )
-
-
-# ======================================================================
-# TEAM MATCHING
-# ======================================================================
-
-def find_best_team_match(
-    search_name: str,
-    available_teams: List[str],
-    threshold: float = 0.70,
-) -> Tuple[Optional[str], float]:
-
-    if not search_name:
-        return None, 0.0
-
-    search = _normalize_team_name(
-        search_name
-    )
-
-    alias = TEAM_ALIASES.get(
-        search
-    )
-
-    if alias:
-        search = alias
-
-    best_match = None
-    best_score = 0.0
-
-    for team_name in available_teams:
-
-        team = _normalize_team_name(
-            team_name
-        )
-
-        if search == team:
-
-            return team_name, 1.0
-
-        score = SequenceMatcher(
-            None,
-            search,
-            team,
-        ).ratio()
-
-        if (
-            search in team
-            or team in search
-        ):
-
-            score += 0.15
-
-        search_words = set(
-            search.split()
-        )
-
-        team_words = set(
-            team.split()
-        )
-
-        common_words = (
-            search_words
-            & team_words
-        )
-
-        score += (
-            0.10
-            * len(common_words)
-        )
-
-        score = min(
-            score,
-            1.0,
-        )
-
-        if score > best_score:
-
-            best_score = score
-            best_match = team_name
-
-    if (
-        best_match is not None
-        and best_score >= threshold
-    ):
-
-        logger.info(
-            "Fuzzy match: '%s' -> '%s' %.2f",
-            search_name,
-            best_match,
-            best_score,
-        )
-
-        return (
-            best_match,
-            best_score,
-        )
-
-    return (
-        None,
-        best_score,
+    raise ValueError(
+        "\n"
+        f"❌ Competition '{league_code}' "
+        "haipo kwenye production artifact.\n"
+        f"Available competitions: "
+        f"{get_available_leagues()}\n"
     )
 
 
@@ -734,10 +740,16 @@ def find_best_team_match(
 
 def resolve_team(
     team_name: str,
-    team_params: Dict[str, Any],
+    available_teams: List[str],
 ) -> str:
 
-    if team_name in team_params:
+    if not team_name:
+
+        raise ValueError(
+            "❌ Team name haiwezi kuwa empty."
+        )
+
+    if team_name in available_teams:
 
         return team_name
 
@@ -747,363 +759,677 @@ def resolve_team(
 
     normalized_map = {
         _normalize_team_name(name): name
-        for name in team_params
+        for name in available_teams
     }
 
-    # Case-insensitive exact match.
+    # --------------------------------------------------------------
+    # Exact case-insensitive match.
+    # --------------------------------------------------------------
+
     if normalized in normalized_map:
 
         return normalized_map[
             normalized
         ]
 
-    # Alias / fuzzy.
-    matched, score = find_best_team_match(
-        team_name,
-        list(team_params.keys()),
+    # --------------------------------------------------------------
+    # Alias.
+    # --------------------------------------------------------------
+
+    alias_target = TEAM_ALIASES.get(
+        normalized
     )
 
-    if matched:
+    if alias_target:
 
-        logger.info(
-            "Resolved team '%s' -> '%s' (%.2f)",
-            team_name,
-            matched,
-            score,
+        alias_normalized = (
+            _normalize_team_name(
+                alias_target
+            )
         )
 
-        return matched
+        if alias_normalized in normalized_map:
+
+            return normalized_map[
+                alias_normalized
+            ]
+
+    # --------------------------------------------------------------
+    # IMPORTANT:
+    #
+    # No fuzzy matching.
+    #
+    # A production prediction must never silently convert:
+    #
+    #   Team A -> Team B
+    #
+    # because they happen to look similar.
+    # --------------------------------------------------------------
 
     raise ValueError(
         "\n"
-        f"❌ Team '{team_name}' haipatikani kwenye model.\n"
-        f"Best fuzzy score: {score:.2%}\n"
-        f"Available teams: {list(team_params.keys())}\n"
+        f"❌ Team '{team_name}' "
+        "haipo kwenye trained production state.\n"
+        f"Available teams: {available_teams}\n"
     )
 
 
 # ======================================================================
-# POISSON
+# COEFFICIENT ACCESS
 # ======================================================================
 
-def _build_poisson_probabilities(
-    xg: float,
-    max_goals: int,
-) -> List[float]:
+def _coefficient(
+    coefficients: Dict[str, Any],
+    name: str,
+) -> float:
 
-    probabilities = [
-        poisson.pmf(
-            goals,
-            xg,
-        )
-        for goals in range(max_goals)
-    ]
-
-    total = sum(
-        probabilities
+    value = _safe_float(
+        coefficients.get(name)
     )
 
-    if total <= 0:
+    if value is None:
 
         raise ValueError(
-            "❌ Poisson probability mass is zero."
+            f"❌ Required coefficient "
+            f"'{name}' is missing/non-finite."
         )
 
-    # Normalize truncated 0..7 distribution.
-    return [
-        p / total
-        for p in probabilities
+    return value
+
+
+def _team_coefficient(
+    coefficients: Dict[str, Any],
+    team: str,
+) -> float:
+
+    key = f"C(team)[T.{team}]"
+
+    return _coefficient(
+        coefficients,
+        key,
+    ) if key in coefficients else 0.0
+
+
+def _opponent_coefficient(
+    coefficients: Dict[str, Any],
+    opponent: str,
+) -> float:
+
+    key = (
+        f"C(opponent)[T.{opponent}]"
+    )
+
+    return _coefficient(
+        coefficients,
+        key,
+    ) if key in coefficients else 0.0
+
+
+# ======================================================================
+# EXACT LINEAR PREDICTOR
+# ======================================================================
+
+def _linear_predictor(
+    state: Dict[str, Any],
+    team: str,
+    opponent: str,
+    home_indicator: float,
+    elo_scaled: float,
+) -> float:
+
+    if team == opponent:
+
+        raise ValueError(
+            "❌ Team and opponent cannot be identical."
+        )
+
+    teams = set(
+        state["teams"]
+    )
+
+    if (
+        team not in teams
+        or opponent not in teams
+    ):
+
+        raise KeyError(
+            f"❌ Unknown team: "
+            f"{team} vs {opponent}"
+        )
+
+    coefficients = state[
+        "coefficients"
     ]
 
+    intercept = _coefficient(
+        coefficients,
+        "Intercept",
+    )
+
+    home_beta = _coefficient(
+        coefficients,
+        "home",
+    )
+
+    elo_beta = _coefficient(
+        coefficients,
+        "elo_scaled",
+    )
+
+    team_beta = _team_coefficient(
+        coefficients,
+        team,
+    )
+
+    opponent_beta = (
+        _opponent_coefficient(
+            coefficients,
+            opponent,
+        )
+    )
+
+    eta = (
+        intercept
+        + float(home_indicator) * home_beta
+        + team_beta
+        + opponent_beta
+        + float(elo_scaled) * elo_beta
+    )
+
+    if not np.isfinite(eta):
+
+        raise FloatingPointError(
+            "❌ Non-finite linear predictor."
+        )
+
+    return float(eta)
+
 
 # ======================================================================
-# PREDICTION ENGINE
+# EXACT xG
 # ======================================================================
 
-def predict_all_markets(
+def _exact_xg(
+    state: Dict[str, Any],
     home_team: str,
     away_team: str,
-    team_params: Dict[str, Any],
-    elo_ratings: Dict[str, float],
-    home_advantage: float,
-    league_avg_goals: float,
-    elo_coefficient: float,
-    max_goals: int = DEFAULT_MAX_GOALS,
-) -> Dict[str, Any]:
-
-    if home_team not in team_params:
-        raise ValueError(
-            f"❌ Home team '{home_team}' haipo."
-        )
-
-    if away_team not in team_params:
-        raise ValueError(
-            f"❌ Away team '{away_team}' haipo."
-        )
+    elo_scaled: float,
+    neutral_venue: bool = False,
+) -> Tuple[float, float]:
 
     if home_team == away_team:
 
         raise ValueError(
-            "❌ Home na away team haziwezi kuwa sawa."
+            "❌ Home team and away team "
+            "cannot be identical."
         )
 
-    home = team_params[
-        home_team
-    ]
-
-    away = team_params[
-        away_team
-    ]
-
     # --------------------------------------------------------------
-    # TRAINED PARAMETERS
-    # --------------------------------------------------------------
-
-    home_attack = sanitize_parameter(
-        home["attack"],
-        MIN_ATTACK_DEFENSE,
-        MAX_ATTACK_DEFENSE,
-    )
-
-    home_defense = sanitize_parameter(
-        home["defense"],
-        MIN_ATTACK_DEFENSE,
-        MAX_ATTACK_DEFENSE,
-    )
-
-    away_attack = sanitize_parameter(
-        away["attack"],
-        MIN_ATTACK_DEFENSE,
-        MAX_ATTACK_DEFENSE,
-    )
-
-    away_defense = sanitize_parameter(
-        away["defense"],
-        MIN_ATTACK_DEFENSE,
-        MAX_ATTACK_DEFENSE,
-    )
-
-    home_advantage = sanitize_parameter(
-        home_advantage,
-        MIN_HOME_ADVANTAGE,
-        MAX_HOME_ADVANTAGE,
-    )
-
-    league_avg_goals = sanitize_parameter(
-        league_avg_goals,
-        MIN_LEAGUE_AVG_GOALS,
-        MAX_LEAGUE_AVG_GOALS,
-    )
-
-    # --------------------------------------------------------------
-    # ELO CALCULATION
+    # EXACT notebook behavior:
+    #
+    # normal fixture:
+    #
+    # home indicator = 1
+    #
+    # neutral fixture:
+    #
+    # home indicator = 0
+    #
+    # Away side always receives home=0.
     # --------------------------------------------------------------
 
-    elo_scale = 100.0  # From JSON config
-    initial_rating = 1500.0  # From JSON config
-
-    home_rating = elo_ratings.get(home_team, initial_rating)
-    away_rating = elo_ratings.get(away_team, initial_rating)
-
-    # Calculate elo_scaled (rating difference / scale)
-    elo_diff = (home_rating - away_rating) / elo_scale
-
-    # --------------------------------------------------------------
-    # CANONICAL BASHIRI xG FORMULA with ELO
-    # --------------------------------------------------------------
-    # home_xg = baseline * home_attack * away_defense * home_advantage * exp(elo_coefficient * elo_scaled)
-    # away_xg = baseline * away_attack * home_defense * exp(-elo_coefficient * elo_scaled)
-
-    import math
-
-    home_xg = (
-        league_avg_goals
-        * home_attack
-        * away_defense
-        * home_advantage
-        * math.exp(elo_coefficient * elo_diff)
+    home_eta = _linear_predictor(
+        state=state,
+        team=home_team,
+        opponent=away_team,
+        home_indicator=(
+            0.0
+            if bool(neutral_venue)
+            else 1.0
+        ),
+        elo_scaled=float(
+            elo_scaled
+        ),
     )
 
-    away_xg = (
-        league_avg_goals
-        * away_attack
-        * home_defense
-        * math.exp(-elo_coefficient * elo_diff)
+    away_eta = _linear_predictor(
+        state=state,
+        team=away_team,
+        opponent=home_team,
+        home_indicator=0.0,
+        elo_scaled=-float(
+            elo_scaled
+        ),
     )
 
-    home_xg = sanitize_parameter(
-        home_xg,
-        MIN_XG,
-        MAX_XG,
-    )
-
-    away_xg = sanitize_parameter(
-        away_xg,
-        MIN_XG,
-        MAX_XG,
-    )
-
-    logger.info(
-        "📊 %s vs %s | "
-        "Home attack=%.4f defense=%.4f rating=%.1f | "
-        "Away attack=%.4f defense=%.4f rating=%.1f | "
-        "Elo diff=%.4f | Home xG=%.4f Away xG=%.4f",
-        home_team,
-        away_team,
-        home_attack,
-        home_defense,
-        home_rating,
-        away_attack,
-        away_defense,
-        away_rating,
-        elo_diff,
-        home_xg,
-        away_xg,
-    )
-
-    # --------------------------------------------------------------
-    # POISSON
-    # --------------------------------------------------------------
-
-    home_probs = _build_poisson_probabilities(
-        home_xg,
-        max_goals,
-    )
-
-    away_probs = _build_poisson_probabilities(
-        away_xg,
-        max_goals,
-    )
-
-    # --------------------------------------------------------------
-    # MARKETS
-    # --------------------------------------------------------------
-
-    home_win = 0.0
-    draw = 0.0
-    away_win = 0.0
-
-    over = {
-        0.5: 0.0,
-        1.5: 0.0,
-        2.5: 0.0,
-        3.5: 0.0,
-        4.5: 0.0,
-    }
-
-    btts_yes_raw = 0.0
-
-    # --------------------------------------------------------------
-    # SCORE MATRIX
-    # --------------------------------------------------------------
-
-    for h in range(max_goals):
-
-        for a in range(max_goals):
-
-            probability = (
-                home_probs[h]
-                * away_probs[a]
+    home_xg = float(
+        np.exp(
+            np.clip(
+                home_eta,
+                -50.0,
+                50.0,
             )
-
-            if h > a:
-
-                home_win += probability
-
-            elif h == a:
-
-                draw += probability
-
-            else:
-
-                away_win += probability
-
-            total_goals = h + a
-
-            for line in over:
-
-                if total_goals > line:
-
-                    over[line] += probability
-
-            if h > 0 and a > 0:
-
-                btts_yes_raw += probability
-
-    # --------------------------------------------------------------
-    # 1X2 NORMALIZATION
-    # --------------------------------------------------------------
-
-    total_result = (
-        home_win
-        + draw
-        + away_win
+        )
     )
 
-    if total_result <= 0:
+    away_xg = float(
+        np.exp(
+            np.clip(
+                away_eta,
+                -50.0,
+                50.0,
+            )
+        )
+    )
+
+    if (
+        not np.isfinite(home_xg)
+        or not np.isfinite(away_xg)
+        or home_xg <= 0
+        or away_xg <= 0
+    ):
+
+        raise FloatingPointError(
+            "❌ Non-finite/non-positive xG."
+        )
+
+    return (
+        home_xg,
+        away_xg,
+    )
+
+
+# ======================================================================
+# ADAPTIVE POISSON SUPPORT
+# ======================================================================
+
+def _poisson_support(
+    mu: float,
+    tail_tolerance: float,
+    hard_cap: int,
+) -> int:
+
+    mu = _require_finite_float(
+        mu,
+        "Poisson mean",
+    )
+
+    if mu <= 0:
 
         raise ValueError(
-            "❌ 1X2 probability total is zero."
+            f"❌ Invalid Poisson mean={mu}"
         )
 
-    home_win /= total_result
-    draw /= total_result
-    away_win /= total_result
-
-    # --------------------------------------------------------------
-    # CALIBRATION
-    # --------------------------------------------------------------
-
-    btts_yes = (
-        btts_yes_raw
-        * BTTS_CALIBRATION_MULTIPLIER
+    tail_tolerance = (
+        _require_finite_float(
+            tail_tolerance,
+            "tail_tolerance",
+        )
     )
 
-    btts_yes = max(
-        0.0,
-        min(1.0, btts_yes),
+    if not (
+        0 < tail_tolerance < 1
+    ):
+
+        raise ValueError(
+            "❌ tail_tolerance must "
+            "be between 0 and 1."
+        )
+
+    hard_cap = int(
+        hard_cap
     )
 
-    calibrated_over = {}
+    if hard_cap < 8:
 
-    for line, probability in over.items():
-
-        calibrated = (
-            probability
-            * OVER_CALIBRATION_MULTIPLIER
+        raise ValueError(
+            "❌ hard_cap must be >= 8."
         )
 
-        calibrated_over[line] = max(
-            0.0,
-            min(1.0, calibrated),
+    quantile = poisson.ppf(
+        1.0 - tail_tolerance,
+        mu,
+    )
+
+    if not np.isfinite(
+        quantile
+    ):
+
+        raise FloatingPointError(
+            "❌ Unable to determine finite "
+            "Poisson support."
+        )
+
+    n = int(
+        quantile
+    )
+
+    if n >= hard_cap:
+
+        raise FloatingPointError(
+            "\n"
+            "❌ Required Poisson support "
+            f"({n}) reached hard cap "
+            f"({hard_cap}).\n"
+            "Increase score_matrix.hard_cap "
+            "in the trained artifact instead "
+            "of silently truncating probability."
+        )
+
+    return max(
+        8,
+        n,
+    )
+
+
+# ======================================================================
+# SCORE MATRIX
+# ======================================================================
+
+def _score_matrix(
+    home_xg: float,
+    away_xg: float,
+) -> np.ndarray:
+
+    artifact = load_models()
+
+    score_config = artifact[
+        "score_matrix"
+    ]
+
+    tail_tolerance = float(
+        score_config.get(
+            "tail_probability_tolerance",
+            DEFAULT_SCORE_TAIL_TOLERANCE,
+        )
+    )
+
+    hard_cap = int(
+        score_config.get(
+            "hard_cap",
+            DEFAULT_SCORE_MAX_GOALS,
+        )
+    )
+
+    home_support = _poisson_support(
+        home_xg,
+        tail_tolerance,
+        hard_cap,
+    )
+
+    away_support = _poisson_support(
+        away_xg,
+        tail_tolerance,
+        hard_cap,
+    )
+
+    n = max(
+        home_support,
+        away_support,
+    )
+
+    home_probs = poisson.pmf(
+        np.arange(n + 1),
+        home_xg,
+    )
+
+    away_probs = poisson.pmf(
+        np.arange(n + 1),
+        away_xg,
+    )
+
+    matrix = np.outer(
+        home_probs,
+        away_probs,
+    )
+
+    mass = float(
+        matrix.sum()
+    )
+
+    if (
+        not np.isfinite(mass)
+        or mass <= 0
+    ):
+
+        raise FloatingPointError(
+            "❌ Invalid score-matrix mass."
         )
 
     # --------------------------------------------------------------
-    # UNDER
+    # Exact notebook behavior:
+    #
+    # Only omitted Poisson tail is renormalized.
     # --------------------------------------------------------------
 
-    under = {
-        line: max(
-            0.0,
-            min(
-                1.0,
-                1.0 - probability,
-            ),
+    matrix = matrix / mass
+
+    if abs(
+        float(matrix.sum()) - 1.0
+    ) > 1e-12:
+
+        raise FloatingPointError(
+            "❌ Score matrix failed mass check."
         )
-        for line, probability
-        in calibrated_over.items()
+
+    return matrix
+
+
+# ======================================================================
+# ELO
+# ======================================================================
+
+def get_elo_ratings() -> Dict[str, float]:
+
+    artifact = load_models()
+
+    return {
+        str(team): float(rating)
+        for team, rating
+        in artifact["elo"].get(
+            "ratings",
+            {},
+        ).items()
     }
 
+
+def get_elo_scale() -> float:
+
+    artifact = load_models()
+
+    scale = _safe_float(
+        artifact["elo"].get(
+            "scale"
+        )
+    )
+
+    if (
+        scale is None
+        or scale <= 0
+    ):
+
+        raise ValueError(
+            "❌ Invalid Elo scale."
+        )
+
+    return float(scale)
+
+
+def compute_elo_scaled(
+    home_team: str,
+    away_team: str,
+) -> float:
+
+    ratings = get_elo_ratings()
+    scale = get_elo_scale()
+
+    if home_team not in ratings:
+
+        raise KeyError(
+            f"❌ No production Elo rating "
+            f"for home team '{home_team}'."
+        )
+
+    if away_team not in ratings:
+
+        raise KeyError(
+            f"❌ No production Elo rating "
+            f"for away team '{away_team}'."
+        )
+
+    elo_difference = (
+        float(ratings[home_team])
+        - float(ratings[away_team])
+    )
+
+    return float(
+        elo_difference / scale
+    )
+
+
+# ======================================================================
+# EXACT MARKET ENGINE
+# ======================================================================
+
+def _predict_from_resolved_teams(
+    competition: str,
+    home_team: str,
+    away_team: str,
+    elo_scaled: float,
+    neutral_venue: bool = False,
+) -> Dict[str, Any]:
+
+    artifact = load_models()
+
+    state = artifact[
+        "leagues"
+    ][competition]
+
+    home_xg, away_xg = _exact_xg(
+        state=state,
+        home_team=home_team,
+        away_team=away_team,
+        elo_scaled=elo_scaled,
+        neutral_venue=neutral_venue,
+    )
+
+    matrix = _score_matrix(
+        home_xg,
+        away_xg,
+    )
+
     # --------------------------------------------------------------
-    # BTTS NO
+    # 1X2
     # --------------------------------------------------------------
 
-    btts_no = max(
-        0.0,
-        min(
-            1.0,
-            1.0 - btts_yes,
+    p_home = _validate_probability(
+        float(
+            np.tril(
+                matrix,
+                -1,
+            ).sum()
         ),
+        "1X2 home",
+    )
+
+    p_draw = _validate_probability(
+        float(
+            np.trace(matrix)
+        ),
+        "1X2 draw",
+    )
+
+    p_away = _validate_probability(
+        float(
+            np.triu(
+                matrix,
+                1,
+            ).sum()
+        ),
+        "1X2 away",
+    )
+
+    # --------------------------------------------------------------
+    # BTTS
+    # --------------------------------------------------------------
+
+    p_btts = _validate_probability(
+        float(
+            matrix[1:, 1:].sum()
+        ),
+        "BTTS yes",
+    )
+
+    p_btts_no = (
+        1.0 - p_btts
+    )
+
+    # --------------------------------------------------------------
+    # OVER / UNDER
+    # --------------------------------------------------------------
+
+    totals = np.add.outer(
+        np.arange(
+            matrix.shape[0]
+        ),
+        np.arange(
+            matrix.shape[1]
+        ),
+    )
+
+    over_under = {}
+
+    for line in OVER_UNDER_LINES:
+
+        over = _validate_probability(
+            float(
+                matrix[
+                    totals > line
+                ].sum()
+            ),
+            f"over_{line}",
+        )
+
+        key = str(
+            line
+        ).replace(
+            ".",
+            "_",
+        )
+
+        over_under[
+            f"over_{key}"
+        ] = over
+
+        over_under[
+            f"under_{key}"
+        ] = (
+            1.0 - over
+        )
+
+    # --------------------------------------------------------------
+    # DNB
+    # --------------------------------------------------------------
+
+    dnb_denominator = (
+        p_home
+        + p_away
+    )
+
+    if dnb_denominator <= 0:
+
+        raise FloatingPointError(
+            "❌ Invalid DNB denominator."
+        )
+
+    dnb_home = (
+        p_home
+        / dnb_denominator
+    )
+
+    dnb_away = (
+        p_away
+        / dnb_denominator
     )
 
     # --------------------------------------------------------------
@@ -1111,257 +1437,360 @@ def predict_all_markets(
     # --------------------------------------------------------------
 
     double_chance = {
-        "1X": home_win + draw,
-        "X2": draw + away_win,
-        "12": home_win + away_win,
+        "1x": p_home + p_draw,
+        "x2": p_draw + p_away,
+        "12": p_home + p_away,
     }
-
-    # --------------------------------------------------------------
-    # DNB
-    # --------------------------------------------------------------
-
-    dnb_total = (
-        home_win
-        + away_win
-    )
-
-    if dnb_total > 0:
-
-        home_dnb = (
-            home_win
-            / dnb_total
-        )
-
-        away_dnb = (
-            away_win
-            / dnb_total
-        )
-
-    else:
-
-        home_dnb = 0.5
-        away_dnb = 0.5
 
     # --------------------------------------------------------------
     # AI PICK
     # --------------------------------------------------------------
 
-    picks = {
-        "Home Win": home_win,
-        "Draw": draw,
-        "Away Win": away_win,
-    }
+    selections = (
+        ("Home", p_home),
+        ("Draw", p_draw),
+        ("Away", p_away),
+    )
 
-    best_pick = max(
-        picks,
-        key=picks.get,
+    best_selection = max(
+        selections,
+        key=lambda item: item[1],
     )
 
     # --------------------------------------------------------------
-    # RESULT
+    # INTEGRITY
     # --------------------------------------------------------------
 
-    result = {
+    if abs(
+        (
+            p_home
+            + p_draw
+            + p_away
+        )
+        - 1.0
+    ) > 1e-10:
 
-        "model_version": MODEL_VERSION,
+        raise AssertionError(
+            "❌ 1X2 probabilities "
+            "do not sum to one."
+        )
 
-        "reference_date": REFERENCE_DATE,
+    if abs(
+        p_btts
+        + p_btts_no
+        - 1.0
+    ) > 1e-10:
+
+        raise AssertionError(
+            "❌ BTTS probabilities "
+            "do not sum to one."
+        )
+
+    for line in OVER_UNDER_LINES:
+
+        key = str(
+            line
+        ).replace(
+            ".",
+            "_",
+        )
+
+        if abs(
+            over_under[
+                f"over_{key}"
+            ]
+            + over_under[
+                f"under_{key}"
+            ]
+            - 1.0
+        ) > 1e-10:
+
+            raise AssertionError(
+                f"❌ O/U integrity failed "
+                f"for line={line}."
+            )
+
+    # --------------------------------------------------------------
+    # MODEL METADATA
+    # --------------------------------------------------------------
+
+    model_info = artifact.get(
+        "model_info",
+        {},
+    )
+
+    return {
+        "model_version": model_info.get(
+            "version",
+            artifact.get(
+                "pipeline_version"
+            ),
+        ),
+
+        "pipeline_version": artifact.get(
+            "pipeline_version"
+        ),
+
+        "schema_version": artifact.get(
+            "schema_version"
+        ),
 
         "fixture": {
+            "competition": competition,
             "home_team": home_team,
             "away_team": away_team,
+            "neutral_venue": bool(
+                neutral_venue
+            ),
+        },
+
+        "elo": {
+            "elo_scaled": float(
+                elo_scaled
+            ),
+            "home_rating": get_elo_ratings().get(
+                home_team
+            ),
+            "away_rating": get_elo_ratings().get(
+                away_team
+            ),
+            "scale": get_elo_scale(),
         },
 
         "expected_goals": {
             "home_xg": round(
                 home_xg,
-                2,
+                6,
             ),
             "away_xg": round(
                 away_xg,
-                2,
+                6,
             ),
             "total_xg": round(
                 home_xg + away_xg,
-                2,
+                6,
             ),
         },
 
         "match_result": {
             "home_win": _round_probability(
-                home_win * 100
+                p_home * 100.0
             ),
             "draw": _round_probability(
-                draw * 100
+                p_draw * 100.0
             ),
             "away_win": _round_probability(
-                away_win * 100
+                p_away * 100.0
+            ),
+        },
+
+        "draw_no_bet": {
+            "home_dnb": _round_probability(
+                dnb_home * 100.0
+            ),
+            "away_dnb": _round_probability(
+                dnb_away * 100.0
             ),
         },
 
         "double_chance": {
             key: _round_probability(
-                value * 100
+                value * 100.0
             )
             for key, value
             in double_chance.items()
         },
 
-        "draw_no_bet": {
-            "home_dnb": _round_probability(
-                home_dnb * 100
+        "btts": {
+            "yes": _round_probability(
+                p_btts * 100.0
             ),
-            "away_dnb": _round_probability(
-                away_dnb * 100
+            "no": _round_probability(
+                p_btts_no * 100.0
             ),
         },
 
-        "over_under": {},
-
-        "btts": {
-            "yes": _round_probability(
-                btts_yes * 100
-            ),
-            "no": _round_probability(
-                btts_no * 100
-            ),
+        "over_under": {
+            key: _round_probability(
+                value * 100.0
+            )
+            for key, value
+            in over_under.items()
         },
 
         "ai_pick": {
             "market": "1X2",
-            "selection": best_pick,
+            "selection": best_selection[0],
             "confidence": _round_probability(
-                picks[best_pick] * 100
+                best_selection[1] * 100.0
             ),
         },
 
-        "calibration": {
-            "btts_multiplier": (
-                BTTS_CALIBRATION_MULTIPLIER
+        "production": {
+            "calibration_enabled": False,
+            "dixon_coles": False,
+            "prediction_source": (
+                "exact_fitted_coefficient_vector"
             ),
-            "over_multiplier": (
-                OVER_CALIBRATION_MULTIPLIER
+            "model_fingerprint": (
+                get_model_fingerprint()
             ),
-            "home_advantage_points": (
-                EXPECTED_HOME_ADVANTAGE_POINTS
-            ),
-            "elo_coefficient": elo_coefficient,
-        },
-
-        "accuracy_info": {
-            "model_type": (
-                "Poisson + trained team parameters + Dynamic Elo"
-            ),
-            "reference_date": REFERENCE_DATE,
         },
     }
 
-    # --------------------------------------------------------------
-    # OVER / UNDER MARKETS
-    # --------------------------------------------------------------
-
-    for line in (
-        0.5,
-        1.5,
-        2.5,
-        3.5,
-        4.5,
-    ):
-
-        result["over_under"][
-            f"over_{line}"
-        ] = _round_probability(
-            calibrated_over[line] * 100
-        )
-
-        result["over_under"][
-            f"under_{line}"
-        ] = _round_probability(
-            under[line] * 100
-        )
-
-    return result
-
 
 # ======================================================================
-# PUBLIC FIXTURE API
+# PUBLIC PREDICTION API
 # ======================================================================
 
 def predict_fixture(
     league_code: str,
     home_team: str,
     away_team: str,
+    *,
+    elo_scaled: Optional[float] = None,
+    neutral_venue: bool = False,
 ) -> Dict[str, Any]:
 
     if not league_code:
+
         raise ValueError(
-            "❌ league_code haijawekwa."
+            "❌ competition haijawekwa."
         )
 
     if not home_team:
+
         raise ValueError(
             "❌ home_team haijawekwa."
         )
 
     if not away_team:
+
         raise ValueError(
             "❌ away_team haijawekwa."
         )
 
-    (
-        team_params,
-        home_advantage,
-        league_avg_goals,
-        elo_coefficient,
-    ) = get_league_params(
+    if home_team == away_team:
+
+        raise ValueError(
+            "❌ Home na away team "
+            "haziwezi kuwa sawa."
+        )
+
+    # --------------------------------------------------------------
+    # Load exact production league.
+    # --------------------------------------------------------------
+
+    state = get_league_state(
         league_code
     )
 
-    # --------------------------------------------------------------
-    # IMPORTANT:
-    # Resolve both teams ONLY against the trained JSON.
-    # --------------------------------------------------------------
+    competition = next(
+        code
+        for code, value
+        in load_models()["leagues"].items()
+        if value is state
+    )
+
+    available_teams = list(
+        state["teams"]
+    )
 
     matched_home = resolve_team(
         home_team,
-        team_params,
+        available_teams,
     )
 
     matched_away = resolve_team(
         away_team,
-        team_params,
+        available_teams,
     )
 
     if matched_home == matched_away:
 
         raise ValueError(
-            f"❌ Both fixtures resolved to '{matched_home}'."
+            f"❌ Both fixtures resolved "
+            f"to '{matched_home}'."
         )
 
     # --------------------------------------------------------------
-    # Get ELO ratings from JSON
+    # Elo:
+    #
+    # If caller supplies a historical/pre-match value, use it.
+    #
+    # Otherwise compute from the production artifact's stored Elo
+    # state.
     # --------------------------------------------------------------
 
-    models = load_models()
-    elo_ratings = models.get("elo", {}).get("ratings", {})
+    if elo_scaled is None:
 
-    logger.info(
-        "🚀 Running canonical prediction: "
-        "%s vs %s | league=%s",
-        matched_home,
-        matched_away,
-        league_code,
-    )
+        elo_value = compute_elo_scaled(
+            matched_home,
+            matched_away,
+        )
 
-    return predict_all_markets(
+        elo_source = (
+            "production_artifact_elo_ratings"
+        )
+
+    else:
+
+        elo_value = (
+            _require_finite_float(
+                elo_scaled,
+                "elo_scaled",
+            )
+        )
+
+        elo_source = (
+            "explicit_pre_match_elo_scaled"
+        )
+
+    result = _predict_from_resolved_teams(
+        competition=competition,
         home_team=matched_home,
         away_team=matched_away,
-        team_params=team_params,
-        elo_ratings=elo_ratings,
-        home_advantage=home_advantage,
-        league_avg_goals=league_avg_goals,
-        elo_coefficient=elo_coefficient,
-        max_goals=DEFAULT_MAX_GOALS,
+        elo_scaled=elo_value,
+        neutral_venue=bool(
+            neutral_venue
+        ),
+    )
+
+    result["elo"][
+        "source"
+    ] = elo_source
+
+    return result
+
+
+# ======================================================================
+# OPTIONAL HISTORICAL / EXTERNAL ELO API
+# ======================================================================
+
+def predict_fixture_with_elo(
+    league_code: str,
+    home_team: str,
+    away_team: str,
+    elo_scaled: float,
+    *,
+    neutral_venue: bool = False,
+) -> Dict[str, Any]:
+
+    """
+    Explicit historical/pre-match inference.
+
+    This is useful when another trusted layer has already calculated
+    the correct pre-match Elo state for a historical fixture.
+
+    No recalculation or modification is performed here.
+    """
+
+    return predict_fixture(
+        league_code=league_code,
+        home_team=home_team,
+        away_team=away_team,
+        elo_scaled=elo_scaled,
+        neutral_venue=neutral_venue,
     )
 
 
@@ -1371,60 +1800,93 @@ def predict_fixture(
 
 def inspect_model() -> Dict[str, Any]:
 
-    models = load_models()
+    artifact = load_models()
 
-    leagues = models["leagues"]
-
-    summary = {}
+    leagues_summary = {}
 
     total_teams = 0
 
-    for league_code, league_data in leagues.items():
+    for competition, state in sorted(
+        artifact["leagues"].items()
+    ):
 
-        teams = league_data[
-            "teams"
+        teams = list(
+            state["teams"]
+        )
+
+        coefficients = state[
+            "coefficients"
         ]
 
         total_teams += len(
             teams
         )
 
-        summary[league_code] = {
+        leagues_summary[
+            competition
+        ] = {
             "team_count": len(
                 teams
             ),
-            "avg_goals": league_data[
-                "baseline"
-            ]["avg_goals"],
-            "home_advantage": league_data[
-                "baseline"
-            ]["home_advantage"],
-            "elo_coefficient": league_data.get("elo_coefficient", 0.0),
-            "sample_teams": list(
-                teams.keys()
-            )[:10],
+            "coefficient_count": len(
+                coefficients
+            ),
+            "teams": teams,
+            "has_intercept": (
+                "Intercept"
+                in coefficients
+            ),
+            "has_home_coefficient": (
+                "home"
+                in coefficients
+            ),
+            "has_elo_coefficient": (
+                "elo_scaled"
+                in coefficients
+            ),
         }
 
     return {
-        "model_version": models.get(
-            "model_info",
-            {}
-        ).get(
-            "version",
-            "UNKNOWN",
+        "status": "ok",
+        "schema_version": artifact.get(
+            "schema_version"
         ),
-        "reference_date": REFERENCE_DATE,
+        "pipeline_version": artifact.get(
+            "pipeline_version"
+        ),
+        "artifact_status": artifact.get(
+            "artifact_status"
+        ),
         "league_count": len(
-            leagues
+            artifact["leagues"]
         ),
-        "total_team_parameters": total_teams,
-        "leagues": summary,
-        "calibration": {
-            "btts": BTTS_CALIBRATION_MULTIPLIER,
-            "over": OVER_CALIBRATION_MULTIPLIER,
+        "total_team_parameters": (
+            total_teams
+        ),
+        "leagues": leagues_summary,
+        "elo": {
+            "scale": artifact[
+                "elo"
+            ].get(
+                "scale"
+            ),
+            "rating_count": len(
+                artifact[
+                    "elo"
+                ].get(
+                    "ratings",
+                    {},
+                )
+            ),
         },
-        "home_advantage_points": (
-            EXPECTED_HOME_ADVANTAGE_POINTS
+        "score_matrix": artifact[
+            "score_matrix"
+        ],
+        "calibration": artifact[
+            "calibration"
+        ],
+        "model_fingerprint": (
+            get_model_fingerprint()
         ),
     }
 
@@ -1440,28 +1902,126 @@ def model_health_check() -> Dict[str, Any]:
         inspection = inspect_model()
 
         return {
-            "status": "ok",
             **inspection,
+            "status": "ok",
             "model_path": MODEL_DATA_PATH,
         }
 
     except Exception as exc:
 
         logger.exception(
-            "❌ Model health check failed."
+            "❌ BASHIRI production model "
+            "health check failed."
         )
 
         return {
             "status": "error",
-            "model_version": MODEL_VERSION,
-            "reference_date": REFERENCE_DATE,
+            "model_version": (
+                "UNKNOWN"
+            ),
             "error": str(exc),
             "model_path": MODEL_DATA_PATH,
         }
 
 
 # ======================================================================
-# CLI TEST
+# PRODUCTION SELF TEST
+# ======================================================================
+
+def _run_integrity_test() -> None:
+
+    artifact = load_models()
+
+    if not artifact[
+        "leagues"
+    ]:
+
+        raise RuntimeError(
+            "❌ No production leagues."
+        )
+
+    for competition, state in (
+        artifact["leagues"].items()
+    ):
+
+        teams = list(
+            state["teams"]
+        )
+
+        if len(teams) < 2:
+
+            continue
+
+        home_team = teams[0]
+        away_team = teams[-1]
+
+        if home_team == away_team:
+
+            continue
+
+        # Test zero Elo state.
+        result = _predict_from_resolved_teams(
+            competition=competition,
+            home_team=home_team,
+            away_team=away_team,
+            elo_scaled=0.0,
+            neutral_venue=False,
+        )
+
+        match_result = result[
+            "match_result"
+        ]
+
+        total_1x2 = (
+            match_result["home_win"]
+            + match_result["draw"]
+            + match_result["away_win"]
+        )
+
+        # Rounded output is intentionally allowed
+        # to sum to 99.9/100.1 at display precision.
+        if not (
+            99.8
+            <= total_1x2
+            <= 100.2
+        ):
+
+            raise AssertionError(
+                f"❌ Display 1X2 integrity "
+                f"failed for {competition}: "
+                f"{total_1x2}"
+            )
+
+        btts = result[
+            "btts"
+        ]
+
+        btts_total = (
+            btts["yes"]
+            + btts["no"]
+        )
+
+        if not (
+            99.8
+            <= btts_total
+            <= 100.2
+        ):
+
+            raise AssertionError(
+                f"❌ Display BTTS integrity "
+                f"failed for {competition}: "
+                f"{btts_total}"
+            )
+
+        break
+
+    logger.info(
+        "✅ Production self-test passed."
+    )
+
+
+# ======================================================================
+# CLI
 # ======================================================================
 
 if __name__ == "__main__":
@@ -1477,7 +2037,10 @@ if __name__ == "__main__":
     )
 
     print("=" * 80)
-    print("🔥 BASHIRI ML v2.0 - MODEL AUDIT")
+    print(
+        "🔥 BASHIRI ML — PRODUCTION "
+        "POISSON ENGINE AUDIT"
+    )
     print("=" * 80)
 
     try:
@@ -1503,83 +2066,80 @@ if __name__ == "__main__":
             )
 
         # ----------------------------------------------------------
-        # 2. ELCHÉ / BARCELONA TEST
+        # 2. SELF TEST
         # ----------------------------------------------------------
 
-        print("\n")
-        print("=" * 80)
-        print("⚽ ELCHÉ vs FC BARCELONA TEST")
-        print("=" * 80)
+        _run_integrity_test()
 
-        # Try common LaLiga identifiers.
-        available_leagues = (
+        # ----------------------------------------------------------
+        # 3. TEST ONE FIXTURE
+        # ----------------------------------------------------------
+
+        available = (
             get_available_leagues()
         )
 
-        print(
-            f"Available leagues: "
-            f"{available_leagues}"
-        )
+        laliga = None
 
-        laliga_code = None
+        for code in available:
 
-        for code in available_leagues:
-
-            normalized = str(
+            if str(
                 code
-            ).strip().lower()
-
-            if normalized in {
+            ).casefold() in {
                 "laliga",
                 "la liga",
                 "laliga_ea",
-                "laliga_santander",
-                "espana",
-                "spain",
+                "laliga santander",
             }:
 
-                laliga_code = code
+                laliga = code
                 break
 
-        if laliga_code is None:
+        if laliga:
 
-            print(
-                "\n⚠️ LaLiga code haikupatikana "
-                "automatically."
+            teams = list(
+                get_league_state(
+                    laliga
+                )["teams"]
             )
 
-            print(
-                "Model loaded successfully, "
-                "but Elche/Barcelona test skipped."
-            )
+            if len(teams) >= 2:
 
-        else:
-
-            result = predict_fixture(
-                laliga_code,
-                "Elche",
-                "Barcelona",
-            )
-
-            print(
-                json.dumps(
-                    result,
-                    indent=2,
-                    ensure_ascii=False,
+                print("\n")
+                print("=" * 80)
+                print(
+                    f"⚽ PRODUCTION TEST: "
+                    f"{teams[0]} vs {teams[-1]}"
                 )
-            )
+                print("=" * 80)
+
+                prediction = predict_fixture(
+                    laliga,
+                    teams[0],
+                    teams[-1],
+                )
+
+                print(
+                    json.dumps(
+                        prediction,
+                        indent=2,
+                        ensure_ascii=False,
+                    )
+                )
 
         print("\n")
         print("=" * 80)
         print(
-            "✅ BASHIRI ML v2.0 audit completed."
+            "✅ BASHIRI ML PRODUCTION "
+            "ENGINE AUDIT PASSED"
         )
         print("=" * 80)
 
     except Exception as exc:
 
         logger.exception(
-            "❌ BASHIRI ML test failed."
+            "❌ BASHIRI production engine "
+            "audit failed."
         )
 
         print(
