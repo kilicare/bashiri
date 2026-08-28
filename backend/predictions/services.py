@@ -207,8 +207,10 @@ def is_prediction_correct(market: str, selection: str, home_score: int, away_sco
     if market == "1X2":
         return selection == actual_1x2
     if market == "DOUBLE_CHANCE":
-        allowed = {"1X": {"home_win", "draw"}, "X2": {"draw", "away_win"}, "12": {"home_win", "away_win"}}
-        return actual_1x2 in allowed.get(selection, set())
+        # Normalize selection to lowercase to match MARKET_DEFINITIONS keys
+        normalized_selection = selection.lower()
+        allowed = {"1x": {"home_win", "draw"}, "x2": {"draw", "away_win"}, "12": {"home_win", "away_win"}}
+        return actual_1x2 in allowed.get(normalized_selection, set())
     if market == "DRAW_NO_BET":
         if actual_1x2 == "draw":
             return False

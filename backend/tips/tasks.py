@@ -45,11 +45,12 @@ def is_prediction_correct(market_key, selection, home_score, away_score):
             return True
     
     elif market_key == "DOUBLE_CHANCE":
-        if selection == "home_win_or_draw" and home_score >= away_score:
+        # Standardized keys: "1x", "x2", "12" to match predictions/services.py
+        if selection == "1x" and home_score >= away_score:
             return True
-        elif selection == "draw_or_away_win" and away_score >= home_score:
+        elif selection == "x2" and away_score >= home_score:
             return True
-        elif selection == "home_win_or_away_win" and home_score != away_score:
+        elif selection == "12" and home_score != away_score:
             return True
     
     return False
