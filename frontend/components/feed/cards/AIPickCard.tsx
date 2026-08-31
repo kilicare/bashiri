@@ -92,19 +92,27 @@ export function AIPickCard({ data }: { data: any }) {
     "draw": "Sare",
     "away_win": match.away_team,
     // BTTS
-    "yes": "Ndiyo (BTTS)",
-    "no": "Hapana (BTTS)",
-    // Over/Under (all lines)
-    "over_0_5": "Over 0.5",
-    "under_0_5": "Under 0.5",
+    "btts_yes": "Ndiyo (BTTS)",
+    "btts_no": "Hapana (BTTS)",
+    // Full Match Over/Under (1.5, 2.5 only per production contract)
     "over_1_5": "Over 1.5",
     "under_1_5": "Under 1.5",
     "over_2_5": "Over 2.5",
     "under_2_5": "Under 2.5",
-    "over_3_5": "Over 3.5",
-    "under_3_5": "Under 3.5",
-    "over_4_5": "Over 4.5",
-    "under_4_5": "Under 4.5",
+    // Home Team Goals Over/Under (0.5, 1.5, 2.5)
+    "home_over_0_5": "Home Over 0.5",
+    "home_under_0_5": "Home Under 0.5",
+    "home_over_1_5": "Home Over 1.5",
+    "home_under_1_5": "Home Under 1.5",
+    "home_over_2_5": "Home Over 2.5",
+    "home_under_2_5": "Home Under 2.5",
+    // Away Team Goals Over/Under (0.5, 1.5, 2.5)
+    "away_over_0_5": "Away Over 0.5",
+    "away_under_0_5": "Away Under 0.5",
+    "away_over_1_5": "Away Over 1.5",
+    "away_under_1_5": "Away Under 1.5",
+    "away_over_2_5": "Away Over 2.5",
+    "away_under_2_5": "Away Under 2.5",
     // Double Chance
     "1x": "1X (Home au Draw)",
     "x2": "X2 (Away au Draw)",
@@ -112,6 +120,8 @@ export function AIPickCard({ data }: { data: any }) {
     // Draw No Bet
     "home_dnb": "Home DNB",
     "away_dnb": "Away DNB",
+    // Correct Score
+    "correct_score": "Correct Score",
   };
 
   const isStrong = ai_pick.confidence >= 70;

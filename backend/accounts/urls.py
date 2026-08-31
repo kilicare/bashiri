@@ -11,6 +11,9 @@ from .views import (
     DeleteAccountView,
     FavoriteLeaguesView,
     FavoriteTeamsView,
+    FollowUserView,
+    FollowersListView,
+    FollowingListView,
     LoginView,
     LogoutView,
     MeView,
@@ -18,6 +21,7 @@ from .views import (
     PublicProfileView,
     RegisterView,
     RequestPasswordResetView,
+    UnfollowUserView,
     UpdateAvatarView,
     UpdateSettingsView,
 )
@@ -37,6 +41,12 @@ urlpatterns = [
     path("update-avatar/", UpdateAvatarView.as_view(), name="update-avatar"),
     path("profile/<str:username>/", PublicProfileView.as_view(), name="public-profile"),
     path("delete-account/", DeleteAccountView.as_view(), name="delete-account"),
+    
+    # Follow/Unfollow endpoints
+    path("follow/<str:username>/", FollowUserView.as_view(), name="follow-user"),
+    path("unfollow/<str:username>/", UnfollowUserView.as_view(), name="unfollow-user"),
+    path("following/", FollowingListView.as_view(), name="following-list"),
+    path("followers/", FollowersListView.as_view(), name="followers-list"),
 
     # ============================================================
     # OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)

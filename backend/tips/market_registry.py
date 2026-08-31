@@ -19,6 +19,8 @@ class MarketCategory(str, Enum):
     GOALS = "goals"
     BOTH_TEAMS = "both_teams"
     CORRECT_SCORE = "correct_score"
+    HOME_GOALS = "home_goals"
+    AWAY_GOALS = "away_goals"
 
 
 class SelectionOption(TypedDict):
@@ -41,6 +43,8 @@ class MarketDefinition(TypedDict):
 # ============================================
 # CANONICAL MARKET REGISTRY
 # ============================================
+# This registry MUST match the production JSON market_contract exactly.
+# Source: BASHIRI_PRODUCTION_MODEL.json -> market_contract
 
 MARKET_REGISTRY: Dict[str, MarketDefinition] = {
     # --- 1X2 (Win/Draw/Loss) ---
@@ -87,20 +91,21 @@ MARKET_REGISTRY: Dict[str, MarketDefinition] = {
         "supports_draw_void": True,  # Draw = VOID
     },
 
-    # --- Over/Under Markets ---
-    "OVER_UNDER_0_5": {
-        "key": "OVER_UNDER_0_5",
-        "label": "Over/Under 0.5 Goals",
-        "category": MarketCategory.GOALS,
+    # --- BTTS (Both Teams To Score) ---
+    "BTTS": {
+        "key": "BTTS",
+        "label": "Both Teams To Score",
+        "category": MarketCategory.BOTH_TEAMS,
         "selections": [
-            {"key": "over_0_5", "label": "Over 0.5"},
-            {"key": "under_0_5", "label": "Under 0.5"},
+            {"key": "btts_yes", "label": "Yes (Both Score)"},
+            {"key": "btts_no", "label": "No (One Doesn't Score)"},
         ],
         "available": True,
         "requires_final_score": True,
         "supports_draw_void": False,
     },
 
+    # --- Full Match Over/Under (production contract: 1.5, 2.5 only) ---
     "OVER_UNDER_1_5": {
         "key": "OVER_UNDER_1_5",
         "label": "Over/Under 1.5 Goals",
@@ -127,53 +132,93 @@ MARKET_REGISTRY: Dict[str, MarketDefinition] = {
         "supports_draw_void": False,
     },
 
-    "OVER_UNDER_3_5": {
-        "key": "OVER_UNDER_3_5",
-        "label": "Over/Under 3.5 Goals",
-        "category": MarketCategory.GOALS,
+    # --- Home Team Goals Over/Under (production contract: 0.5, 1.5, 2.5) ---
+    "HOME_GOALS_OVER_0_5": {
+        "key": "HOME_GOALS_OVER_0_5",
+        "label": "Home Over 0.5 Goals",
+        "category": MarketCategory.HOME_GOALS,
         "selections": [
-            {"key": "over_3_5", "label": "Over 3.5"},
-            {"key": "under_3_5", "label": "Under 3.5"},
+            {"key": "home_over_0_5", "label": "Over 0.5"},
+            {"key": "home_under_0_5", "label": "Under 0.5"},
         ],
         "available": True,
         "requires_final_score": True,
         "supports_draw_void": False,
     },
 
-    "OVER_UNDER_4_5": {
-        "key": "OVER_UNDER_4_5",
-        "label": "Over/Under 4.5 Goals",
-        "category": MarketCategory.GOALS,
+    "HOME_GOALS_OVER_1_5": {
+        "key": "HOME_GOALS_OVER_1_5",
+        "label": "Home Over 1.5 Goals",
+        "category": MarketCategory.HOME_GOALS,
         "selections": [
-            {"key": "over_4_5", "label": "Over 4.5"},
-            {"key": "under_4_5", "label": "Under 4.5"},
+            {"key": "home_over_1_5", "label": "Over 1.5"},
+            {"key": "home_under_1_5", "label": "Under 1.5"},
         ],
         "available": True,
         "requires_final_score": True,
         "supports_draw_void": False,
     },
 
-    # --- BTTS (Both Teams To Score) ---
-    "BTTS": {
-        "key": "BTTS",
-        "label": "Both Teams To Score",
-        "category": MarketCategory.BOTH_TEAMS,
+    "HOME_GOALS_OVER_2_5": {
+        "key": "HOME_GOALS_OVER_2_5",
+        "label": "Home Over 2.5 Goals",
+        "category": MarketCategory.HOME_GOALS,
         "selections": [
-            {"key": "btts_yes", "label": "Yes (Both Score)"},
-            {"key": "btts_no", "label": "No (One Doesn't Score)"},
+            {"key": "home_over_2_5", "label": "Over 2.5"},
+            {"key": "home_under_2_5", "label": "Under 2.5"},
         ],
         "available": True,
         "requires_final_score": True,
         "supports_draw_void": False,
     },
 
-    # --- Correct Score (NOT CURRENTLY SUPPORTED FOR USER TIPS) ---
+    # --- Away Team Goals Over/Under (production contract: 0.5, 1.5, 2.5) ---
+    "AWAY_GOALS_OVER_0_5": {
+        "key": "AWAY_GOALS_OVER_0_5",
+        "label": "Away Over 0.5 Goals",
+        "category": MarketCategory.AWAY_GOALS,
+        "selections": [
+            {"key": "away_over_0_5", "label": "Over 0.5"},
+            {"key": "away_under_0_5", "label": "Under 0.5"},
+        ],
+        "available": True,
+        "requires_final_score": True,
+        "supports_draw_void": False,
+    },
+
+    "AWAY_GOALS_OVER_1_5": {
+        "key": "AWAY_GOALS_OVER_1_5",
+        "label": "Away Over 1.5 Goals",
+        "category": MarketCategory.AWAY_GOALS,
+        "selections": [
+            {"key": "away_over_1_5", "label": "Over 1.5"},
+            {"key": "away_under_1_5", "label": "Under 1.5"},
+        ],
+        "available": True,
+        "requires_final_score": True,
+        "supports_draw_void": False,
+    },
+
+    "AWAY_GOALS_OVER_2_5": {
+        "key": "AWAY_GOALS_OVER_2_5",
+        "label": "Away Over 2.5 Goals",
+        "category": MarketCategory.AWAY_GOALS,
+        "selections": [
+            {"key": "away_over_2_5", "label": "Over 2.5"},
+            {"key": "away_under_2_5", "label": "Under 2.5"},
+        ],
+        "available": True,
+        "requires_final_score": True,
+        "supports_draw_void": False,
+    },
+
+    # --- Correct Score (from adaptive Poisson score matrix) ---
     "CORRECT_SCORE": {
         "key": "CORRECT_SCORE",
         "label": "Correct Score",
         "category": MarketCategory.CORRECT_SCORE,
         "selections": [],  # Dynamically generated based on score ranges
-        "available": False,  # Disabled until verification is fully implemented
+        "available": True,  # Now supported per production contract
         "requires_final_score": True,
         "supports_draw_void": False,
     },
@@ -218,6 +263,21 @@ def is_valid_selection(market_key: str, selection_key: str) -> bool:
     if not market:
         return False
 
+    # CORRECT_SCORE has dynamic selections (any X-Y format)
+    if market_key == "CORRECT_SCORE":
+        # Validate that selection is in score format (X-Y)
+        if "-" not in selection_key:
+            return False
+        try:
+            parts = selection_key.split("-")
+            if len(parts) != 2:
+                return False
+            int(parts[0])
+            int(parts[1])
+            return True
+        except ValueError:
+            return False
+
     return any(s["key"] == selection_key for s in market["selections"])
 
 
@@ -225,32 +285,35 @@ def parse_goal_line(market_key: str) -> Optional[float]:
     """
     Parse goal line from Over/Under market key.
     
-    Examples:
-        OVER_UNDER_0_5 → 0.5
-        OVER_UNDER_1_5 → 1.5
-        OVER_UNDER_2_5 → 2.5
-        OVER_UNDER_3_5 → 3.5
-        OVER_UNDER_4_5 → 4.5
+    Supports both formats:
+    - OVER_UNDER_X_Y (old): OVER_UNDER_1_5 → 1.5
+    - TEAM_GOALS_OVER_X_Y (new): HOME_GOALS_OVER_1_5 → 1.5
     
     Returns None for invalid market keys.
     """
-    if not market_key.startswith("OVER_UNDER_"):
-        return None
-
-    # Extract the goal line part (everything after "OVER_UNDER_")
-    # The format is: OVER_UNDER_X_Y where X_Y is the goal line
-    parts = market_key.split("_")
-    if len(parts) < 4:  # Should be: OVER, UNDER, X, Y
-        return None
-
-    # The goal line is the combination of the last two parts
-    # e.g., OVER_UNDER_2_5 → parts = ['OVER', 'UNDER', '2', '5']
-    goal_line_str = f"{parts[-2]}.{parts[-1]}"
+    # Handle new TEAM_GOALS format
+    if market_key.startswith("HOME_GOALS_OVER_") or market_key.startswith("AWAY_GOALS_OVER_"):
+        parts = market_key.split("_")
+        if len(parts) < 5:  # Should be: HOME/AWAY, GOALS, OVER, X, Y
+            return None
+        goal_line_str = f"{parts[-2]}.{parts[-1]}"
+        try:
+            return float(goal_line_str)
+        except ValueError:
+            return None
     
-    try:
-        return float(goal_line_str)
-    except ValueError:
-        return None
+    # Handle old OVER_UNDER format
+    if market_key.startswith("OVER_UNDER_"):
+        parts = market_key.split("_")
+        if len(parts) < 4:  # Should be: OVER, UNDER, X, Y
+            return None
+        goal_line_str = f"{parts[-2]}.{parts[-1]}"
+        try:
+            return float(goal_line_str)
+        except ValueError:
+            return None
+    
+    return None
 
 
 def normalize_selection_key(market_key: str, selection_key: str) -> str:

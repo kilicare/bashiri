@@ -37,10 +37,12 @@ logger = logging.getLogger(__name__)
 
 
 # ======================================================================
-# MARKET DEFINITIONS (must match services.py)
+# MARKET DEFINITIONS (must match production JSON market_contract)
 # ======================================================================
+# Source: BASHIRI_PRODUCTION_MODEL.json -> market_contract
 
 MARKET_DEFINITIONS = {
+    # Full Match Markets
     "1X2": {"label": "Matokeo ya Mechi", "source_key": "match_result", "options": [
         {"key": "home_win", "label": "Ushindi Nyumbani"},
         {"key": "draw", "label": "Sare"},
@@ -52,23 +54,40 @@ MARKET_DEFINITIONS = {
     "DRAW_NO_BET": {"label": "Draw No Bet", "source_key": "draw_no_bet", "options": [
         {"key": "home_dnb", "label": "Home DNB"}, {"key": "away_dnb", "label": "Away DNB"},
     ]},
-    "OVER_UNDER_0_5": {"label": "Over/Under 0.5", "source_key": "over_under", "options": [
-        {"key": "over_0_5", "label": "Over 0.5"}, {"key": "under_0_5", "label": "Under 0.5"},
+    "BTTS": {"label": "Timu Zote Kufunga (BTTS)", "source_key": "btts", "options": [
+        {"key": "btts_yes", "label": "Ndiyo"}, {"key": "btts_no", "label": "Hapana"},
     ]},
+    # Full Match Over/Under (production contract: 1.5, 2.5 only)
     "OVER_UNDER_1_5": {"label": "Over/Under 1.5", "source_key": "over_under", "options": [
         {"key": "over_1_5", "label": "Over 1.5"}, {"key": "under_1_5", "label": "Under 1.5"},
     ]},
     "OVER_UNDER_2_5": {"label": "Over/Under 2.5", "source_key": "over_under", "options": [
         {"key": "over_2_5", "label": "Over 2.5"}, {"key": "under_2_5", "label": "Under 2.5"},
     ]},
-    "OVER_UNDER_3_5": {"label": "Over/Under 3.5", "source_key": "over_under", "options": [
-        {"key": "over_3_5", "label": "Over 3.5"}, {"key": "under_3_5", "label": "Under 3.5"},
+    # Home Team Goals Over/Under (production contract: 0.5, 1.5, 2.5)
+    "HOME_GOALS_OVER_0_5": {"label": "Home Over/Under 0.5", "source_key": "home_goals", "options": [
+        {"key": "home_over_0_5", "label": "Over 0.5"}, {"key": "home_under_0_5", "label": "Under 0.5"},
     ]},
-    "OVER_UNDER_4_5": {"label": "Over/Under 4.5", "source_key": "over_under", "options": [
-        {"key": "over_4_5", "label": "Over 4.5"}, {"key": "under_4_5", "label": "Under 4.5"},
+    "HOME_GOALS_OVER_1_5": {"label": "Home Over/Under 1.5", "source_key": "home_goals", "options": [
+        {"key": "home_over_1_5", "label": "Over 1.5"}, {"key": "home_under_1_5", "label": "Under 1.5"},
     ]},
-    "BTTS": {"label": "Timu Zote Kufunga (BTTS)", "source_key": "btts", "options": [
-        {"key": "yes", "label": "Ndiyo"}, {"key": "no", "label": "Hapana"},
+    "HOME_GOALS_OVER_2_5": {"label": "Home Over/Under 2.5", "source_key": "home_goals", "options": [
+        {"key": "home_over_2_5", "label": "Over 2.5"}, {"key": "home_under_2_5", "label": "Under 2.5"},
+    ]},
+    # Away Team Goals Over/Under (production contract: 0.5, 1.5, 2.5)
+    "AWAY_GOALS_OVER_0_5": {"label": "Away Over/Under 0.5", "source_key": "away_goals", "options": [
+        {"key": "away_over_0_5", "label": "Over 0.5"}, {"key": "away_under_0_5", "label": "Under 0.5"},
+    ]},
+    "AWAY_GOALS_OVER_1_5": {"label": "Away Over/Under 1.5", "source_key": "away_goals", "options": [
+        {"key": "away_over_1_5", "label": "Over 1.5"}, {"key": "away_under_1_5", "label": "Under 1.5"},
+    ]},
+    "AWAY_GOALS_OVER_2_5": {"label": "Away Over/Under 2.5", "source_key": "away_goals", "options": [
+        {"key": "away_over_2_5", "label": "Over 2.5"}, {"key": "away_under_2_5", "label": "Under 2.5"},
+    ]},
+    # Correct Score (from adaptive Poisson score matrix)
+    "CORRECT_SCORE": {"label": "Correct Score", "source_key": "correct_score", "options": [
+        # Options are dynamically generated from predictions list
+        # Handled specially in services.py
     ]},
 }
 
@@ -83,19 +102,27 @@ MARKET_EVALUATION_KEY_MAP = {
     ("1X2", "draw"): "1x2_draw",
     ("1X2", "away_win"): "1x2_away",
     # BTTS
-    ("BTTS", "yes"): "btts_yes",
-    ("BTTS", "no"): "btts_no",
-    # Over/Under
-    ("OVER_UNDER_0_5", "over_0_5"): "over_0_5",
-    ("OVER_UNDER_0_5", "under_0_5"): "over_0_5",  # Same evaluation for over/under pair
+    ("BTTS", "btts_yes"): "btts_yes",
+    ("BTTS", "btts_no"): "btts_no",
+    # Full Match Over/Under (1.5, 2.5 only per production contract)
     ("OVER_UNDER_1_5", "over_1_5"): "over_1_5",
     ("OVER_UNDER_1_5", "under_1_5"): "over_1_5",
     ("OVER_UNDER_2_5", "over_2_5"): "over_2_5",
     ("OVER_UNDER_2_5", "under_2_5"): "over_2_5",
-    ("OVER_UNDER_3_5", "over_3_5"): "over_3_5",
-    ("OVER_UNDER_3_5", "under_3_5"): "over_3_5",
-    ("OVER_UNDER_4_5", "over_4_5"): "over_4_5",
-    ("OVER_UNDER_4_5", "under_4_5"): "over_4_5",
+    # Home Team Goals Over/Under (0.5, 1.5, 2.5)
+    ("HOME_GOALS_OVER_0_5", "home_over_0_5"): "home_over_0_5",
+    ("HOME_GOALS_OVER_0_5", "home_under_0_5"): "home_over_0_5",
+    ("HOME_GOALS_OVER_1_5", "home_over_1_5"): "home_over_1_5",
+    ("HOME_GOALS_OVER_1_5", "home_under_1_5"): "home_over_1_5",
+    ("HOME_GOALS_OVER_2_5", "home_over_2_5"): "home_over_2_5",
+    ("HOME_GOALS_OVER_2_5", "home_under_2_5"): "home_over_2_5",
+    # Away Team Goals Over/Under (0.5, 1.5, 2.5)
+    ("AWAY_GOALS_OVER_0_5", "away_over_0_5"): "away_over_0_5",
+    ("AWAY_GOALS_OVER_0_5", "away_under_0_5"): "away_over_0_5",
+    ("AWAY_GOALS_OVER_1_5", "away_over_1_5"): "away_over_1_5",
+    ("AWAY_GOALS_OVER_1_5", "away_under_1_5"): "away_over_1_5",
+    ("AWAY_GOALS_OVER_2_5", "away_over_2_5"): "away_over_2_5",
+    ("AWAY_GOALS_OVER_2_5", "away_under_2_5"): "away_over_2_5",
     # Draw No Bet
     ("DRAW_NO_BET", "home_dnb"): "dnb_home",
     ("DRAW_NO_BET", "away_dnb"): "dnb_away",

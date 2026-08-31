@@ -558,7 +558,8 @@ export default function ProfilePage() {
                 { market: 'O/U 2.5', accuracy: aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.8) },
                 { market: 'Dbl Chance', accuracy: (aiPerformance?.weekly?.market_accuracy?.["1x2"] || 0) * 0.95, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.4) },
                 { market: 'O/U 1.5', accuracy: (aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0) * 0.8, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.5) },
-                { market: 'O/U 3.5', accuracy: (aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0) * 0.75, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.3) },
+                { market: 'Home Goals', accuracy: (aiPerformance?.weekly?.market_accuracy?.["home_goals"] || 0) * 0.85, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.7) },
+                { market: 'Away Goals', accuracy: (aiPerformance?.weekly?.market_accuracy?.["away_goals"] || 0) * 0.85, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.7) },
               ]}
             />
           </div>

@@ -69,15 +69,23 @@ export default function SavedMarketsPage() {
   // Convert market key to readable label
   const getMarketLabel = (key: string) => {
     const labels: Record<string, string> = {
+      // Full Match Markets
       "1X2": "Matokeo ya Mechi",
       "DOUBLE_CHANCE": "Double Chance",
       "DRAW_NO_BET": "Draw No Bet",
-      "OVER_UNDER_0_5": "Over/Under 0.5",
+      "BTTS": "Timu Zote Kufunga (BTTS)",
       "OVER_UNDER_1_5": "Over/Under 1.5",
       "OVER_UNDER_2_5": "Over/Under 2.5",
-      "OVER_UNDER_3_5": "Over/Under 3.5",
-      "OVER_UNDER_4_5": "Over/Under 4.5",
-      "BTTS": "Timu Zote Kufunga (BTTS)",
+      // Home Team Goals
+      "HOME_GOALS_OVER_0_5": "Home Over/Under 0.5",
+      "HOME_GOALS_OVER_1_5": "Home Over/Under 1.5",
+      "HOME_GOALS_OVER_2_5": "Home Over/Under 2.5",
+      // Away Team Goals
+      "AWAY_GOALS_OVER_0_5": "Away Over/Under 0.5",
+      "AWAY_GOALS_OVER_1_5": "Away Over/Under 1.5",
+      "AWAY_GOALS_OVER_2_5": "Away Over/Under 2.5",
+      // Correct Score
+      "CORRECT_SCORE": "Correct Score",
     };
     return labels[key] || key;
   };

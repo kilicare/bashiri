@@ -324,17 +324,25 @@ def generate_saved_markets_pdf(saved_markets, tab_name="All Markets"):
             confidence = market.get('ai_confidence')
             conf_str = f"{confidence}%" if confidence else 'N/A'
             
-            # Convert market key to readable label
+            # Convert market key to readable label (matching production JSON)
             market_labels = {
+                # Full Match
                 "1X2": "Matokeo ya Mechi",
                 "DOUBLE_CHANCE": "Double Chance",
                 "DRAW_NO_BET": "Draw No Bet",
-                "OVER_UNDER_0_5": "Over/Under 0.5",
+                "BTTS": "Timu Zote Kufunga (BTTS)",
                 "OVER_UNDER_1_5": "Over/Under 1.5",
                 "OVER_UNDER_2_5": "Over/Under 2.5",
-                "OVER_UNDER_3_5": "Over/Under 3.5",
-                "OVER_UNDER_4_5": "Over/Under 4.5",
-                "BTTS": "Timu Zote Kufunga (BTTS)",
+                # Home Team Goals
+                "HOME_GOALS_OVER_0_5": "Home Over/Under 0.5",
+                "HOME_GOALS_OVER_1_5": "Home Over/Under 1.5",
+                "HOME_GOALS_OVER_2_5": "Home Over/Under 2.5",
+                # Away Team Goals
+                "AWAY_GOALS_OVER_0_5": "Away Over/Under 0.5",
+                "AWAY_GOALS_OVER_1_5": "Away Over/Under 1.5",
+                "AWAY_GOALS_OVER_2_5": "Away Over/Under 2.5",
+                # Correct Score
+                "CORRECT_SCORE": "Correct Score",
             }
             market_label = market_labels.get(market_key, market_key)
             

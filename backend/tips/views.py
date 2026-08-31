@@ -39,6 +39,7 @@ class TipListView(APIView):
             'league': request.query_params.get('league'),
             'market': request.query_params.get('market'),
             'user': request.query_params.get('user'),
+            'following': request.query_params.get('following'),  # Filter by followed users
             'status': request.query_params.get('status', 'PENDING'),
             'sort': request.query_params.get('sort', '-created_at'),
             'page_size': request.query_params.get('page_size', 20),
@@ -62,6 +63,11 @@ class TipListView(APIView):
             tips = tips.filter(market_key__iexact=filters['market'])
         if filters['user']:
             tips = tips.filter(user__username__iexact=filters['user'])
+        
+        # Filter by followed users (only for authenticated users)
+        if filters['following'] and request.user.is_authenticated:
+            followed_user_ids = request.user.following.values_list('id', flat=True)
+            tips = tips.filter(user_id__in=followed_user_ids)
 
         # Sort - Enhanced discovery ranking
         sort = filters['sort']
@@ -76,10 +82,10 @@ class TipListView(APIView):
         ]
 
         if sort == 'engagement':
-            # Sort by composite engagement score (views + upvotes + comments)
-            tips = tips.order_by('-engagement_score', '-created_at')
+            # Sort by composite engagement score (weighted: upvotes*5 + views + comments*3)
+            tips = tips.order_by('-upvotes_count', '-views_count', '-comments_count', '-created_at')
         elif sort == '-engagement':
-            tips = tips.order_by('engagement_score', 'created_at')
+            tips = tips.order_by('upvotes_count', 'views_count', 'comments_count', 'created_at')
         elif sort == 'ai_agrees':
             # Sort by AI agreement (tips where AI agrees first)
             tips = tips.filter(ai_snapshot__ai_agrees=True).order_by('-created_at')

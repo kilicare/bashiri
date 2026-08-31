@@ -4,15 +4,20 @@ tips/tests/test_verification.py
 Comprehensive tests for the tip verification engine.
 
 Tests:
-- Market parsing (Over/Under goal lines)
+- Market parsing (Over/Under goal lines including Team Goals)
 - BTTS key normalization
 - DNB verification (including VOID)
 - 1X2 verification
 - Double Chance verification
-- Over/Under verification (all lines)
+- DNB wins/losses/voids
+- BTTS
+- Over/Under (Full Match: 1.5, 2.5 only - NO 0.5, 3.5, 4.5)
+- Home Team Goals Over/Under (0.5, 1.5, 2.5)
+- Away Team Goals Over/Under (0.5, 1.5, 2.5)
+- Correct Score
 - Idempotency
 - Invalid inputs
-- Tip locking mechanism
+- Tip locking logic
 """
 
 import pytest
@@ -28,38 +33,51 @@ from tips.market_registry import (
 
 
 class TestGoalLineParsing:
-    """Test Over/Under goal line parsing."""
+    """Test goal line parsing for both Full Match and Team Goals markets"""
     
-    def test_parse_0_5(self):
-        """Test parsing OVER_UNDER_0_5"""
-        assert parse_goal_line("OVER_UNDER_0_5") == 0.5
-    
-    def test_parse_1_5(self):
-        """Test parsing OVER_UNDER_1_5"""
+    def test_parse_full_match_1_5(self):
+        """Test parsing Full Match 1.5"""
         assert parse_goal_line("OVER_UNDER_1_5") == 1.5
     
-    def test_parse_2_5(self):
-        """Test parsing OVER_UNDER_2_5"""
+    def test_parse_full_match_2_5(self):
+        """Test parsing Full Match 2.5"""
         assert parse_goal_line("OVER_UNDER_2_5") == 2.5
     
-    def test_parse_3_5(self):
-        """Test parsing OVER_UNDER_3_5"""
-        assert parse_goal_line("OVER_UNDER_3_5") == 3.5
+    def test_parse_home_goals_0_5(self):
+        """Test parsing Home Goals 0.5"""
+        assert parse_goal_line("HOME_GOALS_OVER_0_5") == 0.5
     
-    def test_parse_4_5(self):
-        """Test parsing OVER_UNDER_4_5"""
-        assert parse_goal_line("OVER_UNDER_4_5") == 4.5
+    def test_parse_home_goals_1_5(self):
+        """Test parsing Home Goals 1.5"""
+        assert parse_goal_line("HOME_GOALS_OVER_1_5") == 1.5
+    
+    def test_parse_home_goals_2_5(self):
+        """Test parsing Home Goals 2.5"""
+        assert parse_goal_line("HOME_GOALS_OVER_2_5") == 2.5
+    
+    def test_parse_away_goals_0_5(self):
+        """Test parsing Away Goals 0.5"""
+        assert parse_goal_line("AWAY_GOALS_OVER_0_5") == 0.5
+    
+    def test_parse_away_goals_1_5(self):
+        """Test parsing Away Goals 1.5"""
+        assert parse_goal_line("AWAY_GOALS_OVER_1_5") == 1.5
+    
+    def test_parse_away_goals_2_5(self):
+        """Test parsing Away Goals 2.5"""
+        assert parse_goal_line("AWAY_GOALS_OVER_2_5") == 2.5
     
     def test_parse_invalid_market(self):
-        """Test parsing invalid market returns None"""
+        """Test invalid market returns None"""
         assert parse_goal_line("1X2") is None
         assert parse_goal_line("BTTS") is None
         assert parse_goal_line("INVALID_KEY") is None
     
-    def test_parse_malformed_over_under(self):
-        """Test malformed Over/Under key returns None"""
+    def test_parse_malformed_market(self):
+        """Test malformed market returns None"""
         assert parse_goal_line("OVER_UNDER") is None
         assert parse_goal_line("OVER_UNDER_2") is None
+        assert parse_goal_line("HOME_GOALS_OVER") is None
 
 
 class TestBTTSNormalization:
@@ -242,26 +260,26 @@ class TestBTTSVerification:
 
 
 class TestOverUnderVerification:
-    """Test Over/Under verification for all goal lines."""
+    """Test Over/Under verification for Full Match (1.5, 2.5 only)."""
     
-    def test_over_0_5_correct(self):
-        """Test Over 0.5 correct"""
-        result = verify_tip("OVER_UNDER_0_5", "over_0_5", 1, 0)
+    def test_over_1_5_correct(self):
+        """Test Over 1.5 correct"""
+        result = verify_tip("OVER_UNDER_1_5", "over_1_5", 2, 0)
         assert result == VerificationResult.WON
     
-    def test_over_0_5_incorrect(self):
-        """Test Over 0.5 incorrect"""
-        result = verify_tip("OVER_UNDER_0_5", "over_0_5", 0, 0)
+    def test_over_1_5_incorrect(self):
+        """Test Over 1.5 incorrect (exactly 1.5)"""
+        result = verify_tip("OVER_UNDER_1_5", "over_1_5", 1, 0)
         assert result == VerificationResult.LOST
     
-    def test_under_0_5_correct(self):
-        """Test Under 0.5 correct"""
-        result = verify_tip("OVER_UNDER_0_5", "under_0_5", 0, 0)
+    def test_under_1_5_correct(self):
+        """Test Under 1.5 correct"""
+        result = verify_tip("OVER_UNDER_1_5", "under_1_5", 1, 0)
         assert result == VerificationResult.WON
     
-    def test_under_0_5_incorrect(self):
-        """Test Under 0.5 incorrect"""
-        result = verify_tip("OVER_UNDER_0_5", "under_0_5", 1, 0)
+    def test_under_1_5_incorrect(self):
+        """Test Under 1.5 incorrect"""
+        result = verify_tip("OVER_UNDER_1_5", "under_1_5", 2, 0)
         assert result == VerificationResult.LOST
     
     def test_over_2_5_correct(self):
@@ -283,16 +301,168 @@ class TestOverUnderVerification:
         """Test Under 2.5 incorrect"""
         result = verify_tip("OVER_UNDER_2_5", "under_2_5", 3, 0)
         assert result == VerificationResult.LOST
+
+
+class TestHomeGoalsVerification:
+    """Test Home Team Goals Over/Under verification (0.5, 1.5, 2.5)."""
     
-    def test_over_4_5_correct(self):
-        """Test Over 4.5 correct"""
-        result = verify_tip("OVER_UNDER_4_5", "over_4_5", 5, 0)
+    def test_home_over_0_5_correct(self):
+        """Test Home Over 0.5 correct"""
+        result = verify_tip("HOME_GOALS_OVER_0_5", "home_over_0_5", 1, 0)
         assert result == VerificationResult.WON
     
-    def test_under_4_5_correct(self):
-        """Test Under 4.5 correct"""
-        result = verify_tip("OVER_UNDER_4_5", "under_4_5", 4, 0)
+    def test_home_over_0_5_incorrect(self):
+        """Test Home Over 0.5 incorrect"""
+        result = verify_tip("HOME_GOALS_OVER_0_5", "home_over_0_5", 0, 3)
+        assert result == VerificationResult.LOST
+    
+    def test_home_under_0_5_correct(self):
+        """Test Home Under 0.5 correct"""
+        result = verify_tip("HOME_GOALS_OVER_0_5", "home_under_0_5", 0, 3)
         assert result == VerificationResult.WON
+    
+    def test_home_under_0_5_incorrect(self):
+        """Test Home Under 0.5 incorrect"""
+        result = verify_tip("HOME_GOALS_OVER_0_5", "home_under_0_5", 1, 0)
+        assert result == VerificationResult.LOST
+    
+    def test_home_over_1_5_correct(self):
+        """Test Home Over 1.5 correct"""
+        result = verify_tip("HOME_GOALS_OVER_1_5", "home_over_1_5", 2, 0)
+        assert result == VerificationResult.WON
+    
+    def test_home_over_1_5_incorrect(self):
+        """Test Home Over 1.5 incorrect (exactly 1.5)"""
+        result = verify_tip("HOME_GOALS_OVER_1_5", "home_over_1_5", 1, 0)
+        assert result == VerificationResult.LOST
+    
+    def test_home_under_1_5_correct(self):
+        """Test Home Under 1.5 correct"""
+        result = verify_tip("HOME_GOALS_OVER_1_5", "home_under_1_5", 1, 0)
+        assert result == VerificationResult.WON
+    
+    def test_home_under_1_5_incorrect(self):
+        """Test Home Under 1.5 incorrect"""
+        result = verify_tip("HOME_GOALS_OVER_1_5", "home_under_1_5", 2, 0)
+        assert result == VerificationResult.LOST
+    
+    def test_home_over_2_5_correct(self):
+        """Test Home Over 2.5 correct"""
+        result = verify_tip("HOME_GOALS_OVER_2_5", "home_over_2_5", 3, 0)
+        assert result == VerificationResult.WON
+    
+    def test_home_over_2_5_incorrect(self):
+        """Test Home Over 2.5 incorrect (exactly 2.5)"""
+        result = verify_tip("HOME_GOALS_OVER_2_5", "home_over_2_5", 2, 0)
+        assert result == VerificationResult.LOST
+    
+    def test_home_under_2_5_correct(self):
+        """Test Home Under 2.5 correct"""
+        result = verify_tip("HOME_GOALS_OVER_2_5", "home_under_2_5", 2, 0)
+        assert result == VerificationResult.WON
+    
+    def test_home_under_2_5_incorrect(self):
+        """Test Home Under 2.5 incorrect"""
+        result = verify_tip("HOME_GOALS_OVER_2_5", "home_under_2_5", 3, 0)
+        assert result == VerificationResult.LOST
+
+
+class TestAwayGoalsVerification:
+    """Test Away Team Goals Over/Under verification (0.5, 1.5, 2.5)."""
+    
+    def test_away_over_0_5_correct(self):
+        """Test Away Over 0.5 correct"""
+        result = verify_tip("AWAY_GOALS_OVER_0_5", "away_over_0_5", 0, 1)
+        assert result == VerificationResult.WON
+    
+    def test_away_over_0_5_incorrect(self):
+        """Test Away Over 0.5 incorrect"""
+        result = verify_tip("AWAY_GOALS_OVER_0_5", "away_over_0_5", 3, 0)
+        assert result == VerificationResult.LOST
+    
+    def test_away_under_0_5_correct(self):
+        """Test Away Under 0.5 correct"""
+        result = verify_tip("AWAY_GOALS_OVER_0_5", "away_under_0_5", 3, 0)
+        assert result == VerificationResult.WON
+    
+    def test_away_under_0_5_incorrect(self):
+        """Test Away Under 0.5 incorrect"""
+        result = verify_tip("AWAY_GOALS_OVER_0_5", "away_under_0_5", 0, 1)
+        assert result == VerificationResult.LOST
+    
+    def test_away_over_1_5_correct(self):
+        """Test Away Over 1.5 correct"""
+        result = verify_tip("AWAY_GOALS_OVER_1_5", "away_over_1_5", 0, 2)
+        assert result == VerificationResult.WON
+    
+    def test_away_over_1_5_incorrect(self):
+        """Test Away Over 1.5 incorrect (exactly 1.5)"""
+        result = verify_tip("AWAY_GOALS_OVER_1_5", "away_over_1_5", 0, 1)
+        assert result == VerificationResult.LOST
+    
+    def test_away_under_1_5_correct(self):
+        """Test Away Under 1.5 correct"""
+        result = verify_tip("AWAY_GOALS_OVER_1_5", "away_under_1_5", 0, 1)
+        assert result == VerificationResult.WON
+    
+    def test_away_under_1_5_incorrect(self):
+        """Test Away Under 1.5 incorrect"""
+        result = verify_tip("AWAY_GOALS_OVER_1_5", "away_under_1_5", 0, 2)
+        assert result == VerificationResult.LOST
+    
+    def test_away_over_2_5_correct(self):
+        """Test Away Over 2.5 correct"""
+        result = verify_tip("AWAY_GOALS_OVER_2_5", "away_over_2_5", 0, 3)
+        assert result == VerificationResult.WON
+    
+    def test_away_over_2_5_incorrect(self):
+        """Test Away Over 2.5 incorrect (exactly 2.5)"""
+        result = verify_tip("AWAY_GOALS_OVER_2_5", "away_over_2_5", 0, 2)
+        assert result == VerificationResult.LOST
+    
+    def test_away_under_2_5_correct(self):
+        """Test Away Under 2.5 correct"""
+        result = verify_tip("AWAY_GOALS_OVER_2_5", "away_under_2_5", 0, 2)
+        assert result == VerificationResult.WON
+    
+    def test_away_under_2_5_incorrect(self):
+        """Test Away Under 2.5 incorrect"""
+        result = verify_tip("AWAY_GOALS_OVER_2_5", "away_under_2_5", 0, 3)
+        assert result == VerificationResult.LOST
+
+
+class TestCorrectScoreVerification:
+    """Test Correct Score verification."""
+    
+    def test_correct_score_exact_match(self):
+        """Test Correct Score wins on exact match"""
+        result = verify_tip("CORRECT_SCORE", "2-1", 2, 1)
+        assert result == VerificationResult.WON
+    
+    def test_correct_score_different_score(self):
+        """Test Correct Score lost on different score"""
+        result = verify_tip("CORRECT_SCORE", "2-1", 1, 2)
+        assert result == VerificationResult.LOST
+    
+    def test_correct_score_1_0_exact(self):
+        """Test Correct Score 1-0 exact match"""
+        result = verify_tip("CORRECT_SCORE", "1-0", 1, 0)
+        assert result == VerificationResult.WON
+    
+    def test_correct_score_0_0_exact(self):
+        """Test Correct Score 0-0 exact match"""
+        result = verify_tip("CORRECT_SCORE", "0-0", 0, 0)
+        assert result == VerificationResult.WON
+    
+    def test_correct_score_high_score(self):
+        """Test Correct Score with high score"""
+        result = verify_tip("CORRECT_SCORE", "3-2", 3, 2)
+        assert result == VerificationResult.WON
+    
+    def test_correct_score_invalid_format(self):
+        """Test Correct Score with invalid format raises error"""
+        with pytest.raises(ValueError):
+            verify_tip("CORRECT_SCORE", "invalid", 2, 1)
 
 
 class TestIdempotency:
@@ -318,6 +488,16 @@ class TestInvalidInputs:
         """Test invalid market key raises error"""
         with pytest.raises(ValueError):
             verify_tip("INVALID_MARKET", "home_win", 3, 1)
+    
+    def test_removed_full_match_markets(self):
+        """Test removed Full Match markets (0.5, 3.5, 4.5) are invalid"""
+        # These markets were removed from production contract
+        with pytest.raises(ValueError):
+            verify_tip("OVER_UNDER_0_5", "over_0_5", 1, 0)
+        with pytest.raises(ValueError):
+            verify_tip("OVER_UNDER_3_5", "over_3_5", 4, 0)
+        with pytest.raises(ValueError):
+            verify_tip("OVER_UNDER_4_5", "over_4_5", 5, 0)
     
     def test_invalid_selection(self):
         """Test invalid selection raises error"""

@@ -52,6 +52,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     verified_tipster = models.BooleanField(default=False)
     followers_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
+    
+    # Follower/Following relationships
+    following = models.ManyToManyField(
+        "self", 
+        blank=True, 
+        related_name="followers",
+        symmetrical=False,
+        through="UserFollow"
+    )
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -109,6 +118,29 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.user_tip_stats.total_tips
         except:
             return 0
+
+
+class UserFollow(models.Model):
+    """Through model for user following relationships with timestamps"""
+    follower = models.ForeignKey(
+        "User", 
+        on_delete=models.CASCADE, 
+        related_name="following_relationships"
+    )
+    following = models.ForeignKey(
+        "User", 
+        on_delete=models.CASCADE, 
+        related_name="follower_relationships"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "accounts_userfollow"
+        unique_together = ["follower", "following"]
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"
 
 
 class OTPCode(models.Model):

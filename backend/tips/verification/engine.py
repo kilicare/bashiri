@@ -65,11 +65,12 @@ class VerificationEngine:
         # Normalize selection key to canonical form
         normalized_selection = normalize_selection_key(market_key, selection_key)
         
-        # Validate market and selection
-        if not is_valid_selection(market_key, normalized_selection):
-            raise ValueError(
-                f"Invalid selection '{selection_key}' for market '{market_key}'"
-            )
+        # Validate market and selection (skip for Correct Score since selections are dynamic)
+        if market_key != "CORRECT_SCORE":
+            if not is_valid_selection(market_key, normalized_selection):
+                raise ValueError(
+                    f"Invalid selection '{selection_key}' for market '{market_key}'"
+                )
 
         # Route to market-specific resolver
         resolvers = {
@@ -77,11 +78,24 @@ class VerificationEngine:
             "DOUBLE_CHANCE": VerificationEngine._verify_double_chance,
             "DRAW_NO_BET": VerificationEngine._verify_dnb,
             "BTTS": VerificationEngine._verify_btts,
+            "CORRECT_SCORE": VerificationEngine._verify_correct_score,
         }
 
-        # Over/Under markets use generic resolver
+        # Over/Under markets (Full Match) use generic resolver
         if market_key.startswith("OVER_UNDER"):
             return VerificationEngine._verify_over_under(
+                market_key, normalized_selection, home_score, away_score
+            )
+
+        # Home Team Goals markets
+        if market_key.startswith("HOME_GOALS_OVER_"):
+            return VerificationEngine._verify_home_goals(
+                market_key, normalized_selection, home_score, away_score
+            )
+
+        # Away Team Goals markets
+        if market_key.startswith("AWAY_GOALS_OVER_"):
+            return VerificationEngine._verify_away_goals(
                 market_key, normalized_selection, home_score, away_score
             )
 
@@ -176,7 +190,7 @@ class VerificationEngine:
         away_score: int,
     ) -> VerificationResult:
         """
-        Verify Over/Under market.
+        Verify Over/Under market (Full Match totals).
         
         FIXED: Properly parses goal line from market key.
         Example: OVER_UNDER_2_5 → threshold = 2.5
@@ -198,6 +212,92 @@ class VerificationEngine:
             return VerificationResult.WON if total_goals < threshold else VerificationResult.LOST
         else:
             raise ValueError(f"Invalid Over/Under selection: {selection}")
+
+    @staticmethod
+    def _verify_home_goals(
+        market_key: str,
+        selection: str,
+        home_score: int,
+        away_score: int,
+    ) -> VerificationResult:
+        """
+        Verify Home Team Goals Over/Under market.
+        
+        Example: HOME_GOALS_OVER_1_5 → threshold = 1.5
+        
+        Rules:
+        - Home Over X: Home goals > X → WON, otherwise → LOST
+        - Home Under X: Home goals < X → WON, otherwise → LOST
+        """
+        # Parse goal line from market key
+        threshold = parse_goal_line(market_key)
+        if threshold is None:
+            raise ValueError(f"Invalid Home Goals market key: {market_key}")
+
+        if selection.startswith("home_over"):
+            return VerificationResult.WON if home_score > threshold else VerificationResult.LOST
+        elif selection.startswith("home_under"):
+            return VerificationResult.WON if home_score < threshold else VerificationResult.LOST
+        else:
+            raise ValueError(f"Invalid Home Goals selection: {selection}")
+
+    @staticmethod
+    def _verify_away_goals(
+        market_key: str,
+        selection: str,
+        home_score: int,
+        away_score: int,
+    ) -> VerificationResult:
+        """
+        Verify Away Team Goals Over/Under market.
+        
+        Example: AWAY_GOALS_OVER_1_5 → threshold = 1.5
+        
+        Rules:
+        - Away Over X: Away goals > X → WON, otherwise → LOST
+        - Away Under X: Away goals < X → WON, otherwise → LOST
+        """
+        # Parse goal line from market key
+        threshold = parse_goal_line(market_key)
+        if threshold is None:
+            raise ValueError(f"Invalid Away Goals market key: {market_key}")
+
+        if selection.startswith("away_over"):
+            return VerificationResult.WON if away_score > threshold else VerificationResult.LOST
+        elif selection.startswith("away_under"):
+            return VerificationResult.WON if away_score < threshold else VerificationResult.LOST
+        else:
+            raise ValueError(f"Invalid Away Goals selection: {selection}")
+
+    @staticmethod
+    def _verify_correct_score(
+        selection: str,
+        home_score: int,
+        away_score: int,
+    ) -> VerificationResult:
+        """
+        Verify Correct Score market.
+        
+        Selection format: "X-Y" (e.g., "2-1", "1-0")
+        
+        Rules:
+        - Exact match → WON
+        - Any other score → LOST
+        """
+        # Parse selection format "X-Y"
+        if "-" not in selection:
+            raise ValueError(f"Invalid Correct Score format: {selection}")
+        
+        try:
+            predicted_home, predicted_away = map(int, selection.split("-"))
+        except ValueError:
+            raise ValueError(f"Invalid Correct Score format: {selection}")
+        
+        # Check for exact match
+        if home_score == predicted_home and away_score == predicted_away:
+            return VerificationResult.WON
+        else:
+            return VerificationResult.LOST
 
 
 # Convenience function for direct use

@@ -11,6 +11,7 @@ export interface BashiriUser {
   total_tips: number
   tipster_score: number
   followers_count: number
+  following_count: number
   current_streak: number
   best_streak: number
 }
@@ -187,6 +188,7 @@ export interface TipFilters {
   league?: string | null
   market?: string | null
   user?: string | null
+  following?: boolean | null
   match?: number | null
   status?: string
   sort?: string

@@ -2,19 +2,21 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Film, Target, TrendingUp, Award, Loader2, User, Calendar, Heart, Eye, ArrowLeft, Flame, Medal, Brain, CheckCircle, XCircle, Clock, Shield, Crown, Users, Zap, Star } from "lucide-react";
-import { getPublicProfile } from "@/lib/api/auth";
+import { Film, Target, TrendingUp, Award, Loader2, User, Calendar, Heart, Eye, ArrowLeft, Flame, Medal, Brain, CheckCircle, XCircle, Clock, Shield, Crown, Users, Zap, Star, UserPlus, UserMinus } from "lucide-react";
+import { getPublicProfile, followUser, unfollowUser } from "@/lib/api/auth";
 import { getUserTips, getTipLeaderboard } from "@/lib/api/tips";
 import { MicVideoCard } from "@/components/mic/MicVideoCard";
 import { MicReaction } from "@/lib/api/mic";
 import { TipPerformance, UserTipList } from "@/lib/types/tips";
 import { TipCard } from "@/components/tips/TipCard";
 import { VerifiedBadges } from "@/components/tips/VerifiedBadges";
+import { useAuthStore } from "@/stores/auth.store";
 
 export default function PublicProfilePage() {
   const params = useParams();
   const router = useRouter();
   const username = params.username as string;
+  const { user: currentUser } = useAuthStore();
   
   const [profileData, setProfileData] = useState<any>(null);
   const [tipPerformance, setTipPerformance] = useState<TipPerformance | null>(null);
@@ -22,6 +24,8 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"overview" | "tips" | "mic">("overview");
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -41,10 +45,57 @@ export default function PublicProfilePage() {
       setProfileData(profile);
       setTipPerformance(performance);
       setUserTips(tips);
+      
+      // Check if current user is following this profile
+      if (currentUser && profile.user.username !== currentUser.username) {
+        // In a real implementation, you'd check this via API
+        // For now, we'll use a simple local state check
+        setIsFollowing(false);
+      }
     } catch (err: any) {
       setError("Mtumiaji hapatikani.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    
+    try {
+      setFollowLoading(true);
+      if (isFollowing) {
+        await unfollowUser(username);
+        setIsFollowing(false);
+        if (profileData?.user) {
+          setProfileData({
+            ...profileData,
+            user: {
+              ...profileData.user,
+              followers_count: Math.max(0, profileData.user.followers_count - 1)
+            }
+          });
+        }
+      } else {
+        await followUser(username);
+        setIsFollowing(true);
+        if (profileData?.user) {
+          setProfileData({
+            ...profileData,
+            user: {
+              ...profileData.user,
+              followers_count: profileData.user.followers_count + 1
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Follow/unfollow error:', error);
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -145,7 +196,7 @@ export default function PublicProfilePage() {
             <p className="text-sm text-white/50 mb-2">
               Member since {new Date(user.date_joined).toLocaleDateString('sw-KE', { year: 'numeric', month: 'long' })}
             </p>
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-4 text-sm mb-3">
               <div className="flex items-center gap-1 text-white/70">
                 <Users size={14} />
                 <span>{user.followers_count} followers</span>
@@ -157,6 +208,33 @@ export default function PublicProfilePage() {
                 </div>
               )}
             </div>
+            
+            {/* Follow/Unfollow Button */}
+            {currentUser && user.username !== currentUser.username && (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                  isFollowing
+                    ? 'bg-white/10 text-white/70 hover:bg-white/20'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
+                } ${followLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {followLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : isFollowing ? (
+                  <>
+                    <UserMinus size={16} />
+                    <span>Unfollow</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={16} />
+                    <span>Follow</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 

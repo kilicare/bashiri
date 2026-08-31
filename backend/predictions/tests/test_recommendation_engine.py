@@ -36,13 +36,20 @@ class TestDataQualityAssessment:
             "match_result": {"home_win": 60.0, "draw": 25.0, "away_win": 15.0},
             "double_chance": {"1x": 85.0, "x2": 40.0, "12": 75.0},
             "draw_no_bet": {"home_dnb": 70.0, "away_dnb": 18.0},
-            "btts": {"yes": 55.0, "no": 45.0},
+            "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
-                "over_0_5": 95.0, "under_0_5": 5.0,
                 "over_1_5": 70.0, "under_1_5": 30.0,
                 "over_2_5": 45.0, "under_2_5": 55.0,
-                "over_3_5": 25.0, "under_3_5": 75.0,
-                "over_4_5": 10.0, "under_4_5": 90.0,
+            },
+            "home_goals": {
+                "home_over_0_5": 95.0, "home_under_0_5": 5.0,
+                "home_over_1_5": 70.0, "home_under_1_5": 30.0,
+                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+            },
+            "away_goals": {
+                "away_over_0_5": 95.0, "away_under_0_5": 5.0,
+                "away_over_1_5": 70.0, "away_under_1_5": 30.0,
+                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -55,13 +62,20 @@ class TestDataQualityAssessment:
             "match_result": {"home_win": 60.0, "draw": 25.0, "away_win": 15.0},
             "double_chance": {"1x": 85.0, "x2": 40.0, "12": 75.0},
             # Missing draw_no_bet
-            "btts": {"yes": 55.0, "no": 45.0},
+            "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
-                "over_0_5": 95.0, "under_0_5": 5.0,
                 "over_1_5": 70.0, "under_1_5": 30.0,
                 "over_2_5": 45.0, "under_2_5": 55.0,
-                "over_3_5": 25.0, "under_3_5": 75.0,
-                "over_4_5": 10.0, "under_4_5": 90.0,
+            },
+            "home_goals": {
+                "home_over_0_5": 95.0, "home_under_0_5": 5.0,
+                "home_over_1_5": 70.0, "home_under_1_5": 30.0,
+                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+            },
+            "away_goals": {
+                "away_over_0_5": 95.0, "away_under_0_5": 5.0,
+                "away_over_1_5": 70.0, "away_under_1_5": 30.0,
+                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -84,13 +98,20 @@ class TestDataQualityAssessment:
             "match_result": {"home_win": 60.0, "draw": 25.0, "away_win": 15.0},
             "double_chance": {"1x": 85.0, "x2": 40.0, "12": 75.0},
             "draw_no_bet": {"home_dnb": 70.0, "away_dnb": 18.0},
-            "btts": {"yes": 55.0, "no": 45.0},
+            "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
-                "over_0_5": 95.0, "under_0_5": 5.0,
                 "over_1_5": 70.0, "under_1_5": 30.0,
                 "over_2_5": 45.0, "under_2_5": 55.0,
-                "over_3_5": 25.0, "under_3_5": 75.0,
-                "over_4_5": 10.0, "under_4_5": 90.0,
+            },
+            "home_goals": {
+                "home_over_0_5": 95.0, "home_under_0_5": 5.0,
+                "home_over_1_5": 70.0, "home_under_1_5": 30.0,
+                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+            },
+            "away_goals": {
+                "away_over_0_5": 95.0, "away_under_0_5": 5.0,
+                "away_over_1_5": 70.0, "away_under_1_5": 30.0,
+                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -302,13 +323,20 @@ class TestRecommendationGeneration:
             "match_result": {"home_win": 60.0, "draw": 25.0, "away_win": 15.0},
             "double_chance": {"1x": 85.0, "x2": 40.0, "12": 75.0},
             "draw_no_bet": {"home_dnb": 70.0, "away_dnb": 18.0},
-            "btts": {"yes": 55.0, "no": 45.0},
+            "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
-                "over_0_5": 95.0, "under_0_5": 5.0,
                 "over_1_5": 70.0, "under_1_5": 30.0,
                 "over_2_5": 45.0, "under_2_5": 55.0,
-                "over_3_5": 25.0, "under_3_5": 75.0,
-                "over_4_5": 10.0, "under_4_5": 90.0,
+            },
+            "home_goals": {
+                "home_over_0_5": 95.0, "home_under_0_5": 5.0,
+                "home_over_1_5": 70.0, "home_under_1_5": 30.0,
+                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+            },
+            "away_goals": {
+                "away_over_0_5": 95.0, "away_under_0_5": 5.0,
+                "away_over_1_5": 70.0, "away_under_1_5": 30.0,
+                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -326,13 +354,20 @@ class TestRecommendationGeneration:
             "match_result": {"home_win": 60.0, "draw": 25.0, "away_win": 15.0},
             "double_chance": {"1x": 85.0, "x2": 40.0, "12": 75.0},
             "draw_no_bet": {"home_dnb": 70.0, "away_dnb": 18.0},
-            "btts": {"yes": 55.0, "no": 45.0},
+            "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
-                "over_0_5": 95.0, "under_0_5": 5.0,
                 "over_1_5": 70.0, "under_1_5": 30.0,
                 "over_2_5": 45.0, "under_2_5": 55.0,
-                "over_3_5": 25.0, "under_3_5": 75.0,
-                "over_4_5": 10.0, "under_4_5": 90.0,
+            },
+            "home_goals": {
+                "home_over_0_5": 95.0, "home_under_0_5": 5.0,
+                "home_over_1_5": 70.0, "home_under_1_5": 30.0,
+                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+            },
+            "away_goals": {
+                "away_over_0_5": 95.0, "away_under_0_5": 5.0,
+                "away_over_1_5": 70.0, "away_under_1_5": 30.0,
+                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -347,21 +382,28 @@ class TestRecommendationGeneration:
         if recommendation.status == "STRONG":
             assert recommendation.market_key == "1X2"
     
-    def test_over_0_5_does_not_automatically_win(self):
-        """Test that Over 0.5 doesn't automatically win due to high probability."""
-        # Create a scenario where Over 0.5 has highest raw probability
+    def test_home_over_0_5_does_not_automatically_win(self):
+        """Test that Home Over 0.5 doesn't automatically win due to high probability."""
+        # Create a scenario where Home Over 0.5 has highest raw probability
         # but other markets might have better quality indicators
         prediction = {
             "match_result": {"home_win": 55.0, "draw": 25.0, "away_win": 20.0},
             "double_chance": {"1x": 80.0, "x2": 45.0, "12": 75.0},
             "draw_no_bet": {"home_dnb": 68.0, "away_dnb": 22.0},
-            "btts": {"yes": 60.0, "no": 40.0},
+            "btts": {"btts_yes": 60.0, "btts_no": 40.0},
             "over_under": {
-                "over_0_5": 98.0, "under_0_5": 2.0,  # Very high probability
                 "over_1_5": 75.0, "under_1_5": 25.0,
                 "over_2_5": 50.0, "under_2_5": 50.0,
-                "over_3_5": 30.0, "under_3_5": 70.0,
-                "over_4_5": 15.0, "under_4_5": 85.0,
+            },
+            "home_goals": {
+                "home_over_0_5": 98.0, "home_under_0_5": 2.0,  # Very high probability
+                "home_over_1_5": 75.0, "home_under_1_5": 25.0,
+                "home_over_2_5": 50.0, "home_under_2_5": 50.0,
+            },
+            "away_goals": {
+                "away_over_0_5": 95.0, "away_under_0_5": 5.0,
+                "away_over_1_5": 70.0, "away_under_1_5": 30.0,
+                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -382,13 +424,20 @@ class TestRecommendationObject:
             "match_result": {"home_win": 60.0, "draw": 25.0, "away_win": 15.0},
             "double_chance": {"1x": 85.0, "x2": 40.0, "12": 75.0},
             "draw_no_bet": {"home_dnb": 70.0, "away_dnb": 18.0},
-            "btts": {"yes": 55.0, "no": 45.0},
+            "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
-                "over_0_5": 95.0, "under_0_5": 5.0,
                 "over_1_5": 70.0, "under_1_5": 30.0,
                 "over_2_5": 45.0, "under_2_5": 55.0,
-                "over_3_5": 25.0, "under_3_5": 75.0,
-                "over_4_5": 10.0, "under_4_5": 90.0,
+            },
+            "home_goals": {
+                "home_over_0_5": 95.0, "home_under_0_5": 5.0,
+                "home_over_1_5": 70.0, "home_under_1_5": 30.0,
+                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+            },
+            "away_goals": {
+                "away_over_0_5": 95.0, "away_under_0_5": 5.0,
+                "away_over_1_5": 70.0, "away_under_1_5": 30.0,
+                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -429,18 +478,33 @@ class TestRecommendationObject:
 
 
 class TestMarketDefinitions:
-    """Test market definitions consistency."""
+    """Test market definitions consistency (matching production JSON)."""
     
-    def test_all_9_markets_defined(self):
-        """Test that all 9 market families are defined."""
+    def test_all_production_markets_defined(self):
+        """Test that all markets from production JSON are defined."""
         expected_markets = [
-            "1X2", "DOUBLE_CHANCE", "DRAW_NO_BET",
-            "OVER_UNDER_0_5", "OVER_UNDER_1_5", "OVER_UNDER_2_5",
-            "OVER_UNDER_3_5", "OVER_UNDER_4_5", "BTTS"
+            # Full Match
+            "1X2", "DOUBLE_CHANCE", "DRAW_NO_BET", "BTTS",
+            "OVER_UNDER_1_5", "OVER_UNDER_2_5",
+            # Home Team Goals
+            "HOME_GOALS_OVER_0_5", "HOME_GOALS_OVER_1_5", "HOME_GOALS_OVER_2_5",
+            # Away Team Goals
+            "AWAY_GOALS_OVER_0_5", "AWAY_GOALS_OVER_1_5", "AWAY_GOALS_OVER_2_5",
+            # Correct Score
+            "CORRECT_SCORE",
         ]
         
         for market in expected_markets:
             assert market in MARKET_DEFINITIONS, f"Market {market} not defined"
+    
+    def test_removed_markets_not_defined(self):
+        """Test that removed Full Match markets are NOT defined."""
+        removed_markets = [
+            "OVER_UNDER_0_5", "OVER_UNDER_3_5", "OVER_UNDER_4_5",
+        ]
+        
+        for market in removed_markets:
+            assert market not in MARKET_DEFINITIONS, f"Removed market {market} should not be defined"
     
     def test_market_definitions_have_required_fields(self):
         """Test that each market definition has required fields."""
@@ -448,7 +512,10 @@ class TestMarketDefinitions:
             assert "label" in definition, f"Market {market_key} missing label"
             assert "source_key" in definition, f"Market {market_key} missing source_key"
             assert "options" in definition, f"Market {market_key} missing options"
-            assert len(definition["options"]) > 0, f"Market {market_key} has no options"
+            
+            # Correct Score has dynamic options, so skip option count check
+            if market_key != "CORRECT_SCORE":
+                assert len(definition["options"]) > 0, f"Market {market_key} has no options"
             
             for option in definition["options"]:
                 assert "key" in option, f"Market {market_key} option missing key"

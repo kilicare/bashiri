@@ -26,28 +26,35 @@ export default function TipsPage() {
     
     switch (tab) {
       case 'following':
-        newFilters.user = user?.username || undefined
+        // Following tab: show tips from users you follow
+        newFilters.following = true
+        newFilters.user = undefined
         newFilters.status = undefined
         break
       case 'trending':
         newFilters.sort = 'engagement'
+        newFilters.following = undefined
         newFilters.status = undefined
         break
       case 'ai_aligned':
         newFilters.sort = 'ai_agrees'
+        newFilters.following = undefined
         newFilters.status = undefined
         break
       case 'hot_form':
         newFilters.sort = 'recent_form'
+        newFilters.following = undefined
         newFilters.status = undefined
         break
       case 'pending':
         newFilters.status = 'PENDING'
+        newFilters.following = undefined
         newFilters.sort = undefined
         break
       default:
         newFilters.sort = undefined
         newFilters.user = undefined
+        newFilters.following = undefined
         newFilters.status = undefined
     }
     

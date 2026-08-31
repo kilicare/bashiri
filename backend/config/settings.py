@@ -248,12 +248,14 @@ BASHIRI = {
     "DAILY_SYNC_DAYS_BACK": 30,  # 30 days back (recent finished matches)
     "DAILY_SYNC_DAYS_FORWARD": 30,  # 30 days forward (upcoming fixtures)
 
-    # Masoko 9 kwa jumla: 3 bure + 6 locked
+    # Markets from production JSON market_contract
     "FREE_MARKETS": ["1X2", "OVER_UNDER_2_5", "BTTS"],
     "LOCKED_MARKETS": [
         "DOUBLE_CHANCE", "DRAW_NO_BET",
-        "OVER_UNDER_0_5", "OVER_UNDER_1_5",
-        "OVER_UNDER_3_5", "OVER_UNDER_4_5",
+        "OVER_UNDER_1_5",
+        "HOME_GOALS_OVER_0_5", "HOME_GOALS_OVER_1_5", "HOME_GOALS_OVER_2_5",
+        "AWAY_GOALS_OVER_0_5", "AWAY_GOALS_OVER_1_5", "AWAY_GOALS_OVER_2_5",
+        "CORRECT_SCORE",
     ],
 
     "FEED_CARD_SCORES": {

@@ -98,14 +98,6 @@ MODEL_DATA_PATH = os.path.join(
 
 EXPECTED_SCHEMA_VERSION = "4.0"
 
-OVER_UNDER_LINES = (
-    0.5,
-    1.5,
-    2.5,
-    3.5,
-    4.5,
-)
-
 DEFAULT_SCORE_TAIL_TOLERANCE = 1e-10
 DEFAULT_SCORE_MAX_GOALS = 100
 DEFAULT_PROBABILITY_TOLERANCE = 1e-10
@@ -338,6 +330,7 @@ def _validate_model_structure(
         "training_data",
         "leagues",
         "score_matrix",
+        "market_contract",
         "api_contract",
         "reproducibility",
     }
@@ -553,6 +546,99 @@ def _validate_model_structure(
     ):
         raise ValueError(
             "❌ Invalid score-matrix hard_cap."
+        )
+
+    # --------------------------------------------------------------
+    # Market contract validation.
+    # --------------------------------------------------------------
+
+    market_contract = artifact.get("market_contract")
+
+    if not isinstance(
+        market_contract,
+        dict,
+    ):
+        raise ValueError(
+            "❌ market_contract must be an object."
+        )
+
+    # Validate full_match markets
+    full_match = market_contract.get("full_match", {})
+    if not isinstance(full_match, dict):
+        raise ValueError(
+            "❌ market_contract.full_match must be an object."
+        )
+
+    # Validate full_match over_under_lines
+    full_match_ou = full_match.get("over_under_lines", [])
+    if not isinstance(full_match_ou, list):
+        raise ValueError(
+            "❌ market_contract.full_match.over_under_lines must be a list."
+        )
+    # Production contract specifies only 1.5 and 2.5
+    expected_full_ou = {1.5, 2.5}
+    actual_full_ou = set(full_match_ou)
+    if actual_full_ou != expected_full_ou:
+        raise ValueError(
+            f"❌ market_contract.full_match.over_under_lines must be {expected_full_ou}, got {actual_full_ou}"
+        )
+
+    # Validate home_team_goals markets
+    home_goals = market_contract.get("home_team_goals", {})
+    if not isinstance(home_goals, dict):
+        raise ValueError(
+            "❌ market_contract.home_team_goals must be an object."
+        )
+
+    home_goals_ou = home_goals.get("over_under_lines", [])
+    if not isinstance(home_goals_ou, list):
+        raise ValueError(
+            "❌ market_contract.home_team_goals.over_under_lines must be a list."
+        )
+    # Production contract specifies 0.5, 1.5, 2.5
+    expected_home_ou = {0.5, 1.5, 2.5}
+    actual_home_ou = set(home_goals_ou)
+    if actual_home_ou != expected_home_ou:
+        raise ValueError(
+            f"❌ market_contract.home_team_goals.over_under_lines must be {expected_home_ou}, got {actual_home_ou}"
+        )
+
+    # Validate away_team_goals markets
+    away_goals = market_contract.get("away_team_goals", {})
+    if not isinstance(away_goals, dict):
+        raise ValueError(
+            "❌ market_contract.away_team_goals must be an object."
+        )
+
+    away_goals_ou = away_goals.get("over_under_lines", [])
+    if not isinstance(away_goals_ou, list):
+        raise ValueError(
+            "❌ market_contract.away_team_goals.over_under_lines must be a list."
+        )
+    expected_away_ou = {0.5, 1.5, 2.5}
+    actual_away_ou = set(away_goals_ou)
+    if actual_away_ou != expected_away_ou:
+        raise ValueError(
+            f"❌ market_contract.away_team_goals.over_under_lines must be {expected_away_ou}, got {actual_away_ou}"
+        )
+
+    # Validate correct_score configuration
+    correct_score = market_contract.get("correct_score", {})
+    if not isinstance(correct_score, dict):
+        raise ValueError(
+            "❌ market_contract.correct_score must be an object."
+        )
+
+    cs_source = correct_score.get("source")
+    if cs_source != "adaptive_poisson_score_matrix":
+        raise ValueError(
+            f"❌ market_contract.correct_score.source must be 'adaptive_poisson_score_matrix', got '{cs_source}'"
+        )
+
+    cs_top_n = correct_score.get("top_n_default")
+    if not isinstance(cs_top_n, int) or cs_top_n <= 0:
+        raise ValueError(
+            f"❌ market_contract.correct_score.top_n_default must be a positive integer, got {cs_top_n}"
         )
 
     # --------------------------------------------------------------
@@ -1318,6 +1404,44 @@ def _predict_from_resolved_teams(
         away_xg,
     )
 
+    # Calculate goal distributions from matrix marginals for consistency
+    # This ensures all markets derive from the same adaptive score matrix
+    home_goal_dist = matrix.sum(axis=1)  # Sum over away goals
+    away_goal_dist = matrix.sum(axis=0)  # Sum over home goals
+
+    # Get market contract configuration from artifact
+    full_match_ou_lines = artifact.get(
+        'market_contract', {}
+    ).get(
+        'full_match', {}
+    ).get(
+        'over_under_lines', [1.5, 2.5]
+    )
+    
+    home_goals_lines = artifact.get(
+        'market_contract', {}
+    ).get(
+        'home_team_goals', {}
+    ).get(
+        'over_under_lines', [0.5, 1.5, 2.5]
+    )
+    
+    away_goals_lines = artifact.get(
+        'market_contract', {}
+    ).get(
+        'away_team_goals', {}
+    ).get(
+        'over_under_lines', [0.5, 1.5, 2.5]
+    )
+    
+    correct_score_top_n = artifact.get(
+        'market_contract', {}
+    ).get(
+        'correct_score', {}
+    ).get(
+        'top_n_default', 10
+    )
+
     # --------------------------------------------------------------
     # 1X2
     # --------------------------------------------------------------
@@ -1365,7 +1489,7 @@ def _predict_from_resolved_teams(
     )
 
     # --------------------------------------------------------------
-    # OVER / UNDER
+    # OVER / UNDER (from market_contract)
     # --------------------------------------------------------------
 
     totals = np.add.outer(
@@ -1379,7 +1503,7 @@ def _predict_from_resolved_teams(
 
     over_under = {}
 
-    for line in OVER_UNDER_LINES:
+    for line in full_match_ou_lines:
 
         over = _validate_probability(
             float(
@@ -1431,6 +1555,111 @@ def _predict_from_resolved_teams(
         p_away
         / dnb_denominator
     )
+
+    # --------------------------------------------------------------
+    # HOME TEAM GOALS (per production JSON market_contract)
+    # --------------------------------------------------------------
+
+    home_goals = {}
+
+    for line in home_goals_lines:
+        # For Over X.5, we need goals >= (X + 1)
+        # Over 0.5 -> goals >= 1
+        # Over 1.5 -> goals >= 2
+        # Over 2.5 -> goals >= 3
+        min_goals = int(line) + 1
+        over = _validate_probability(
+            float(
+                home_goal_dist[min_goals:].sum()
+            ),
+            f"home_over_{line}",
+        )
+
+        key = str(line).replace(".", "_")
+
+        home_goals[f"home_over_{key}"] = over
+        home_goals[f"home_under_{key}"] = 1.0 - over
+
+    # --------------------------------------------------------------
+    # AWAY TEAM GOALS (per production JSON market_contract)
+    # --------------------------------------------------------------
+
+    away_goals = {}
+
+    for line in away_goals_lines:
+        # For Over X.5, we need goals >= (X + 1)
+        min_goals = int(line) + 1
+        over = _validate_probability(
+            float(
+                away_goal_dist[min_goals:].sum()
+            ),
+            f"away_over_{line}",
+        )
+
+        key = str(line).replace(".", "_")
+
+        away_goals[f"away_over_{key}"] = over
+        away_goals[f"away_under_{key}"] = 1.0 - over
+
+    # --------------------------------------------------------------
+    # CORRECT SCORE (per production JSON market_contract)
+    # --------------------------------------------------------------
+
+    def _get_top_correct_scores(score_matrix: np.ndarray, top_n: int = 10) -> Dict[str, Any]:
+        """
+        Extract top N correct scores from the adaptive Poisson score matrix.
+        
+        The probability for each score (i-j) comes directly from matrix[i, j].
+        Scores are sorted by probability descending, with deterministic tie-breaking.
+        
+        Args:
+            score_matrix: The adaptive Poisson score matrix
+            top_n: Number of top scores to return (from market_contract)
+            
+        Returns:
+            Dict with source, top_n, and list of ranked predictions
+        """
+        # Find all non-zero probability scores
+        n_goals = score_matrix.shape[0]
+        scores = []
+        
+        for home_goals in range(n_goals):
+            for away_goals in range(n_goals):
+                prob = score_matrix[home_goals, away_goals]
+                if prob > 0:
+                    scores.append({
+                        'home_goals': home_goals,
+                        'away_goals': away_goals,
+                        'score': f"{home_goals}-{away_goals}",
+                        'probability': prob
+                    })
+        
+        # Sort by probability descending, then by home goals ascending, then away goals ascending
+        # for deterministic tie-breaking
+        scores.sort(key=lambda x: (-x['probability'], x['home_goals'], x['away_goals']))
+        
+        # Take top N
+        top_scores = scores[:top_n]
+        
+        # Format output with ranks and percentages
+        predictions = []
+        for rank, score in enumerate(top_scores, start=1):
+            predictions.append({
+                'rank': rank,
+                'home_goals': score['home_goals'],
+                'away_goals': score['away_goals'],
+                'score': score['score'],
+                'probability': float(score['probability']),
+                'probability_percent': _round_probability(score['probability'] * 100.0)
+            })
+        
+        return {
+            'source': 'adaptive_poisson_score_matrix',
+            'top_n': top_n,
+            'predictions': predictions
+        }
+    
+    correct_score = _get_top_correct_scores(matrix, top_n=correct_score_top_n)
 
     # --------------------------------------------------------------
     # DOUBLE CHANCE
@@ -1486,7 +1715,16 @@ def _predict_from_resolved_teams(
             "do not sum to one."
         )
 
-    for line in OVER_UNDER_LINES:
+    # Validate O/U pairs from market_contract
+    full_match_ou_lines = artifact.get(
+        'market_contract', {}
+    ).get(
+        'full_match', {}
+    ).get(
+        'over_under_lines', [1.5, 2.5]
+    )
+
+    for line in full_match_ou_lines:
 
         key = str(
             line
@@ -1602,10 +1840,10 @@ def _predict_from_resolved_teams(
         },
 
         "btts": {
-            "yes": _round_probability(
+            "btts_yes": _round_probability(
                 p_btts * 100.0
             ),
-            "no": _round_probability(
+            "btts_no": _round_probability(
                 p_btts_no * 100.0
             ),
         },
@@ -1617,6 +1855,24 @@ def _predict_from_resolved_teams(
             for key, value
             in over_under.items()
         },
+
+        "home_goals": {
+            key: _round_probability(
+                value * 100.0
+            )
+            for key, value
+            in home_goals.items()
+        },
+
+        "away_goals": {
+            key: _round_probability(
+                value * 100.0
+            )
+            for key, value
+            in away_goals.items()
+        },
+
+        "correct_score": correct_score,
 
         "ai_pick": {
             "market": "1X2",
@@ -1997,8 +2253,8 @@ def _run_integrity_test() -> None:
         ]
 
         btts_total = (
-            btts["yes"]
-            + btts["no"]
+            btts["btts_yes"]
+            + btts["btts_no"]
         )
 
         if not (

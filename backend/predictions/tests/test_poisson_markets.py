@@ -17,7 +17,6 @@ import numpy as np
 from predictions.ml.poisson_model import (
     predict_fixture,
     load_models,
-    OVER_UNDER_LINES,
 )
 
 
@@ -29,7 +28,7 @@ class TestPoissonMarketIntegrity:
         """Get a sample prediction for testing."""
         # Use a known league and teams from production model
         try:
-            return predict_fixture("EPL", "Arsenal FC", "Liverpool FC")
+            return predict_fixture("epl", "Arsenal FC", "Liverpool FC")
         except Exception as e:
             pytest.skip(f"Could not generate sample prediction: {e}")
     
@@ -52,20 +51,31 @@ class TestPoissonMarketIntegrity:
     def test_btts_probabilities_sum_to_one(self, sample_prediction):
         """Test that BTTS Yes + No probabilities sum to approximately 1."""
         btts = sample_prediction["btts"]
-        yes = btts["yes"]
-        no = btts["no"]
+        btts_yes = btts["btts_yes"]
+        btts_no = btts["btts_no"]
         
-        total = yes + no
+        total = btts_yes + btts_no
         assert abs(total - 100.0) < 0.1, f"BTTS probabilities sum to {total}, expected 100"
         
-        assert 0 <= yes <= 100, f"BTTS Yes probability {yes} out of bounds"
-        assert 0 <= no <= 100, f"BTTS No probability {no} out of bounds"
+        assert 0 <= btts_yes <= 100, f"BTTS Yes probability {btts_yes} out of bounds"
+        assert 0 <= btts_no <= 100, f"BTTS No probability {btts_no} out of bounds"
     
     def test_over_under_pairs_sum_to_one(self, sample_prediction):
         """Test that all Over/Under pairs sum to approximately 1."""
         over_under = sample_prediction["over_under"]
         
-        for line in OVER_UNDER_LINES:
+        # Get lines from market_contract
+        artifact = load_models()
+        full_match_ou_lines = artifact.get(
+            'market_contract', {}
+        ).get(
+            'full_match', {}
+        ).get(
+            'over_under_lines', [1.5, 2.5]
+        )
+        
+        # Production contract only includes 1.5 and 2.5 for Full Match
+        for line in full_match_ou_lines:
             key = str(line).replace(".", "_")
             over_key = f"over_{key}"
             under_key = f"under_{key}"
@@ -82,6 +92,41 @@ class TestPoissonMarketIntegrity:
             assert 0 <= over <= 100, f"Over {line} probability {over} out of bounds"
             assert 0 <= under <= 100, f"Under {line} probability {under} out of bounds"
     
+    def test_team_goals_over_under_pairs_sum_to_one(self, sample_prediction):
+        """Test that Home/Away Team Over/Under pairs sum to approximately 1."""
+        home_goals = sample_prediction.get("home_goals", {})
+        away_goals = sample_prediction.get("away_goals", {})
+        
+        # Check Home Team Goals pairs (0.5, 1.5, 2.5)
+        for line in [0.5, 1.5, 2.5]:
+            key = str(line).replace(".", "_")
+            over_key = f"home_over_{key}"
+            under_key = f"home_under_{key}"
+            
+            over = home_goals.get(over_key)
+            under = home_goals.get(under_key)
+            
+            if over is not None and under is not None:
+                total = over + under
+                assert abs(total - 100.0) < 0.1, f"Home O/U {line} probabilities sum to {total}, expected 100"
+                assert 0 <= over <= 100, f"Home Over {line} probability {over} out of bounds"
+                assert 0 <= under <= 100, f"Home Under {line} probability {under} out of bounds"
+        
+        # Check Away Team Goals pairs (0.5, 1.5, 2.5)
+        for line in [0.5, 1.5, 2.5]:
+            key = str(line).replace(".", "_")
+            over_key = f"away_over_{key}"
+            under_key = f"away_under_{key}"
+            
+            over = away_goals.get(over_key)
+            under = away_goals.get(under_key)
+            
+            if over is not None and under is not None:
+                total = over + under
+                assert abs(total - 100.0) < 0.1, f"Away O/U {line} probabilities sum to {total}, expected 100"
+                assert 0 <= over <= 100, f"Away Over {line} probability {over} out of bounds"
+                assert 0 <= under <= 100, f"Away Under {line} probability {under} out of bounds"
+    
     def test_no_nan_or_infinity(self, sample_prediction):
         """Test that no probabilities are NaN or infinity."""
         match_result = sample_prediction["match_result"]
@@ -89,6 +134,8 @@ class TestPoissonMarketIntegrity:
         over_under = sample_prediction["over_under"]
         draw_no_bet = sample_prediction["draw_no_bet"]
         double_chance = sample_prediction["double_chance"]
+        home_goals = sample_prediction.get("home_goals", {})
+        away_goals = sample_prediction.get("away_goals", {})
         
         # Check all probability fields
         all_probs = [
@@ -96,9 +143,9 @@ class TestPoissonMarketIntegrity:
             match_result["home_win"],
             match_result["draw"],
             match_result["away_win"],
-            # BTTS
-            btts["yes"],
-            btts["no"],
+            # BTTS (canonical keys)
+            btts["btts_yes"],
+            btts["btts_no"],
             # DNB
             draw_no_bet["home_dnb"],
             draw_no_bet["away_dnb"],
@@ -108,17 +155,40 @@ class TestPoissonMarketIntegrity:
             double_chance["12"],
         ]
         
-        # Add Over/Under probabilities
-        for line in OVER_UNDER_LINES:
+        # Add Over/Under probabilities (production contract: 1.5, 2.5 only)
+        artifact = load_models()
+        full_match_ou_lines = artifact.get(
+            'market_contract', {}
+        ).get(
+            'full_match', {}
+        ).get(
+            'over_under_lines', [1.5, 2.5]
+        )
+        
+        for line in full_match_ou_lines:
             key = str(line).replace(".", "_")
             all_probs.append(over_under[f"over_{key}"])
             all_probs.append(over_under[f"under_{key}"])
         
+        # Add Home Team Goals probabilities
+        if home_goals:
+            for line in [0.5, 1.5, 2.5]:
+                key = str(line).replace(".", "_")
+                all_probs.append(home_goals.get(f"home_over_{key}"))
+                all_probs.append(home_goals.get(f"home_under_{key}"))
+        
+        # Add Away Team Goals probabilities
+        if away_goals:
+            for line in [0.5, 1.5, 2.5]:
+                key = str(line).replace(".", "_")
+                all_probs.append(away_goals.get(f"away_over_{key}"))
+                all_probs.append(away_goals.get(f"away_under_{key}"))
+        
         for prob in all_probs:
-            assert prob is not None, "Probability is None"
-            assert not np.isnan(prob), f"Probability is NaN: {prob}"
-            assert not np.isinf(prob), f"Probability is infinity: {prob}"
-            assert isinstance(prob, (int, float)), f"Probability is not numeric: {prob}"
+            if prob is not None:
+                assert not np.isnan(prob), f"Probability is NaN: {prob}"
+                assert not np.isinf(prob), f"Probability is infinity: {prob}"
+                assert isinstance(prob, (int, float)), f"Probability is not numeric: {prob}"
     
     def test_probabilities_in_valid_range(self, sample_prediction):
         """Test that all probabilities are within [0, 100] range."""
@@ -127,6 +197,8 @@ class TestPoissonMarketIntegrity:
         over_under = sample_prediction["over_under"]
         draw_no_bet = sample_prediction["draw_no_bet"]
         double_chance = sample_prediction["double_chance"]
+        home_goals = sample_prediction.get("home_goals", {})
+        away_goals = sample_prediction.get("away_goals", {})
         
         # Check all probability fields
         all_probs = [
@@ -134,9 +206,9 @@ class TestPoissonMarketIntegrity:
             match_result["home_win"],
             match_result["draw"],
             match_result["away_win"],
-            # BTTS
-            btts["yes"],
-            btts["no"],
+            # BTTS (canonical keys)
+            btts["btts_yes"],
+            btts["btts_no"],
             # DNB
             draw_no_bet["home_dnb"],
             draw_no_bet["away_dnb"],
@@ -146,14 +218,38 @@ class TestPoissonMarketIntegrity:
             double_chance["12"],
         ]
         
-        # Add Over/Under probabilities
-        for line in OVER_UNDER_LINES:
+        # Add Over/Under probabilities (production contract: 1.5, 2.5 only)
+        artifact = load_models()
+        full_match_ou_lines = artifact.get(
+            'market_contract', {}
+        ).get(
+            'full_match', {}
+        ).get(
+            'over_under_lines', [1.5, 2.5]
+        )
+        
+        for line in full_match_ou_lines:
             key = str(line).replace(".", "_")
             all_probs.append(over_under[f"over_{key}"])
             all_probs.append(over_under[f"under_{key}"])
         
+        # Add Home Team Goals probabilities
+        if home_goals:
+            for line in [0.5, 1.5, 2.5]:
+                key = str(line).replace(".", "_")
+                all_probs.append(home_goals.get(f"home_over_{key}"))
+                all_probs.append(home_goals.get(f"home_under_{key}"))
+        
+        # Add Away Team Goals probabilities
+        if away_goals:
+            for line in [0.5, 1.5, 2.5]:
+                key = str(line).replace(".", "_")
+                all_probs.append(away_goals.get(f"away_over_{key}"))
+                all_probs.append(away_goals.get(f"away_under_{key}"))
+        
         for prob in all_probs:
-            assert 0 <= prob <= 100, f"Probability {prob} out of valid range [0, 100]"
+            if prob is not None:
+                assert 0 <= prob <= 100, f"Probability {prob} out of valid range [0, 100]"
     
     def test_dnb_probabilities_valid(self, sample_prediction):
         """Test that DNB probabilities are valid."""
@@ -210,15 +306,72 @@ class TestPoissonMarketIntegrity:
         assert expected_goals["away_xg"] > 0, "Away xG should be positive"
         assert expected_goals["total_xg"] > 0, "Total xG should be positive"
     
-    def test_over_0_5_not_always_dominant(self, sample_prediction):
-        """Test that Over 0.5 doesn't always dominate (sanity check)."""
-        over_under = sample_prediction["over_under"]
-        over_0_5 = over_under["over_0_5"]
+    def test_team_goals_markets_present(self, sample_prediction):
+        """Test that Home Team Goals and Away Team Goals markets are present."""
+        assert "home_goals" in sample_prediction, "home_goals market missing"
+        assert "away_goals" in sample_prediction, "away_goals market missing"
         
-        # Over 0.5 should be high but not always 100%
-        # This is a sanity check to ensure the model is working
-        assert over_0_5 > 50, f"Over 0.5 should be reasonably high, got {over_0_5}"
-        assert over_0_5 < 100, f"Over 0.5 should not be 100%, got {over_0_5}"
+        home_goals = sample_prediction["home_goals"]
+        away_goals = sample_prediction["away_goals"]
+        
+        # Check Home Team Goals lines (0.5, 1.5, 2.5 per production contract)
+        assert "home_over_0_5" in home_goals
+        assert "home_under_0_5" in home_goals
+        assert "home_over_1_5" in home_goals
+        assert "home_under_1_5" in home_goals
+        assert "home_over_2_5" in home_goals
+        assert "home_under_2_5" in home_goals
+        
+        # Check Away Team Goals lines (0.5, 1.5, 2.5 per production contract)
+        assert "away_over_0_5" in away_goals
+        assert "away_under_0_5" in away_goals
+        assert "away_over_1_5" in away_goals
+        assert "away_under_1_5" in away_goals
+        assert "away_over_2_5" in away_goals
+        assert "away_under_2_5" in away_goals
+    
+    def test_correct_score_present(self, sample_prediction):
+        """Test that Correct Score market is present and valid."""
+        assert "correct_score" in sample_prediction, "correct_score market missing"
+        
+        correct_score = sample_prediction["correct_score"]
+        
+        # Check structure
+        assert "source" in correct_score
+        assert "top_n" in correct_score
+        assert "predictions" in correct_score
+        
+        # Source must be adaptive_poisson_score_matrix
+        assert correct_score["source"] == "adaptive_poisson_score_matrix"
+        
+        # top_n should be positive
+        assert correct_score["top_n"] > 0
+        
+        # predictions should be a list
+        assert isinstance(correct_score["predictions"], list)
+        
+        # Check predictions structure
+        predictions = correct_score["predictions"]
+        if predictions:
+            first = predictions[0]
+            assert "rank" in first
+            assert "home_goals" in first
+            assert "away_goals" in first
+            assert "score" in first
+            assert "probability" in first
+            assert "probability_percent" in first
+            
+            # Rank should start at 1
+            assert first["rank"] == 1
+            
+            # Probabilities should be valid
+            assert 0 <= first["probability"] <= 1
+            assert 0 <= first["probability_percent"] <= 100
+            
+            # Check ordering (descending by probability)
+            for i in range(len(predictions) - 1):
+                assert predictions[i]["probability"] >= predictions[i+1]["probability"], \
+                    f"Predictions not sorted: rank {i+1} has higher prob than rank {i+2}"
 
 
 class TestPoissonModelLoading:

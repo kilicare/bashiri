@@ -73,6 +73,11 @@ export interface MarketOption {
   key: string;
   label: string;
   prob: number | null;
+  extra?: {
+    rank?: number;
+    home_goals?: number;
+    away_goals?: number;
+  };
 }
 export interface Market {
   key: string;

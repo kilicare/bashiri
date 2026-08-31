@@ -88,22 +88,52 @@ def build_prediction_dashboard(match, viewer_is_subscriber: bool):
         source_data = prediction[definition["source_key"]]
         is_locked = market_key in locked_markets and not viewer_is_subscriber
 
-        options = []
-        max_prob = 0.0
-        best_option_key = None
-        best_option_prob = -1
+        # Special handling for CORRECT_SCORE market
+        if market_key == "CORRECT_SCORE":
+            # CORRECT_SCORE has predictions list, not traditional options
+            predictions = source_data.get("predictions", [])
+            top_n = source_data.get("top_n", 10)
+            
+            options = []
+            max_prob = 0.0
+            best_option_key = None
+            best_option_prob = -1
+            
+            for pred in predictions[:top_n]:
+                prob_pct = pred["probability_percent"]  # Already in percentage (0-100)
+                score_key = pred["score"]
+                max_prob = max(max_prob, prob_pct)
+                if prob_pct > best_option_prob:
+                    best_option_prob = prob_pct
+                    best_option_key = score_key
+                options.append({
+                    "key": score_key,
+                    "label": f"{pred['home_goals']}-{pred['away_goals']}",
+                    "prob": None if is_locked else round(prob_pct / 100, 4),
+                    "extra": {
+                        "rank": pred["rank"],
+                        "home_goals": pred["home_goals"],
+                        "away_goals": pred["away_goals"],
+                    }
+                })
+        else:
+            # Standard market handling
+            options = []
+            max_prob = 0.0
+            best_option_key = None
+            best_option_prob = -1
 
-        for opt in definition["options"]:
-            prob_pct = source_data[opt["key"]]
-            max_prob = max(max_prob, prob_pct)
-            if prob_pct > best_option_prob:
-                best_option_prob = prob_pct
-                best_option_key = opt["key"]
-            options.append({
-                "key": opt["key"],
-                "label": opt["label"],
-                "prob": None if is_locked else round(prob_pct / 100, 4),  # Production returns percentages (0-100), convert to probability (0-1) for frontend
-            })
+            for opt in definition["options"]:
+                prob_pct = source_data[opt["key"]]
+                max_prob = max(max_prob, prob_pct)
+                if prob_pct > best_option_prob:
+                    best_option_prob = prob_pct
+                    best_option_key = opt["key"]
+                options.append({
+                    "key": opt["key"],
+                    "label": opt["label"],
+                    "prob": None if is_locked else round(prob_pct / 100, 4),  # Production returns percentages (0-100), convert to probability (0-1) for frontend
+                })
 
         markets.append({
             "key": market_key,

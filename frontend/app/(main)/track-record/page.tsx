@@ -10,9 +10,23 @@ import { shouldReduceMotion, getAnimationDuration, getAnimationEasing } from "@/
 import { useMobileTooltip } from "@/hooks/useMobileTooltip";
 
 const MARKET_LABELS: Record<string, string> = {
-  "1X2": "Matokeo ya Mechi", DOUBLE_CHANCE: "Double Chance", DRAW_NO_BET: "Draw No Bet",
-  OVER_UNDER_0_5: "O/U 0.5", OVER_UNDER_1_5: "O/U 1.5", OVER_UNDER_2_5: "O/U 2.5",
-  OVER_UNDER_3_5: "O/U 3.5", OVER_UNDER_4_5: "O/U 4.5", BTTS: "BTTS",
+  // Full Match Markets
+  "1X2": "Matokeo ya Mechi",
+  "DOUBLE_CHANCE": "Double Chance",
+  "DRAW_NO_BET": "Draw No Bet",
+  "BTTS": "BTTS",
+  "OVER_UNDER_1_5": "O/U 1.5",
+  "OVER_UNDER_2_5": "O/U 2.5",
+  // Home Team Goals
+  "HOME_GOALS_OVER_0_5": "Home O/U 0.5",
+  "HOME_GOALS_OVER_1_5": "Home O/U 1.5",
+  "HOME_GOALS_OVER_2_5": "Home O/U 2.5",
+  // Away Team Goals
+  "AWAY_GOALS_OVER_0_5": "Away O/U 0.5",
+  "AWAY_GOALS_OVER_1_5": "Away O/U 1.5",
+  "AWAY_GOALS_OVER_2_5": "Away O/U 2.5",
+  // Correct Score
+  "CORRECT_SCORE": "Correct Score",
 };
 
 export default function AITrackRecordPage() {

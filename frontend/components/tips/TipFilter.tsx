@@ -5,10 +5,23 @@ import { ChevronDown, X } from 'lucide-react'
 import { useState } from 'react'
 
 const MARKETS = [
-  { key: '1X2', label: '1X2' },
-  { key: 'OVER_UNDER_2_5', label: 'Over/Under 2.5' },
-  { key: 'BTTS', label: 'BTTS' },
+  // Full Match Markets
+  { key: '1X2', label: '1X2 (Win/Draw/Loss)' },
+  { key: 'DOUBLE_CHANCE', label: 'Double Chance' },
   { key: 'DRAW_NO_BET', label: 'Draw No Bet' },
+  { key: 'BTTS', label: 'BTTS (Both Teams Score)' },
+  { key: 'OVER_UNDER_1_5', label: 'Over/Under 1.5 Goals' },
+  { key: 'OVER_UNDER_2_5', label: 'Over/Under 2.5 Goals' },
+  // Home Team Goals
+  { key: 'HOME_GOALS_OVER_0_5', label: 'Home Over/Under 0.5' },
+  { key: 'HOME_GOALS_OVER_1_5', label: 'Home Over/Under 1.5' },
+  { key: 'HOME_GOALS_OVER_2_5', label: 'Home Over/Under 2.5' },
+  // Away Team Goals
+  { key: 'AWAY_GOALS_OVER_0_5', label: 'Away Over/Under 0.5' },
+  { key: 'AWAY_GOALS_OVER_1_5', label: 'Away Over/Under 1.5' },
+  { key: 'AWAY_GOALS_OVER_2_5', label: 'Away Over/Under 2.5' },
+  // Correct Score
+  { key: 'CORRECT_SCORE', label: 'Correct Score' },
 ]
 
 const LEAGUES = [

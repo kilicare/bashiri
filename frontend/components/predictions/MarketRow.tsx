@@ -111,6 +111,8 @@ export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onS
           // itaonekana nyekundu KILA WAKATI, "juu" kijani, bila kujali
           // ni Home/Draw/Away au chaguo lipi.
           const colorForOption = market.is_locked ? "rgba(255,255,255,0.2)" : getConfidenceColor((opt.prob || 0) * 100);
+          // Show rank for CORRECT_SCORE market
+          const showRank = market.key === "CORRECT_SCORE" && opt.extra?.rank;
           return (
             <div key={opt.key} className="flex items-center gap-3">
               {market.is_locked ? (
@@ -121,7 +123,12 @@ export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onS
                 </>
               ) : (
                 <>
-                  <span className="text-xs w-24 truncate" style={{ color: "rgba(255,255,255,0.55)" }}>{opt.label}</span>
+                  {showRank && (
+                    <span className="text-xs font-bold w-6 text-center" style={{ color: "#D4AF37" }}>
+                      #{opt.extra.rank}
+                    </span>
+                  )}
+                  <span className="text-xs w-20 truncate" style={{ color: "rgba(255,255,255,0.55)" }}>{opt.label}</span>
                   <div className="flex-1">
                     <ProgressBar 
                       value={opt.prob || 0} 

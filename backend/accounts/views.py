@@ -384,6 +384,111 @@ class DeleteAccountView(APIView):
             )
 
 
+class FollowUserView(APIView):
+    """POST /api/auth/follow/<username>/ — follow a user"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, username):
+        try:
+            target_user = User.objects.get(username=username)
+            
+            if target_user == request.user:
+                return Response(
+                    {"detail": "Huwezi kufollow mwenyewe."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if already following
+            if request.user.following.filter(id=target_user.id).exists():
+                return Response(
+                    {"detail": "Umesha follow mtumiaji huyu."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Create follow relationship
+            request.user.following.add(target_user)
+            
+            # Update counters
+            request.user.following_count = request.user.following.count()
+            target_user.followers_count = target_user.followers.count()
+            request.user.save(update_fields=['following_count'])
+            target_user.save(update_fields=['followers_count'])
+            
+            return Response({
+                "detail": "Umefollow mtumiaji huyu.",
+                "following_count": request.user.following_count,
+                "followers_count": target_user.followers_count
+            })
+            
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Mtumiaji hapatikani."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class UnfollowUserView(APIView):
+    """POST /api/auth/unfollow/<username>/ — unfollow a user"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, username):
+        try:
+            target_user = User.objects.get(username=username)
+            
+            if not request.user.following.filter(id=target_user.id).exists():
+                return Response(
+                    {"detail": "Hufollowi mtumiaji huyu."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Remove follow relationship
+            request.user.following.remove(target_user)
+            
+            # Update counters
+            request.user.following_count = request.user.following.count()
+            target_user.followers_count = target_user.followers.count()
+            request.user.save(update_fields=['following_count'])
+            target_user.save(update_fields=['followers_count'])
+            
+            return Response({
+                "detail": "Umestop kumfollow mtumiaji huyu.",
+                "following_count": request.user.following_count,
+                "followers_count": target_user.followers_count
+            })
+            
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Mtumiaji hapatikani."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class FollowingListView(APIView):
+    """GET /api/auth/following/ — list of users you follow"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        following_users = request.user.following.all()
+        serializer = UserSerializer(following_users, many=True)
+        return Response({
+            "count": following_users.count(),
+            "results": serializer.data
+        })
+
+
+class FollowersListView(APIView):
+    """GET /api/auth/followers/ — list of users who follow you"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        followers = request.user.followers.all()
+        serializer = UserSerializer(followers, many=True)
+        return Response({
+            "count": followers.count(),
+            "results": serializer.data
+        })
+
+
 # ============================================================
 # OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)
 # ============================================================

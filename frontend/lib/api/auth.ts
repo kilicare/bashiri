@@ -97,6 +97,26 @@ export function deleteAccount() {
   });
 }
 
+export function followUser(username: string) {
+  return apiClient<{ detail: string; following_count: number; followers_count: number }>(`/auth/follow/${username}/`, {
+    method: "POST",
+  });
+}
+
+export function unfollowUser(username: string) {
+  return apiClient<{ detail: string; following_count: number; followers_count: number }>(`/auth/unfollow/${username}/`, {
+    method: "POST",
+  });
+}
+
+export function getFollowing() {
+  return apiClient<{ count: number; results: BashiriUser[] }>("/auth/following/");
+}
+
+export function getFollowers() {
+  return apiClient<{ count: number; results: BashiriUser[] }>("/auth/followers/");
+}
+
 /*
 // ============================================================
 // OTP FLOW — IMESIMAMISHWA (commented out, si kufutwa)
