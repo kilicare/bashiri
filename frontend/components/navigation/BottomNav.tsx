@@ -1,7 +1,7 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, CalendarDays, Sparkles, User2, Plus } from "lucide-react";
+import { Home, CalendarDays, Sparkles, Trophy, Plus } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useEffect, useState, useRef } from "react";
 
@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: "/home", icon: Home, label: "Home" },
   { href: "/matches", icon: CalendarDays, label: "Matches" },
   { href: "/ai", icon: Sparkles, label: "AI" },
-  { href: "/profile", icon: User2, label: "Profile", requiresAuth: true },
+  { href: "/tips", icon: Trophy, label: "Tips" },
 ];
 
 export function BottomNav() {

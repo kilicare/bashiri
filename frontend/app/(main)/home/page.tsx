@@ -8,7 +8,7 @@ import { PulseIndicatorButton } from "@/components/pulse/PulseIndicatorButton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
-import { Bell, Target, Search, X, TrendingUp } from "lucide-react";
+import { Bell, Target, Search, X, TrendingUp, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ReviewPromptModal } from "@/components/review/ReviewPromptModal";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
@@ -115,63 +115,85 @@ export default function HomePage() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="min-h-dvh pb-safe">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-5 md:px-6 lg:px-8">
-          <div className="flex items-center justify-between pt-safe pt-12 pb-6 gap-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
-            <button
-              type="button"
-              aria-label="Open notifications"
-              onClick={() => router.push("/notifications")}
-              className="relative w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
-            >
-              <Bell size={20} style={{ color: "var(--brand-primary)" }} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 text-[10px] font-bold transition-all duration-300 hover:scale-110"
-                  style={{ background: "var(--danger)", color: "var(--text-primary)", boxShadow: "0 0 10px var(--danger)" }}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
+        {/* Sticky Header */}
+        <div className="fixed top-0 left-0 right-0 z-40" style={{ background: "rgba(11, 11, 11, 0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-5 md:px-6 lg:px-8">
+            <div className="flex items-center justify-between py-2 gap-3" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
+              <button
+                type="button"
+                aria-label="Open notifications"
+                onClick={() => router.push("/notifications")}
+                className="relative w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
+              >
+                <Bell size={18} style={{ color: "var(--brand-primary)" }} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-1 text-[9px] font-bold transition-all duration-300 hover:scale-110"
+                    style={{ background: "var(--danger)", color: "var(--text-primary)", boxShadow: "0 0 10px var(--danger)" }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <h1 
+                className="flex-1 text-center" 
+                style={{ 
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "1.5rem",
+                  fontWeight: "800",
+                  color: "var(--brand-primary)",
+                  letterSpacing: "0.08em",
+                  textShadow: "0 0 30px rgba(212, 175, 55, 0.4), 0 0 60px rgba(212, 175, 55, 0.2)",
+                  background: "linear-gradient(135deg, #D4AF37 0%, #F5D77A 50%, #D4AF37 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text"
+                }}
+              >
+                BASHIRI
+              </h1>
+              <button
+                type="button"
+                aria-label="Go to Pulse"
+                onClick={() => router.push("/pulse")}
+                className="relative w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
+              >
+                <Target size={18} style={{ color: "#00C878" }} />
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-1 text-[9px] font-bold"
+                  style={{ background: "rgba(0,200,120,0.9)", color: "white", boxShadow: "0 0 10px rgba(0,200,120,0.6)" }}>
+                  LIVE
                 </span>
-              )}
-            </button>
-            <h1 
-              className="flex-1 text-center" 
-              style={{ 
-                fontFamily: "'Playfair Display', serif",
-                fontSize: "2rem",
-                fontWeight: "800",
-                color: "var(--brand-primary)",
-                letterSpacing: "0.08em",
-                textShadow: "0 0 30px rgba(212, 175, 55, 0.4), 0 0 60px rgba(212, 175, 55, 0.2)",
-                background: "linear-gradient(135deg, #D4AF37 0%, #F5D77A 50%, #D4AF37 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text"
-              }}
-            >
-              BASHIRI
-            </h1>
-            <button
-              type="button"
-              aria-label="Go to Pulse"
-              onClick={() => router.push("/pulse")}
-              className="relative w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
-            >
-              <Target size={20} style={{ color: "#00C878" }} />
-              <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 text-[10px] font-bold"
-                style={{ background: "rgba(0,200,120,0.9)", color: "white", boxShadow: "0 0 10px rgba(0,200,120,0.6)" }}>
-                LIVE
-              </span>
-            </button>
-            
-            {/* Search Button */}
-            <button
-              type="button"
-              aria-label="Open search"
-              onClick={() => setShowSearch(true)}
-              className="w-10 h-10 rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
-            >
-              <Search size={20} style={{ color: "#D4AF37" }} />
-            </button>
+              </button>
+              
+              {/* Profile Button */}
+              <button
+                type="button"
+                aria-label="Go to profile"
+                onClick={() => router.push("/profile")}
+                className="relative w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0 overflow-hidden"
+              >
+                {user?.avatar_url ? (
+                  <img 
+                    src={user.avatar_url} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                {!user?.avatar_url && (
+                  <div className="w-full h-full flex items-center justify-center text-sm font-bold" style={{ color: "var(--brand-primary)" }}>
+                    {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+              </button>
+            </div>
           </div>
-          <div className="pb-8">
+        </div>
+        
+        {/* Main Content */}
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-5 md:px-6 lg:px-8 pt-4">
+          <div className="pt-4 pb-8">
             <HeroCarousel />
           </div>
           

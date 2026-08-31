@@ -207,10 +207,10 @@ def sync_live_and_upcoming_matches():
 @shared_task
 def sync_recently_finished_matches():
     """
-    Sync mechi zilizoisha hivi karibuni (masaa 24-48 zilopita).
-    Hii inahakikisha mechi zilizoisha jana zinasasishwa haraka
+    Sync mechi zilizoisha hivi karibuni (masaa 72 zilopita).
+    Hii inahakikisha mechi zilizoisha siku 3 zilopita zinasasishwa haraka
     badala ya kusubiri sync_daily ya asubuhi.
-    Celery Beat: kila dakika 30.
+    Celery Beat: kila dakika 5.
     """
     from django.core.cache import cache
 
@@ -225,10 +225,10 @@ def sync_recently_finished_matches():
     base_url = settings.BASHIRI["FOOTBALL_DATA_BASE_URL"]
     now = timezone.now()
 
-    # Angalia mechi zilizoisha ndani ya masaa 48 zilopita
+    # Angalia mechi zilizoisha ndani ya masaa 72 zilopita
     candidates = Match.objects.filter(
         Q(status="SCHEDULED") | Q(status="LIVE"),
-        kickoff_at__gte=now - timedelta(hours=48),
+        kickoff_at__gte=now - timedelta(hours=72),
         kickoff_at__lte=now - timedelta(hours=1)  # Epuka mechi zinazoendelea
     ).select_related("league", "home_team", "away_team")[:15]
 

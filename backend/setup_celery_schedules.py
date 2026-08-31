@@ -52,8 +52,8 @@ make_task("Historical Sync 2023-2027", "predictions.tasks.sync_historical_task",
 # Sync NDOGO — mpya, kila sekunde 30 (status/score za mechi za sasa) - production safe
 make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 30)
 
-# Sync mechi zilizoisha hivi karibuni — kila dakika 30
-make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_recently_finished_matches", 30)
+# Sync mechi zilizoisha hivi karibuni — kila dakika 5
+make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_recently_finished_matches", 5)
 
 # AI Picks — kila siku asubuhi
 make_task("Generate Daily Picks", "predictions.tasks.generate_daily_picks", {"minute": "0", "hour": "6"})
