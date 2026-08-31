@@ -128,6 +128,8 @@ class UserSerializer(serializers.ModelSerializer):
     is_subscription_active = serializers.ReadOnlyField()
     favorite_team_ids = serializers.PrimaryKeyRelatedField(source="favorite_teams", many=True, read_only=True)
     favorite_league_ids = serializers.PrimaryKeyRelatedField(source="favorite_leagues", many=True, read_only=True)
+    followers_count = serializers.ReadOnlyField()
+    following_count = serializers.ReadOnlyField()
 
     class Meta:
         model = User
@@ -137,7 +139,7 @@ class UserSerializer(serializers.ModelSerializer):
             "current_streak", "best_streak", "total_predictions",
             "correct_predictions", "accuracy_percentage", "profile_complete",
             "preferred_language", "favorite_team_ids", "favorite_league_ids",
-            "date_joined", "is_staff",
+            "date_joined", "is_staff", "followers_count", "following_count",
         ]
         read_only_fields = fields
 

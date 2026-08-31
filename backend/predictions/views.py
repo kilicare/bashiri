@@ -424,18 +424,27 @@ class SavedMarketsListView(APIView):
                     market_def = MARKET_DEFINITIONS.get(item['market_key'], {})
                     source_data = prediction.get(market_def.get('source_key', ''), {})
                     
-                    # Get option label
-                    option_def = next((opt for opt in market_def.get('options', []) if opt['key'] == ai_option), None)
-                    option_label = option_def['label'] if option_def else ai_option
-                    
-                    # Get confidence - check if it's already a percentage or probability
-                    raw_value = source_data.get(ai_option, 0) if source_data else 0
-                    if raw_value > 1:
-                        # Already a percentage (0-100), don't multiply
-                        confidence = round(raw_value, 1)
+                    # Special handling for CORRECT_SCORE
+                    if item['market_key'] == 'CORRECT_SCORE':
+                        # ai_option is the score key (e.g., "2-0")
+                        option_label = ai_option  # Use the score as the label
+                        # Get probability from predictions list
+                        predictions = source_data.get('predictions', [])
+                        pred_data = next((p for p in predictions if p['score'] == ai_option), None)
+                        confidence = round(pred_data['probability_percent'], 1) if pred_data else None
                     else:
-                        # Probability (0-1), convert to percentage
-                        confidence = round(raw_value * 100, 1)
+                        # Standard market handling
+                        option_def = next((opt for opt in market_def.get('options', []) if opt['key'] == ai_option), None)
+                        option_label = option_def['label'] if option_def else ai_option
+                        
+                        # Get confidence - check if it's already a percentage or probability
+                        raw_value = source_data.get(ai_option, 0) if source_data else 0
+                        if raw_value > 1:
+                            # Already a percentage (0-100), don't multiply
+                            confidence = round(raw_value, 1)
+                        else:
+                            # Probability (0-1), convert to percentage
+                            confidence = round(raw_value * 100, 1)
                     
                     # Ensure confidence is reasonable (0-100)
                     if confidence is not None and (confidence < 0 or confidence > 100):

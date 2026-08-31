@@ -80,11 +80,79 @@ export default function MatchTrackRecordPage() {
           </div>
         </div>
 
-        <div className="space-y-3">
-          {analysis.markets.map((market) => (
-            <AnalysisMarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />
-          ))}
-        </div>
+        {/* Categorize markets by team/full match */}
+        {(() => {
+          const homeMarkets = analysis.markets.filter(m => m.key.startsWith("HOME_GOALS"));
+          const awayMarkets = analysis.markets.filter(m => m.key.startsWith("AWAY_GOALS"));
+          const fullMatchMarkets = analysis.markets.filter(m => 
+            !m.key.startsWith("HOME_GOALS") && !m.key.startsWith("AWAY_GOALS")
+          );
+
+          return (
+            <>
+              {/* HOME TEAM SECTION */}
+              {homeMarkets.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3 pb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                    <h2 className="text-xl font-black text-white">HOME</h2>
+                    <img 
+                      src={match.home_team.crest_url} 
+                      alt={match.home_team.name}
+                      className="w-6 h-6 object-contain"
+                    />
+                    <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.8)" }}>
+                      {match.home_team.name}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {homeMarkets.map((market) => (
+                      <AnalysisMarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AWAY TEAM SECTION */}
+              {awayMarkets.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3 pb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                    <h2 className="text-xl font-black text-white">AWAY TEAM</h2>
+                    <img 
+                      src={match.away_team.crest_url} 
+                      alt={match.away_team.name}
+                      className="w-6 h-6 object-contain"
+                    />
+                    <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.8)" }}>
+                      {match.away_team.name}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {awayMarkets.map((market) => (
+                      <AnalysisMarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* FULL MATCH SECTION */}
+              {fullMatchMarkets.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3 pb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                    <h2 className="text-xl font-black text-white">FULL MATCH</h2>
+                    <span className="text-xs font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      Overall Markets
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {fullMatchMarkets.map((market) => (
+                      <AnalysisMarketRow key={market.key} market={market} onLockedClick={() => setShowSub(true)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         <p className="text-center text-xs mt-5" style={{ color: "rgba(255,255,255,0.2)" }}>
           Dixon-Coles Poisson Model v{analysis.model_version} • Kwa burudani tu — si ushauri wa kamari

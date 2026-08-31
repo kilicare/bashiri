@@ -317,8 +317,9 @@ class PublicProfileView(APIView):
     def get(self, request, username):
         from django.core.cache import cache
         
-        # Cache public profile for 5 minutes
-        cache_key = f"public_profile_{username}"
+        # Cache key should include user authentication status to avoid serving cached data with wrong follow status
+        is_authenticated = request.user.is_authenticated
+        cache_key = f"public_profile_{username}_{is_authenticated}"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
@@ -343,10 +344,20 @@ class PublicProfileView(APIView):
         from mic.serializers import MicReactionSerializer
         mic_data = MicReactionSerializer(mic_reactions, many=True, context={'request': request}).data
         
+        # Check if current user is following this profile
+        is_following = False
+        if is_authenticated and request.user != user:
+            from accounts.models import Follow
+            is_following = Follow.objects.filter(
+                follower=request.user, 
+                following=user
+            ).exists()
+        
         response_data = {
             "user": UserSerializer(user).data,
             "mic_reactions": mic_data,
             "mic_count": mic_reactions.count(),
+            "is_following": is_following,
         }
         
         cache.set(cache_key, response_data, timeout=300)  # 5 minutes cache
@@ -390,6 +401,8 @@ class FollowUserView(APIView):
 
     def post(self, request, username):
         try:
+            from django.core.cache import cache
+            
             target_user = User.objects.get(username=username)
             
             if target_user == request.user:
@@ -414,6 +427,10 @@ class FollowUserView(APIView):
             request.user.save(update_fields=['following_count'])
             target_user.save(update_fields=['followers_count'])
             
+            # Clear cached profile data for both authenticated and non-authenticated users
+            cache.delete(f"public_profile_{username}_True")
+            cache.delete(f"public_profile_{username}_False")
+            
             return Response({
                 "detail": "Umefollow mtumiaji huyu.",
                 "following_count": request.user.following_count,
@@ -433,6 +450,8 @@ class UnfollowUserView(APIView):
 
     def post(self, request, username):
         try:
+            from django.core.cache import cache
+            
             target_user = User.objects.get(username=username)
             
             if not request.user.following.filter(id=target_user.id).exists():
@@ -449,6 +468,10 @@ class UnfollowUserView(APIView):
             target_user.followers_count = target_user.followers.count()
             request.user.save(update_fields=['following_count'])
             target_user.save(update_fields=['followers_count'])
+            
+            # Clear cached profile data for both authenticated and non-authenticated users
+            cache.delete(f"public_profile_{username}_True")
+            cache.delete(f"public_profile_{username}_False")
             
             return Response({
                 "detail": "Umestop kumfollow mtumiaji huyu.",

@@ -153,6 +153,13 @@ export default function PredictDashboardPage() {
   if (!dashboard) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
   const isFinished = dashboard.match.status === "FINISHED";
 
+  // Categorize markets by team/full match
+  const homeMarkets = dashboard.markets.filter(m => m.key.startsWith("HOME_GOALS"));
+  const awayMarkets = dashboard.markets.filter(m => m.key.startsWith("AWAY_GOALS"));
+  const fullMatchMarkets = dashboard.markets.filter(m => 
+    !m.key.startsWith("HOME_GOALS") && !m.key.startsWith("AWAY_GOALS")
+  );
+
   return (
     <DerbyThemeProvider matchId={matchId}>
       <div className="px-5 pt-safe pt-10 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 32px)" }}>
@@ -215,21 +222,92 @@ export default function PredictDashboardPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {dashboard.markets.map((market) => (
-            <MarketRow 
-              key={market.key}
-              market={market} 
-              onLockedClick={() => setShowSub(true)}
-              matchId={matchId}
-              isSaved={savedMarkets.has(market.key)}
-              onSave={handleSaveMarket}
-              onUnsave={handleUnsaveMarket}
-              selectionMode={selectionMode}
-              isSelected={selectedMarkets.has(market.key)}
-              onToggleSelection={toggleMarketSelection}
+        {/* HOME TEAM SECTION */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+            <h2 className="text-2xl font-black text-white">HOME</h2>
+            <img 
+              src={dashboard.match.home_team.crest_url} 
+              alt={dashboard.match.home_team.name}
+              className="w-8 h-8 object-contain"
             />
-          ))}
+            <span className="text-lg font-bold" style={{ color: "rgba(255,255,255,0.8)" }}>
+              {dashboard.match.home_team.name}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {homeMarkets.map((market) => (
+              <MarketRow 
+                key={market.key}
+                market={market} 
+                onLockedClick={() => setShowSub(true)}
+                matchId={matchId}
+                isSaved={savedMarkets.has(market.key)}
+                onSave={handleSaveMarket}
+                onUnsave={handleUnsaveMarket}
+                selectionMode={selectionMode}
+                isSelected={selectedMarkets.has(market.key)}
+                onToggleSelection={toggleMarketSelection}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* AWAY TEAM SECTION */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+            <h2 className="text-2xl font-black text-white">AWAY TEAM</h2>
+            <img 
+              src={dashboard.match.away_team.crest_url} 
+              alt={dashboard.match.away_team.name}
+              className="w-8 h-8 object-contain"
+            />
+            <span className="text-lg font-bold" style={{ color: "rgba(255,255,255,0.8)" }}>
+              {dashboard.match.away_team.name}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {awayMarkets.map((market) => (
+              <MarketRow 
+                key={market.key}
+                market={market} 
+                onLockedClick={() => setShowSub(true)}
+                matchId={matchId}
+                isSaved={savedMarkets.has(market.key)}
+                onSave={handleSaveMarket}
+                onUnsave={handleUnsaveMarket}
+                selectionMode={selectionMode}
+                isSelected={selectedMarkets.has(market.key)}
+                onToggleSelection={toggleMarketSelection}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* FULL MATCH SECTION */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+            <h2 className="text-2xl font-black text-white">FULL MATCH</h2>
+            <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>
+              Overall Markets
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {fullMatchMarkets.map((market) => (
+              <MarketRow 
+                key={market.key}
+                market={market} 
+                onLockedClick={() => setShowSub(true)}
+                matchId={matchId}
+                isSaved={savedMarkets.has(market.key)}
+                onSave={handleSaveMarket}
+                onUnsave={handleUnsaveMarket}
+                selectionMode={selectionMode}
+                isSelected={selectedMarkets.has(market.key)}
+                onToggleSelection={toggleMarketSelection}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="mt-5">

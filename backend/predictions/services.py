@@ -236,7 +236,37 @@ def is_prediction_correct(market: str, selection: str, home_score: int, away_sco
         return False
     if market == "BTTS":
         both_scored = home_score > 0 and away_score > 0
-        return both_scored if selection == "yes" else (not both_scored if selection == "no" else False)
+        return both_scored if selection == "btts_yes" else (not both_scored if selection == "btts_no" else False)
+    
+    # Home Team Goals markets
+    if market.startswith("HOME_GOALS_OVER_"):
+        line = float(market.replace("HOME_GOALS_OVER_", "").replace("_", "."))
+        if selection.startswith("home_over"):
+            return home_score > line
+        elif selection.startswith("home_under"):
+            return home_score < line
+        return False
+    
+    # Away Team Goals markets
+    if market.startswith("AWAY_GOALS_OVER_"):
+        line = float(market.replace("AWAY_GOALS_OVER_", "").replace("_", "."))
+        if selection.startswith("away_over"):
+            return away_score > line
+        elif selection.startswith("away_under"):
+            return away_score < line
+        return False
+    
+    # Correct Score market
+    if market == "CORRECT_SCORE":
+        # Selection format: "X-Y" (e.g., "2-1")
+        if "-" not in selection:
+            return False
+        try:
+            predicted_home, predicted_away = map(int, selection.split("-"))
+            return home_score == predicted_home and away_score == predicted_away
+        except ValueError:
+            return False
+    
     return False
 
 
@@ -399,6 +429,17 @@ def get_ai_recommended_option(match, market_key: str):
 
     definition = MARKET_DEFINITIONS[market_key]
     source_data = prediction[definition["source_key"]]
+    
+    # Special handling for CORRECT_SCORE market
+    if market_key == "CORRECT_SCORE":
+        predictions = source_data.get("predictions", [])
+        if not predictions:
+            return None
+        # Return the score key (e.g., "2-0") of the highest probability prediction
+        best_pred = max(predictions, key=lambda p: p["probability"])
+        return best_pred["score"]
+    
+    # Standard market handling
     best_option = max(definition["options"], key=lambda opt: source_data[opt["key"]])
     return best_option["key"]
 
@@ -431,21 +472,53 @@ def build_match_analysis(match, viewer_is_subscriber: bool):
         source_data = prediction[definition["source_key"]]
         is_locked = market_key in locked_markets and not viewer_is_subscriber
 
-        best_ai_key = max(definition["options"], key=lambda o: source_data[o["key"]])["key"]
-        ai_correct = is_prediction_correct(market_key, best_ai_key, home_score, away_score)
-        if ai_correct:
-            correct_count += 1
+        # Special handling for CORRECT_SCORE market
+        if market_key == "CORRECT_SCORE":
+            # CORRECT_SCORE has predictions list, not traditional options
+            predictions = source_data.get("predictions", [])
+            if not predictions:
+                continue  # Skip if no predictions available
+            
+            # Get best prediction (highest probability)
+            best_pred = max(predictions, key=lambda p: p["probability"])
+            best_ai_key = best_pred["score"]
+            
+            ai_correct = is_prediction_correct(market_key, best_ai_key, home_score, away_score)
+            if ai_correct:
+                correct_count += 1
 
-        options = []
-        for opt in definition["options"]:
-            prob_pct = source_data[opt["key"]]
-            was_actual = is_prediction_correct(market_key, opt["key"], home_score, away_score)
-            options.append({
-                "key": opt["key"],
-                "label": opt["label"],
-                "prob": None if is_locked else round(prob_pct / 100, 4),
-                "was_actual_outcome": None if is_locked else was_actual,
-            })
+            options = []
+            for pred in predictions[:10]:  # Top 10
+                score_key = pred["score"]
+                was_actual = is_prediction_correct(market_key, score_key, home_score, away_score)
+                options.append({
+                    "key": score_key,
+                    "label": f"{pred['home_goals']}-{pred['away_goals']}",
+                    "prob": None if is_locked else round(pred["probability_percent"] / 100, 4),
+                    "was_actual_outcome": None if is_locked else was_actual,
+                    "extra": {
+                        "rank": pred["rank"],
+                        "home_goals": pred["home_goals"],
+                        "away_goals": pred["away_goals"],
+                    }
+                })
+        else:
+            # Standard market handling
+            best_ai_key = max(definition["options"], key=lambda o: source_data[o["key"]])["key"]
+            ai_correct = is_prediction_correct(market_key, best_ai_key, home_score, away_score)
+            if ai_correct:
+                correct_count += 1
+
+            options = []
+            for opt in definition["options"]:
+                prob_pct = source_data[opt["key"]]
+                was_actual = is_prediction_correct(market_key, opt["key"], home_score, away_score)
+                options.append({
+                    "key": opt["key"],
+                    "label": opt["label"],
+                    "prob": None if is_locked else round(prob_pct / 100, 4),
+                    "was_actual_outcome": None if is_locked else was_actual,
+                })
 
         markets.append({
             "key": market_key,

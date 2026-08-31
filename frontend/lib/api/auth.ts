@@ -88,7 +88,7 @@ export function updateAvatar(avatar: File) {
 }
 
 export function getPublicProfile(username: string) {
-  return apiClient<{ user: BashiriUser; mic_reactions: Array<{ id: number; reaction: string; created_at: string }>; mic_count: number }>(`/auth/profile/${username}/`, { skipAuth: true });
+  return apiClient<{ user: BashiriUser; mic_reactions: Array<{ id: number; reaction: string; created_at: string }>; mic_count: number; is_following?: boolean }>(`/auth/profile/${username}/`, { skipAuth: true });
 }
 
 export function deleteAccount() {
@@ -115,6 +115,10 @@ export function getFollowing() {
 
 export function getFollowers() {
   return apiClient<{ count: number; results: BashiriUser[] }>("/auth/followers/");
+}
+
+export function checkFollowStatus(username: string) {
+  return apiClient<{ is_following: boolean }>(`/auth/check-follow/${username}/`);
 }
 
 /*

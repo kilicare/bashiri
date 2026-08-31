@@ -142,6 +142,11 @@ export interface MarketOptionAnalysis {
   label: string;
   prob: number | null;
   was_actual_outcome: boolean | null;
+  extra?: {
+    rank?: number;
+    home_goals?: number;
+    away_goals?: number;
+  };
 }
 export interface MarketAnalysis {
   key: string;

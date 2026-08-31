@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Film, Target, TrendingUp, Award, Loader2, User, Calendar, Heart, Eye, ArrowLeft, Flame, Medal, Brain, CheckCircle, XCircle, Clock, Shield, Crown, Users, Zap, Star, UserPlus, UserMinus } from "lucide-react";
-import { getPublicProfile, followUser, unfollowUser } from "@/lib/api/auth";
+import { getPublicProfile, followUser, unfollowUser, checkFollowStatus, getFollowing } from "@/lib/api/auth";
 import { getUserTips, getTipLeaderboard } from "@/lib/api/tips";
 import { MicVideoCard } from "@/components/mic/MicVideoCard";
 import { MicReaction } from "@/lib/api/mic";
@@ -26,6 +26,8 @@ export default function PublicProfilePage() {
   const [activeTab, setActiveTab] = useState<"overview" | "tips" | "mic">("overview");
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [serverFollowStatus, setServerFollowStatus] = useState<boolean | null>(null);
+  const [followersCount, setFollowersCount] = useState<number | null>(null);
 
   useEffect(() => {
     loadProfile();
@@ -34,6 +36,7 @@ export default function PublicProfilePage() {
   const loadProfile = async () => {
     try {
       setLoading(true);
+      
       const [profile, performance, tips] = await Promise.all([
         getPublicProfile(username),
         getTipLeaderboard().then(data => {
@@ -42,17 +45,46 @@ export default function PublicProfilePage() {
         }),
         getUserTips(username).then(data => data.results || [])
       ]);
+      
       setProfileData(profile);
       setTipPerformance(performance);
       setUserTips(tips);
       
-      // Check if current user is following this profile
-      if (currentUser && profile.user.username !== currentUser.username) {
-        // In a real implementation, you'd check this via API
-        // For now, we'll use a simple local state check
+      // Set followers count from server response
+      if (profile.user && profile.user.followers_count !== undefined) {
+        setFollowersCount(profile.user.followers_count);
+      }
+      
+      // Use follow status from backend response
+      if (profile.is_following !== undefined) {
+        setIsFollowing(profile.is_following);
+        setServerFollowStatus(profile.is_following);
+      } else if (currentUser && profile.user.username !== currentUser.username) {
+        // Fallback: Check if current user is following this profile
+        try {
+          const followStatus = await checkFollowStatus(username);
+          setIsFollowing(followStatus.is_following);
+          setServerFollowStatus(followStatus.is_following);
+        } catch (err) {
+          // If check-follow endpoint doesn't exist, try to infer from following list
+          try {
+            const followingData = await getFollowing();
+            const isFollowing = followingData.results.some((u: any) => u.username === username);
+            setIsFollowing(isFollowing);
+            setServerFollowStatus(isFollowing);
+          } catch (err2) {
+            // If that also fails, default to false
+            console.error('Failed to check follow status via following list:', err2);
+            setIsFollowing(false);
+            setServerFollowStatus(false);
+          }
+        }
+      } else {
         setIsFollowing(false);
+        setServerFollowStatus(false);
       }
     } catch (err: any) {
+      console.error('Error loading profile:', err);
       setError("Mtumiaji hapatikani.");
     } finally {
       setLoading(false);
@@ -70,30 +102,56 @@ export default function PublicProfilePage() {
       if (isFollowing) {
         await unfollowUser(username);
         setIsFollowing(false);
+        setServerFollowStatus(false);
+        if (followersCount !== null) {
+          setFollowersCount(Math.max(0, followersCount - 1));
+        }
         if (profileData?.user) {
           setProfileData({
             ...profileData,
             user: {
               ...profileData.user,
-              followers_count: Math.max(0, profileData.user.followers_count - 1)
+              followers_count: Math.max(0, (profileData.user.followers_count || 0) - 1)
             }
           });
         }
       } else {
         await followUser(username);
         setIsFollowing(true);
+        setServerFollowStatus(true);
+        if (followersCount !== null) {
+          setFollowersCount(followersCount + 1);
+        }
         if (profileData?.user) {
           setProfileData({
             ...profileData,
             user: {
               ...profileData.user,
-              followers_count: profileData.user.followers_count + 1
+              followers_count: (profileData.user.followers_count || 0) + 1
             }
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Follow/unfollow error:', error);
+      
+      // Handle case where user is already following (backend returns 400)
+      if (error?.message?.includes('Umesha follow mtumiaji huyu') || 
+          error?.message?.includes('already following')) {
+        // Update local state to reflect that they are following
+        setIsFollowing(true);
+        setServerFollowStatus(true);
+        return; // Don't show error to user
+      }
+      
+      // Handle case where user is not following (for unfollow)
+      if (error?.message?.includes('Huja follow mtumiaji huyu') || 
+          error?.message?.includes('not following')) {
+        // Update local state to reflect that they are not following
+        setIsFollowing(false);
+        setServerFollowStatus(false);
+        return; // Don't show error to user
+      }
     } finally {
       setFollowLoading(false);
     }
@@ -135,6 +193,7 @@ export default function PublicProfilePage() {
   const user = profileData.user;
   const micReactions = profileData.mic_reactions || [];
   const micCount = profileData.mic_count || 0;
+  const userTipsList = userTips || [];
 
   return (
     <div className="min-h-dvh px-5 pt-safe pt-10 pb-24">
@@ -199,7 +258,7 @@ export default function PublicProfilePage() {
             <div className="flex items-center gap-4 text-sm mb-3">
               <div className="flex items-center gap-1 text-white/70">
                 <Users size={14} />
-                <span>{user.followers_count} followers</span>
+                <span>{followersCount !== null ? followersCount : (user.followers_count || 0)} followers</span>
               </div>
               {tipPerformance && tipPerformance.tipster_score > 0 && (
                 <div className="flex items-center gap-1">
@@ -264,15 +323,15 @@ export default function PublicProfilePage() {
         ) : (
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-              <p className="text-2xl font-black text-white mb-1">{user.total_predictions}</p>
+              <p className="text-2xl font-black text-white mb-1">{user.total_predictions || 0}</p>
               <p className="text-xs text-white/50">Predictions</p>
             </div>
             <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-              <p className="text-2xl font-black text-white mb-1">{user.accuracy_percentage}%</p>
+              <p className="text-2xl font-black text-white mb-1">{user.accuracy_percentage || 0}%</p>
               <p className="text-xs text-white/50">Accuracy</p>
             </div>
             <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-              <p className="text-2xl font-black text-white mb-1">{user.best_streak}</p>
+              <p className="text-2xl font-black text-white mb-1">{user.best_streak || 0}</p>
               <p className="text-xs text-white/50">Best Streak</p>
             </div>
           </div>
@@ -446,11 +505,11 @@ export default function PublicProfilePage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
                   <span className="text-sm text-white/70">Current Streak</span>
-                  <span className="text-sm font-bold text-white">{user.current_streak}</span>
+                  <span className="text-sm font-bold text-white">{user.current_streak || 0}</span>
                 </div>
                 <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
                   <span className="text-sm text-white/70">Correct Predictions</span>
-                  <span className="text-sm font-bold text-white">{user.correct_predictions}</span>
+                  <span className="text-sm font-bold text-white">{user.correct_predictions || 0}</span>
                 </div>
               </div>
             )}
@@ -465,10 +524,10 @@ export default function PublicProfilePage() {
         >
           <div className="flex items-center gap-2 mb-4">
             <Target size={20} className="text-[var(--brand-accent)]" />
-            <h3 className="text-lg font-bold text-white">Tips ({userTips.length})</h3>
+            <h3 className="text-lg font-bold text-white">Tips ({userTipsList.length})</h3>
           </div>
 
-          {userTips.length === 0 ? (
+          {userTipsList.length === 0 ? (
             <div className="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-8 border border-white/10 text-center">
               <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
                 <Target size={40} className="text-white/30" />
@@ -480,7 +539,7 @@ export default function PublicProfilePage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {userTips.map((tip) => (
+              {userTipsList.map((tip) => (
                 <TipCard key={tip.id} tip={tip} />
               ))}
             </div>
