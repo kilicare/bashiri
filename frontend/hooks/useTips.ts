@@ -105,6 +105,7 @@ export function useCreateTip() {
       try {
         setIsLoading(true)
         setError(null)
+        console.log('[useCreateTip] Creating tip with data:', JSON.stringify(data, null, 2))
         const newTip = await createTip(data)
         
         // Add to store
@@ -114,6 +115,7 @@ export function useCreateTip() {
           home_team: newTip.match.home_team_name,
           away_team: newTip.match.away_team_name,
           league_name: newTip.match.league_name,
+          kickoff_at: newTip.match.kickoff_at,
           market_key: newTip.market_key,
           market_label: newTip.market_label,
           selection: newTip.selection,
@@ -124,6 +126,8 @@ export function useCreateTip() {
           upvotes_count: 0,
           downvotes_count: 0,
           comments_count: 0,
+          is_locked: newTip.is_locked,
+          ai_agrees: newTip.ai_snapshot?.ai_agrees || null,
           created_at: newTip.created_at,
         })
 

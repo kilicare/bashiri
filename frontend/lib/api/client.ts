@@ -101,6 +101,7 @@ export async function apiClient<T = Record<string, unknown>>(
         try {
           const body = JSON.parse(text);
           console.error('[API Error]', endpoint, res.status, body);
+          console.error('[API Error Full Details]', JSON.stringify(body, null, 2));
           // Handle Django REST Framework error format: { "field": ["error message"] }
           if (body.detail) {
             detail = body.detail;

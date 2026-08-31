@@ -8,40 +8,12 @@ MatchOverview.
 from django.conf import settings
 
 from .ml.poisson_model import predict_fixture
+from .recommendation_engine import (
+    generate_recommendation,
+    MARKET_DEFINITIONS,
+)
 
-MARKET_DEFINITIONS = {
-    "1X2": {"label": "Matokeo ya Mechi", "source_key": "match_result", "options": [
-        {"key": "home_win", "label": "Ushindi Nyumbani"},
-        {"key": "draw", "label": "Sare"},
-        {"key": "away_win", "label": "Ushindi Ugenini"},
-    ]},
-    "DOUBLE_CHANCE": {"label": "Double Chance", "source_key": "double_chance", "options": [
-        {"key": "1x", "label": "1X"}, {"key": "x2", "label": "X2"}, {"key": "12", "label": "12"},
-    ]},
-    "DRAW_NO_BET": {"label": "Draw No Bet", "source_key": "draw_no_bet", "options": [
-        {"key": "home_dnb", "label": "Home DNB"}, {"key": "away_dnb", "label": "Away DNB"},
-    ]},
-    "OVER_UNDER_0_5": {"label": "Over/Under 0.5", "source_key": "over_under", "options": [
-        {"key": "over_0_5", "label": "Over 0.5"}, {"key": "under_0_5", "label": "Under 0.5"},
-    ]},
-    "OVER_UNDER_1_5": {"label": "Over/Under 1.5", "source_key": "over_under", "options": [
-        {"key": "over_1_5", "label": "Over 1.5"}, {"key": "under_1_5", "label": "Under 1.5"},
-    ]},
-    "OVER_UNDER_2_5": {"label": "Over/Under 2.5", "source_key": "over_under", "options": [
-        {"key": "over_2_5", "label": "Over 2.5"}, {"key": "under_2_5", "label": "Under 2.5"},
-    ]},
-    "OVER_UNDER_3_5": {"label": "Over/Under 3.5", "source_key": "over_under", "options": [
-        {"key": "over_3_5", "label": "Over 3.5"}, {"key": "under_3_5", "label": "Under 3.5"},
-    ]},
-    "OVER_UNDER_4_5": {"label": "Over/Under 4.5", "source_key": "over_under", "options": [
-        {"key": "over_4_5", "label": "Over 4.5"}, {"key": "under_4_5", "label": "Under 4.5"},
-    ]},
-    "BTTS": {"label": "Timu Zote Kufunga (BTTS)", "source_key": "btts", "options": [
-        {"key": "yes", "label": "Ndiyo"}, {"key": "no", "label": "Hapana"},
-    ]},
-}
-
-MODEL_VERSION = "bashiri-ml-v4.0"
+# Model version is now derived from production JSON, not hardcoded
 
 
 class UnknownTeamError(Exception):
@@ -55,60 +27,40 @@ def compute_global_top_pick(prediction: dict) -> dict:
     prediction['ai_pick'] (poisson_model.py) ambayo imefungwa 1X2 kwa
     matumizi ya ndani ya model pelee.
     
-    NEW LOGIC: Market-Specific Thresholds with Historical Accuracy
-    - Kila soko ina threshold yake (kulingana na historical accuracy)
-    - Chagua soko lenye highest confidence KATI YA MASOKO YANAYOKIDHI THRESHOLD
-    - Kama hakuna soko linakidhi threshold → return NULL (hakuna recommendation)
-    - Hii haitumii mock odds - data halisi tu
+    NEW LOGIC: Uses canonical Recommendation Engine
+    - No hardcoded thresholds - derived from evaluation data
+    - Quality gates based on data quality and confidence
+    - Returns NULL if no market meets quality requirements
+    - Model version derived from production JSON
+    - Returns full recommendation metadata for frontend
     """
-    # Market-specific thresholds based on historical accuracy
-    MARKET_THRESHOLDS = {
-        "1X2": 65.0,           # Model accuracy ~70%
-        "BTTS": 70.0,          # Model accuracy ~65%  
-        "OVER_UNDER_2_5": 72.0, # Model accuracy ~68%
-        "DOUBLE_CHANCE": 78.0, # Model accuracy ~75%
-        "OVER_UNDER_1_5": 75.0, # Model accuracy ~70%
-        "OVER_UNDER_3_5": 68.0, # Model accuracy ~62%
-        "DRAW_NO_BET": 73.0,   # Model accuracy ~68%
-        "OVER_UNDER_0_5": 80.0, # Model accuracy ~75%
-        "OVER_UNDER_4_5": 82.0, # Model accuracy ~70%
-    }
+    from .recommendation_engine import generate_recommendation
     
-    # Step 1: Filter qualified markets (those meeting their thresholds)
-    qualified_markets = []
+    # Use the canonical Recommendation Engine
+    # NO HARDCODED THRESHOLDS - let the engine determine quality
+    recommendation = generate_recommendation(
+        prediction,
+        # No min_probability - let data quality and evidence speak
+        min_probability=0.0,
+        # No min_confidence - let the engine assess evidence quality
+        min_confidence=0.0,
+    )
     
-    for market_key, definition in MARKET_DEFINITIONS.items():
-        source_data = prediction[definition["source_key"]]
-        threshold = MARKET_THRESHOLDS.get(market_key, 70.0)  # Default 70% if not specified
-        
-        for opt in definition["options"]:
-            confidence = source_data[opt["key"]]
-            
-            # Check if market meets its threshold
-            if confidence >= threshold:
-                qualified_markets.append({
-                    "market_key": market_key,
-                    "market_label": definition["label"],
-                    "option_key": opt["key"],
-                    "option_label": opt["label"],
-                    "confidence": round(confidence, 1),
-                    "threshold": threshold,
-                })
-    
-    # Step 2: Select best from qualified markets
-    if not qualified_markets:
-        # No market meets threshold - return NULL (no recommendation)
+    if recommendation.status == "NO_STRONG_PICK":
         return None
     
-    # Find market with highest confidence among qualified
-    best = max(qualified_markets, key=lambda m: m["confidence"])
-    
     return {
-        "market_key": best["market_key"],
-        "market_label": best["market_label"],
-        "option_key": best["option_key"],
-        "option_label": best["option_label"],
-        "confidence": best["confidence"],
+        "market_key": recommendation.market_key,
+        "market_label": MARKET_DEFINITIONS[recommendation.market_key]["label"],
+        "option_key": recommendation.option_key,
+        "option_label": recommendation.label,
+        "confidence": round(recommendation.raw_probability, 1),
+        # New fields from Recommendation Engine
+        "status": recommendation.status,
+        "tier": recommendation.tier,
+        "data_quality": recommendation.data_quality,
+        "model_version": recommendation.model_version,
+        "reason": recommendation.reason,
     }
 
 
@@ -169,26 +121,51 @@ def build_prediction_dashboard(match, viewer_is_subscriber: bool):
 
     # === TOP PICK — Recommendation MOJA kuu kati ya masoko YOTE 9 ===
     global_best = compute_global_top_pick(prediction)
-    is_top_pick_locked = global_best["market_key"] in locked_markets
-
-    if is_top_pick_locked and not viewer_is_subscriber:
-        top_pick = {
-            "is_locked": True,
-            "confidence": global_best["confidence"],
-            "market_label": None,
-            "option_label": None,
-        }
-    else:
+    
+    if global_best is None:
+        # NO_STRONG_PICK state
         top_pick = {
             "is_locked": False,
-            "confidence": global_best["confidence"],
-            "market_label": global_best["market_label"],
-            "option_label": global_best["option_label"],
+            "confidence": 0,
+            "market_label": None,
+            "option_label": None,
+            "status": "NO_STRONG_PICK",
+            "tier": None,
+            "data_quality": "LOW",
+            "model_version": prediction.get("model_version", prediction.get("pipeline_version", "unknown")),
+            "reason": "No market meets quality requirements",
         }
+    else:
+        is_top_pick_locked = global_best["market_key"] in locked_markets
+
+        if is_top_pick_locked and not viewer_is_subscriber:
+            top_pick = {
+                "is_locked": True,
+                "confidence": global_best["confidence"],
+                "market_label": None,
+                "option_label": None,
+                "status": global_best.get("status", "STRONG"),
+                "tier": global_best.get("tier"),
+                "data_quality": global_best.get("data_quality"),
+                "model_version": global_best.get("model_version"),
+                "reason": global_best.get("reason"),
+            }
+        else:
+            top_pick = {
+                "is_locked": False,
+                "confidence": global_best["confidence"],
+                "market_label": global_best["market_label"],
+                "option_label": global_best["option_label"],
+                "status": global_best.get("status", "STRONG"),
+                "tier": global_best.get("tier"),
+                "data_quality": global_best.get("data_quality"),
+                "model_version": global_best.get("model_version"),
+                "reason": global_best.get("reason"),
+            }
 
     return {
         "match_id": match.id,
-        "model_version": MODEL_VERSION,
+        "model_version": prediction.get("model_version", prediction.get("pipeline_version", "unknown")),
         "expected_goals": prediction["expected_goals"],
         "top_pick": top_pick,
         "markets": markets,
@@ -451,7 +428,7 @@ def build_match_analysis(match, viewer_is_subscriber: bool):
         })
 
     return {
-        "model_version": MODEL_VERSION,
+        "model_version": prediction.get("model_version", prediction.get("pipeline_version", "unknown")),
         "ai_scorecard": {"correct": correct_count, "total": len(all_market_keys)},
         "expected_goals": prediction["expected_goals"],
         "actual_score": {"home": home_score, "away": away_score},

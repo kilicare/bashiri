@@ -2,12 +2,15 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { getMatchOverview } from "@/lib/api/predictions";
+import { getTipsByMatch } from "@/lib/api/tips";
 import { BashiriButton } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { PremiumCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, MessageCircle, TrendingUp, Brain } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
+import { UserTipList } from "@/lib/types/tips";
+import { TipCard } from "@/components/tips/TipCard";
 
 const DERBY_TABS = [
   { key: "stats", label: "Derby Stats" },
@@ -23,11 +26,13 @@ export default function MatchOverviewPage() {
   const searchParams = useSearchParams();
   const matchId = Number(params.matchId);
   const [data, setData] = useState<any>(null);
+  const [tips, setTips] = useState<UserTipList[]>([]);
   const [activeTab, setActiveTab] = useState<string>("stats");
   const { user } = useAuthStore();
 
   useEffect(() => {
     getMatchOverview(matchId).then(setData);
+    getTipsByMatch(matchId).then(response => setTips(response.results || [])).catch(() => setTips([]));
   }, [matchId]);
 
   useEffect(() => {
@@ -98,8 +103,52 @@ export default function MatchOverviewPage() {
         ))}
       </div>
 
+      {/* Community Tips Section */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <PremiumCard variant="gradient" hover className="mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="text-blue-400" size={18} />
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Community Tips ({tips.length})
+              </p>
+            </div>
+            {tips.length > 0 && (
+              <div className="flex items-center gap-2 text-xs">
+                <TrendingUp className="text-green-400" size={14} />
+                <span className="text-white/70">
+                  {tips.filter(t => t.status === 'CORRECT').length} won
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {tips.length === 0 ? (
+            <div className="text-center py-6">
+              <Brain className="mx-auto mb-2 text-white/30" size={32} />
+              <p className="text-sm text-white/50 mb-1">No community tips yet</p>
+              <p className="text-xs text-white/30">Be the first to share your prediction</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {tips.slice(0, 3).map((tip) => (
+                <TipCard key={tip.id} tip={tip} showTeams={false} />
+              ))}
+              {tips.length > 3 && (
+                <button
+                  onClick={() => router.push(`/tips?match=${matchId}`)}
+                  className="w-full py-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition"
+                >
+                  View all {tips.length} tips →
+                </button>
+              )}
+            </div>
+          )}
+        </PremiumCard>
+      </motion.div>
+
       {/* Tab Content */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         {activeTab === "stats" && (
           <PremiumCard variant="sand" hover className="mb-4">
             <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Form Guide</p>
@@ -255,7 +304,7 @@ export default function MatchOverviewPage() {
         )}
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <div className="flex gap-3">
           <BashiriButton className="flex-1" size="lg" onClick={() => router.push(`/create/${matchId}/predict`)}>
             Ona Predictions →

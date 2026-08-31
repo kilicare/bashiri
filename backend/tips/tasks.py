@@ -11,49 +11,7 @@ from predictions.models import Match
 logger = logging.getLogger(__name__)
 
 
-def is_prediction_correct(market_key, selection, home_score, away_score):
-    """
-    Determine if a prediction is correct based on final match score
-    """
-    total_goals = home_score + away_score
-    
-    if market_key == "1X2":
-        if selection == "home_win" and home_score > away_score:
-            return True
-        elif selection == "draw" and home_score == away_score:
-            return True
-        elif selection == "away_win" and away_score > home_score:
-            return True
-    
-    elif market_key == "DRAW_NO_BET":
-        if selection == "home_win" and home_score > away_score:
-            return True
-        elif selection == "away_win" and away_score > home_score:
-            return True
-    
-    elif market_key.startswith("OVER_UNDER"):
-        threshold = int(market_key.split("_")[-1])
-        if selection.startswith("over") and total_goals > threshold:
-            return True
-        elif selection.startswith("under") and total_goals < threshold:
-            return True
-    
-    elif market_key == "BTTS":
-        if selection == "both_teams_score_yes" and home_score > 0 and away_score > 0:
-            return True
-        elif selection == "both_teams_score_no" and (home_score == 0 or away_score == 0):
-            return True
-    
-    elif market_key == "DOUBLE_CHANCE":
-        # Standardized keys: "1x", "x2", "12" to match predictions/services.py
-        if selection == "1x" and home_score >= away_score:
-            return True
-        elif selection == "x2" and away_score >= home_score:
-            return True
-        elif selection == "12" and home_score != away_score:
-            return True
-    
-    return False
+from .verification import verify_tip, VerificationResult
 
 
 @shared_task(bind=True, max_retries=3)
@@ -78,28 +36,37 @@ def verify_tips_task(self):
                 home_score = tip.match.home_score
                 away_score = tip.match.away_score
                 
-                # Determine if prediction was correct
-                is_correct = is_prediction_correct(
+                # Determine if prediction was correct using centralized verification engine
+                verification_result = verify_tip(
                     tip.market_key, tip.selection, home_score, away_score
                 )
                 
-                # Update tip status
-                tip.status = "CORRECT" if is_correct else "INCORRECT"
+                # Update tip status based on verification result
+                old_status = tip.status
+                tip.status = verification_result.value
                 tip.verified_at = timezone.now()
                 tip.save(update_fields=["status", "verified_at"])
                 
-                # Update user performance stats
-                perf, _ = TipPerformance.objects.get_or_create(user=tip.user)
-                perf.total_tips += 1
-                
-                if is_correct:
-                    perf.correct_tips += 1
-                    perf.current_streak += 1
-                    if perf.current_streak > perf.best_streak:
-                        perf.best_streak = perf.current_streak
-                else:
-                    perf.incorrect_tips += 1
-                    perf.current_streak = 0
+                # Only update stats if status changed from PENDING (idempotency)
+                if old_status == "PENDING":
+                    # Update user performance stats
+                    perf, _ = TipPerformance.objects.get_or_create(user=tip.user)
+                    perf.total_tips += 1
+                    
+                    is_correct = verification_result == VerificationResult.WON
+                    is_void = verification_result == VerificationResult.VOID
+                    
+                    if is_correct:
+                        perf.correct_tips += 1
+                        perf.current_streak += 1
+                        if perf.current_streak > perf.best_streak:
+                            perf.best_streak = perf.current_streak
+                    elif is_void:
+                        perf.void_tips += 1
+                        # VOID does not reset streak
+                    else:
+                        perf.incorrect_tips += 1
+                        perf.current_streak = 0
                 
                 # Update market-specific stats
                 if tip.market_key == "1X2":
@@ -122,11 +89,48 @@ def verify_tips_task(self):
                     if is_correct:
                         perf.correct_double_chance += 1
                 
+                elif tip.market_key == "DRAW_NO_BET":
+                    perf.tips_dnb += 1
+                    if is_correct:
+                        perf.correct_dnb += 1
+                
+                # Update league-specific stats
+                league_code = tip.match.league.code.lower() if tip.match.league else None
+                if league_code:
+                    if league_code in ['epl', 'premier league']:
+                        perf.tips_epl += 1
+                        if is_correct:
+                            perf.correct_epl += 1
+                    elif league_code in ['laliga', 'la liga']:
+                        perf.tips_laliga += 1
+                        if is_correct:
+                            perf.correct_laliga += 1
+                    elif league_code in ['seriea', 'serie a']:
+                        perf.tips_seriea += 1
+                        if is_correct:
+                            perf.correct_seriea += 1
+                    elif league_code in ['bundesliga']:
+                        perf.tips_bundesliga += 1
+                        if is_correct:
+                            perf.correct_bundesliga += 1
+                    elif league_code in ['ligue1', 'ligue 1']:
+                        perf.tips_ligue1 += 1
+                        if is_correct:
+                            perf.correct_ligue1 += 1
+                
+                # Update recent form
+                if not is_void:
+                    perf.update_recent_form(is_correct)
+                
                 # Recalculate accuracies
                 perf.calculate_accuracy()
                 
+                # Calculate tipster score
+                perf.calculate_tipster_score()
+                
                 # Update user model
                 tip.user.tip_accuracy = perf.accuracy_percentage
+                tip.user.tipster_score = perf.tipster_score
                 tip.user.current_streak = perf.current_streak
                 tip.user.best_streak = perf.best_streak
                 updated_users.add(tip.user.id)
@@ -134,7 +138,7 @@ def verify_tips_task(self):
                 # ⭐ BROADCAST TIP VERIFICATION via WebSocket
                 from tips.consumers import broadcast_tip_verified
                 async_to_sync(broadcast_tip_verified)(
-                    tip.id, tip.status, is_correct
+                    tip.id, tip.status, verification_result == VerificationResult.WON
                 )
 
                 verified_count += 1
@@ -150,10 +154,11 @@ def verify_tips_task(self):
             for user in users:
                 perf = user.tip_performance
                 user.tip_accuracy = perf.accuracy_percentage
+                user.tipster_score = perf.tipster_score
                 user.current_streak = perf.current_streak
                 user.best_streak = perf.best_streak
                 user.save(update_fields=[
-                    'tip_accuracy', 'current_streak', 'best_streak'
+                    'tip_accuracy', 'tipster_score', 'current_streak', 'best_streak'
                 ])
         
         # Invalidate leaderboard cache
@@ -233,3 +238,102 @@ def clean_old_shares_task():
     except Exception as e:
         logger.error(f"clean_old_shares_task failed: {str(e)}")
         return {'status': 'error', 'error': str(e)}
+
+
+@shared_task(bind=True, max_retries=3)
+def lock_tips_at_kickoff_task(self):
+    """
+    Lock tips when their matches start.
+    Runs every minute via Celery Beat.
+    """
+    
+    try:
+        # Get tips for matches that have started but tips aren't locked yet
+        from .models import UserTip
+        
+        tips_to_lock = UserTip.objects.filter(
+            locked_at__isnull=True,
+            match__kickoff_at__lte=timezone.now(),
+            match__status="SCHEDULED"
+        ).select_related("match")
+        
+        locked_count = 0
+        for tip in tips_to_lock:
+            try:
+                tip.lock()
+                locked_count += 1
+            except Exception as e:
+                logger.error(f"Error locking tip {tip.id}: {str(e)}")
+                continue
+        
+        logger.info(f"lock_tips_at_kickoff_task: locked {locked_count} tips")
+        return {
+            'status': 'success',
+            'locked_count': locked_count
+        }
+    
+    except Exception as exc:
+        logger.error(f"lock_tips_at_kickoff_task failed: {str(exc)}")
+        raise self.retry(countdown=60, exc=exc)
+
+
+@shared_task(bind=True, max_retries=3)
+def verify_slips_task(self):
+    """
+    Verify tip slips when all legs are finished.
+    Runs every 5 minutes via Celery Beat.
+    """
+    
+    try:
+        from .models import TipSlip, TipSlipLeg
+        
+        # Get pending slips that have all legs finished
+        pending_slips = TipSlip.objects.filter(
+            status="PENDING"
+        ).prefetch_related('legs__tip__match')
+        
+        verified_count = 0
+        
+        for slip in pending_slips:
+            try:
+                # Check if all legs are verified
+                all_verified = all(
+                    leg.tip.status in ["CORRECT", "INCORRECT", "VOID"]
+                    for leg in slip.legs.all()
+                )
+                
+                if not all_verified:
+                    continue
+                
+                # Update leg statuses to match tip statuses
+                for leg in slip.legs.all():
+                    leg.status = leg.tip.status
+                    leg.save(update_fields=['status'])
+                
+                # Calculate aggregate status
+                slip.calculate_aggregate_status()
+                slip.verified_at = timezone.now()
+                slip.save(update_fields=['status', 'verified_at'])
+                
+                # Update slip stats
+                slip.total_legs = slip.legs.count()
+                slip.won_legs = slip.legs.filter(status="CORRECT").count()
+                slip.lost_legs = slip.legs.filter(status="INCORRECT").count()
+                slip.void_legs = slip.legs.filter(status="VOID").count()
+                slip.save(update_fields=['total_legs', 'won_legs', 'lost_legs', 'void_legs'])
+                
+                verified_count += 1
+                
+            except Exception as e:
+                logger.error(f"Error verifying slip {slip.id}: {str(e)}")
+                continue
+        
+        logger.info(f"verify_slips_task: verified {verified_count} slips")
+        return {
+            'status': 'success',
+            'verified_count': verified_count
+        }
+    
+    except Exception as exc:
+        logger.error(f"verify_slips_task failed: {str(exc)}")
+        raise self.retry(countdown=60, exc=exc)

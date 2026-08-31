@@ -89,6 +89,11 @@ export interface TopPick {
   confidence: number;
   market_label: string | null;
   option_label: string | null;
+  status?: "STRONG" | "NO_STRONG_PICK";
+  tier?: "STRONG" | "ELITE" | null;
+  data_quality?: "HIGH" | "MEDIUM" | "LOW";
+  model_version?: string;
+  reason?: string;
 }
 
 export interface Dashboard {

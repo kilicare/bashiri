@@ -46,9 +46,12 @@ def generate_daily_picks():
     ni content tuli (haiwezi kubadilika kwa kila mtazamaji kama
     Dashboard inavyoweza), kwa hiyo hatuwezi kuonyesha 'tease' ya soko
     lililofungwa hapa bila muktadha wa subscription ya mtu binafsi.
+    
+    UPDATED: Now uses canonical Recommendation Engine for consistency.
     """
     from feed.models import Card
     from .services import MARKET_DEFINITIONS
+    from .recommendation_engine import generate_recommendation
 
     today = timezone.localdate()
     end_date = today + timedelta(days=2)  # Generate picks for today + 2 days ahead (3 days total)
@@ -59,6 +62,7 @@ def generate_daily_picks():
     free_market_keys = settings.BASHIRI["FREE_MARKETS"]
     created_count = 0
     skipped_count = 0
+    no_pick_count = 0
 
     for match in upcoming_matches:
         already_exists = Card.objects.filter(type="AI_PICK", match_id=match.id).exists()
@@ -74,21 +78,19 @@ def generate_daily_picks():
             skipped_count += 1
             continue
 
-        # Chagua BORA kati ya masoko 3 ya bure PEKEE
-        best_free = None
-        for market_key in free_market_keys:
-            definition = MARKET_DEFINITIONS[market_key]
-            source_data = prediction[definition["source_key"]]
-            for opt in definition["options"]:
-                confidence = source_data[opt["key"]]
-                if best_free is None or confidence > best_free["confidence"]:
-                    best_free = {
-                        "market_key": market_key,
-                        "market_label": definition["label"],
-                        "option_key": opt["key"],
-                        "option_label": opt["label"],
-                        "confidence": round(confidence, 1),
-                    }
+        # Use canonical Recommendation Engine with free market filter
+        # NO HARDCODED THRESHOLDS - let the engine determine quality
+        recommendation = generate_recommendation(
+            prediction,
+            market_filter=free_market_keys,
+            min_probability=0.0,  # No hardcoded threshold
+            min_confidence=0.0,  # No hardcoded threshold
+        )
+
+        if recommendation.status == "NO_STRONG_PICK":
+            logger.info(f"No strong pick for {match}: {recommendation.reason}")
+            no_pick_count += 1
+            continue
 
         card_type = "BIG_MATCH" if match.is_big_match else "AI_PICK"
 
@@ -103,16 +105,25 @@ def generate_daily_picks():
                     "kickoff_at": match.kickoff_at.isoformat(),
                     "is_big_match": match.is_big_match,
                 },
-                "ai_pick": best_free,
+                "ai_pick": {
+                    "market_key": recommendation.market_key,
+                    "market_label": MARKET_DEFINITIONS[recommendation.market_key]["label"],
+                    "option_key": recommendation.option_key,
+                    "option_label": recommendation.label,
+                    "confidence": round(recommendation.raw_probability, 1),
+                    "tier": recommendation.tier,
+                    "data_quality": recommendation.data_quality,
+                    "model_version": recommendation.model_version,
+                },
                 "reasons": [
-                    f"AI imetambua {best_free['option_label']} kwenye {best_free['market_label']}",
+                    recommendation.reason,
                 ],
             },
         )
         created_count += 1
 
-    logger.info(f"generate_daily_picks: created={created_count}, skipped={skipped_count}")
-    return f"AI Picks: created={created_count}, skipped={skipped_count}"
+    logger.info(f"generate_daily_picks: created={created_count}, skipped={skipped_count}, no_pick={no_pick_count}")
+    return f"AI Picks: created={created_count}, skipped={skipped_count}, no_pick={no_pick_count}"
 
 
 @shared_task

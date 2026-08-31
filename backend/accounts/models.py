@@ -48,6 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Tip-specific tracking fields
     tip_count = models.PositiveIntegerField(default=0)
     tip_accuracy = models.FloatField(default=0.0)
+    tipster_score = models.PositiveSmallIntegerField(default=0, db_index=True)
     verified_tipster = models.BooleanField(default=False)
     followers_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)

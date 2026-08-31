@@ -230,33 +230,50 @@ export default function MatchesPage() {
     }
   }, [tab, selectedDate, selectedLeague, query, useDateInSearch]);
 
-  // Poll live matches every 30 seconds when on live tab
+  // Poll matches for all tabs
   useEffect(() => {
-    if (tab !== "live") return;
+    let interval: NodeJS.Timeout | null = null;
 
-    let interval: NodeJS.Timeout | null = setInterval(() => {
-      getLiveMatches().then((data) => {
-        const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
-        setMatches(filtered);
-      });
-    }, 30000);
+    // Only poll for fixtures and live - finished matches don't need polling
+    if (tab === "fixtures" || tab === "live") {
+      interval = setInterval(() => {
+        if (tab === "fixtures") {
+          const dateStr = format(selectedDate, 'yyyy-MM-dd');
+          getFixtures(dateStr).then((data) => { 
+            const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+            setMatches(filtered); 
+          });
+        } else if (tab === "live") {
+          getLiveMatches().then((data) => {
+            const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+            setMatches(filtered);
+          });
+        }
+      }, 30000); // Poll every 30 seconds
+    }
 
     // Pause polling when page loses focus
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Pause polling
         if (interval) {
           clearInterval(interval);
           interval = null;
         }
       } else {
-        // Resume polling
-        if (!interval) {
+        if (!interval && (tab === "fixtures" || tab === "live")) {
           interval = setInterval(() => {
-            getLiveMatches().then((data) => {
-              const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
-              setMatches(filtered);
-            });
+            if (tab === "fixtures") {
+              const dateStr = format(selectedDate, 'yyyy-MM-dd');
+              getFixtures(dateStr).then((data) => { 
+                const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+                setMatches(filtered); 
+              });
+            } else if (tab === "live") {
+              getLiveMatches().then((data) => {
+                const filtered = selectedLeague ? data.filter(m => m.league.code === selectedLeague) : data;
+                setMatches(filtered);
+              });
+            }
           }, 30000);
         }
       }
@@ -268,7 +285,7 @@ export default function MatchesPage() {
       if (interval) clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [tab, selectedLeague]);
+  }, [tab, selectedDate, selectedLeague]);
 
   async function loadMoreFinished() {
     const newOffset = offset + 20;

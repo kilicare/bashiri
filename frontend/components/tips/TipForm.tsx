@@ -4,8 +4,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState, useEffect } from 'react'
-import { TipMatch, CreateTipRequest } from '@/lib/types/tips'
+import { TipMatch, CreateTipRequest, MarketDefinition } from '@/lib/types/tips'
 import { PremiumButton } from '@/components/ui/Button'
+import { Brain, TrendingUp, Lock, AlertTriangle, Loader } from 'lucide-react'
+import { getMarketRegistry } from '@/lib/api/tips'
 
 const tipFormSchema = z.object({
   market_key: z.string().min(1, 'Market is required'),
@@ -21,51 +23,53 @@ interface TipFormProps {
   match: TipMatch
   onSubmit: (data: CreateTipRequest) => Promise<void>
   isLoading?: boolean
+  aiRecommendation?: {
+    market_key: string
+    selection: string
+    selection_label?: string
+    confidence: number
+    probability: number
+    status: string
+    data_quality?: string
+    model_version?: string
+    home_win_probability?: number | null
+    draw_probability?: number | null
+    away_win_probability?: number | null
+    btts_yes_probability?: number | null
+    over_2_5_probability?: number | null
+  } | null
+  isLocked?: boolean
 }
 
-const MARKET_OPTIONS = [
-  { key: '1X2', label: 'Win/Draw/Loss', selections: [
-    { key: 'home_win', label: 'Home Win' },
-    { key: 'draw', label: 'Draw' },
-    { key: 'away_win', label: 'Away Win' },
-  ]},
-  { key: 'DOUBLE_CHANCE', label: 'Double Chance', selections: [
-    { key: '1x', label: '1X (Home or Draw)' },
-    { key: 'x2', label: 'X2 (Away or Draw)' },
-    { key: '12', label: '12 (Home or Away)' },
-  ]},
-  { key: 'DRAW_NO_BET', label: 'Draw No Bet', selections: [
-    { key: 'home_dnb', label: 'Home DNB' },
-    { key: 'away_dnb', label: 'Away DNB' },
-  ]},
-  { key: 'BTTS', label: 'Both Teams Score', selections: [
-    { key: 'yes', label: 'Yes (Both Score)' },
-    { key: 'no', label: 'No (One Doesn\'t Score)' },
-  ]},
-  { key: 'OVER_UNDER_0_5', label: 'Over/Under 0.5 Goals', selections: [
-    { key: 'over_0_5', label: 'Over 0.5' },
-    { key: 'under_0_5', label: 'Under 0.5' },
-  ]},
-  { key: 'OVER_UNDER_1_5', label: 'Over/Under 1.5 Goals', selections: [
-    { key: 'over_1_5', label: 'Over 1.5' },
-    { key: 'under_1_5', label: 'Under 1.5' },
-  ]},
-  { key: 'OVER_UNDER_2_5', label: 'Over/Under 2.5 Goals', selections: [
-    { key: 'over_2_5', label: 'Over 2.5' },
-    { key: 'under_2_5', label: 'Under 2.5' },
-  ]},
-  { key: 'OVER_UNDER_3_5', label: 'Over/Under 3.5 Goals', selections: [
-    { key: 'over_3_5', label: 'Over 3.5' },
-    { key: 'under_3_5', label: 'Under 3.5' },
-  ]},
-  { key: 'OVER_UNDER_4_5', label: 'Over/Under 4.5 Goals', selections: [
-    { key: 'over_4_5', label: 'Over 4.5' },
-    { key: 'under_4_5', label: 'Under 4.5' },
-  ]},
-]
-
-export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
+export function TipForm({ match, onSubmit, isLoading, aiRecommendation, isLocked = false }: TipFormProps) {
   const [selectedMarket, setSelectedMarket] = useState('1X2')
+  const [marketOptions, setMarketOptions] = useState<MarketDefinition[]>([])
+  const [isLoadingMarkets, setIsLoadingMarkets] = useState(true)
+  
+  // Load market registry from API
+  useEffect(() => {
+    async function loadMarkets() {
+      try {
+        const response = await getMarketRegistry()
+        setMarketOptions(response.markets)
+        
+        // Set default market to first available market
+        if (response.markets.length > 0) {
+          setSelectedMarket(response.markets[0].key)
+          setValue('market_key', response.markets[0].key)
+          setValue('selection', response.markets[0].selections[0].key)
+        }
+      } catch (error) {
+        console.error('Failed to load market registry:', error)
+        // Fallback to hardcoded markets if API fails
+        setMarketOptions([])
+      } finally {
+        setIsLoadingMarkets(false)
+      }
+    }
+    
+    loadMarkets()
+  }, [])
   
   const {
     register,
@@ -87,7 +91,12 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
   const confidence = watch('confidence')
   const marketKey = watch('market_key')
   const selection = watch('selection')
-  const selectedMarketObj = MARKET_OPTIONS.find((m) => m.key === selectedMarket)
+  const selectedMarketObj = marketOptions.find((m) => m.key === selectedMarket)
+
+  // Check if current selection matches AI recommendation
+  const matchesAI = aiRecommendation && 
+    aiRecommendation.market_key === marketKey && 
+    aiRecommendation.selection === selection
 
   // Sync selection when market changes
   useEffect(() => {
@@ -103,16 +112,155 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
     })
   }
 
+  if (isLocked) {
+    return (
+      <div className="bg-white/5 rounded-lg p-6 border border-white/10">
+        <div className="flex items-center gap-3 mb-4">
+          <Lock className="text-yellow-400" size={24} />
+          <div>
+            <p className="text-lg font-bold text-white">Match Locked</p>
+            <p className="text-sm text-white/50">Tips cannot be created after match starts</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoadingMarkets) {
+    return (
+      <div className="bg-white/5 rounded-lg p-6 border border-white/10">
+        <div className="flex items-center justify-center gap-3">
+          <Loader className="text-blue-400 animate-spin" size={24} />
+          <p className="text-sm text-white/50">Loading market options...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      {/* Match Info */}
-      <div className="bg-white/5 rounded-lg p-4">
-        <p className="text-xs text-white/50 mb-1">Match</p>
-        <p className="text-lg font-bold text-white">
-          {match.home_team_name} vs {match.away_team_name}
-        </p>
-        <p className="text-xs text-white/50 mt-1">{match.league_name}</p>
+      {/* Match Info with Enhanced Intelligence */}
+      <div className="bg-gradient-to-br from-gray-900 to-black rounded-xl p-5 border border-white/10">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-xs text-white/50 mb-1">Match</p>
+            <p className="text-lg font-bold text-white">
+              {match.home_team_name} vs {match.away_team_name}
+            </p>
+            <p className="text-xs text-white/50 mt-1">{match.league_name}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-white/50 mb-1">Kickoff</p>
+            <p className="text-sm font-bold text-white">
+              {new Date(match.kickoff_at).toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        {/* BASHIRI AI Intelligence */}
+        {aiRecommendation && (
+          <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg p-4 border border-purple-500/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain className="text-purple-400" size={20} />
+              <p className="text-sm font-bold text-white">BASHIRI AI Match Intelligence</p>
+            </div>
+            
+            {/* Match Result Probabilities */}
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/70">Home Win</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-24 bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-blue-500 h-full" 
+                      style={{ width: `${aiRecommendation.home_win_probability || 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-white w-12 text-right">
+                    {aiRecommendation.home_win_probability ? `${aiRecommendation.home_win_probability.toFixed(1)}%` : 'N/A'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/70">Draw</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-24 bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-gray-500 h-full" 
+                      style={{ width: `${aiRecommendation.draw_probability || 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-white w-12 text-right">
+                    {aiRecommendation.draw_probability ? `${aiRecommendation.draw_probability.toFixed(1)}%` : 'N/A'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/70">Away Win</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-24 bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-red-500 h-full" 
+                      style={{ width: `${aiRecommendation.away_win_probability || 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-white w-12 text-right">
+                    {aiRecommendation.away_win_probability ? `${aiRecommendation.away_win_probability.toFixed(1)}%` : 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Markets */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {aiRecommendation.btts_yes_probability !== null && aiRecommendation.btts_yes_probability !== undefined && (
+                <div className="bg-white/5 rounded p-2">
+                  <p className="text-white/50 mb-1">BTTS Yes</p>
+                  <p className="font-bold text-white">{aiRecommendation.btts_yes_probability.toFixed(1)}%</p>
+                </div>
+              )}
+              {aiRecommendation.over_2_5_probability !== null && aiRecommendation.over_2_5_probability !== undefined && (
+                <div className="bg-white/5 rounded p-2">
+                  <p className="text-white/50 mb-1">Over 2.5</p>
+                  <p className="font-bold text-white">{aiRecommendation.over_2_5_probability.toFixed(1)}%</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* AI Recommendation Context */}
+      {aiRecommendation && aiRecommendation.status === 'STRONG' && (
+        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/30">
+          <div className="flex items-center gap-2 mb-3">
+            <Brain className="text-blue-400" size={20} />
+            <p className="text-sm font-bold text-white">Bashiri AI Strong Pick</p>
+          </div>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs text-white/50">Recommended Pick</p>
+              <p className="text-sm font-bold text-white">
+                {aiRecommendation.selection_label || aiRecommendation.selection} 
+                <span className="text-white/50 ml-2">• {aiRecommendation.market_key}</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-white/50">AI Confidence</p>
+              <p className="text-sm font-bold text-blue-400">{aiRecommendation.confidence.toFixed(1)}%</p>
+            </div>
+          </div>
+          {aiRecommendation.probability && (
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-white/50">Model Probability</p>
+              <p className="text-sm font-bold text-white">{(aiRecommendation.probability * 100).toFixed(1)}%</p>
+            </div>
+          )}
+          <p className="text-xs text-white/30 mt-2">
+            This is a high-confidence AI recommendation based on historical data and model analysis.
+          </p>
+        </div>
+      )}
 
       {/* Market Selection */}
       <div>
@@ -120,7 +268,7 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
           Market *
         </label>
         <div className="grid grid-cols-2 gap-2">
-          {MARKET_OPTIONS.map((market) => (
+          {marketOptions.map((market) => (
             <button
               key={market.key}
               type="button"
@@ -130,11 +278,12 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
                 // Reset selection to first option of new market
                 setValue('selection', market.selections[0].key)
               }}
+              disabled={isLocked}
               className={`p-3 rounded-lg text-sm font-bold transition ${
                 selectedMarket === market.key
                   ? 'bg-blue-500 text-white'
                   : 'bg-white/5 text-white/70 hover:bg-white/10'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {market.label}
             </button>
@@ -153,13 +302,17 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
               key={sel.key}
               type="button"
               onClick={() => setValue('selection', sel.key)}
-              className={`p-3 rounded-lg text-sm font-bold transition ${
+              disabled={isLocked}
+              className={`p-3 rounded-lg text-sm font-bold transition relative ${
                 selection === sel.key
                   ? 'bg-blue-500 text-white'
                   : 'bg-white/5 text-white/70 hover:bg-white/10'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {sel.label}
+              {aiRecommendation && aiRecommendation.selection === sel.key && aiRecommendation.market_key === selectedMarket && (
+                <Brain className="absolute top-1 right-1 text-green-400" size={14} />
+              )}
             </button>
           ))}
         </div>
@@ -168,10 +321,17 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
         )}
       </div>
 
-      {/* Confidence Slider */}
+      {/* Confidence Slider - User Confidence vs AI Probability */}
       <div>
         <label className="block text-sm font-bold text-white mb-3">
-          Confidence: {confidence}%
+          <div className="flex items-center justify-between">
+            <span>Your Confidence: {confidence}%</span>
+            {aiRecommendation && aiRecommendation.probability && (
+              <span className="text-xs text-white/50">
+                AI Probability: {(aiRecommendation.probability * 100).toFixed(1)}%
+              </span>
+            )}
+          </div>
         </label>
         <input
           type="range"
@@ -179,13 +339,42 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
           min="0"
           max="100"
           step="5"
-          className="w-full"
+          disabled={isLocked}
+          className="w-full disabled:opacity-50"
         />
         <div className="flex justify-between text-xs text-white/50 mt-1">
           <span>Unsure</span>
           <span>Very Confident</span>
         </div>
+        <p className="text-xs text-white/30 mt-2">
+          Note: Your confidence reflects your personal belief, not the AI model's probability
+        </p>
       </div>
+
+      {/* AI Agreement Indicator */}
+      {aiRecommendation && aiRecommendation.status === 'STRONG' && (
+        <div className={`p-4 rounded-lg border ${
+          matchesAI 
+            ? 'bg-green-500/10 border-green-500/30' 
+            : 'bg-orange-500/10 border-orange-500/30'
+        }`}>
+          <div className="flex items-center gap-2 mb-2">
+            {matchesAI ? (
+              <Brain className="text-green-400" size={18} />
+            ) : (
+              <AlertTriangle className="text-orange-400" size={18} />
+            )}
+            <p className="text-sm font-bold text-white">
+              {matchesAI ? '🧠 AI ALIGNED' : '⚡ CONTRARIAN PICK'}
+            </p>
+          </div>
+          <p className="text-xs text-white/50">
+            {matchesAI 
+              ? 'Your selection matches the Bashiri AI recommendation. The model has identified this as a strong pick.'
+              : 'Your selection differs from the Bashiri AI recommendation. This may represent a contrarian opportunity or higher risk.'}
+          </p>
+        </div>
+      )}
 
       {/* Reasoning */}
       <div>
@@ -195,7 +384,8 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
         <textarea
           {...register('reasoning')}
           placeholder="Share your analysis or reasoning..."
-          className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white placeholder:text-white/30 text-sm resize-none focus:border-blue-500 focus:outline-none"
+          disabled={isLocked}
+          className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white placeholder:text-white/30 text-sm resize-none focus:border-blue-500 focus:outline-none disabled:opacity-50"
           rows={3}
         />
         {errors.reasoning && (
@@ -215,7 +405,8 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
                 type="radio"
                 {...register('visibility')}
                 value={visibility}
-                className="w-4 h-4"
+                disabled={isLocked}
+                className="w-4 h-4 disabled:opacity-50"
               />
               <span className="text-sm text-white">
                 {visibility === 'PUBLIC' && 'Everyone can see'}
@@ -230,7 +421,7 @@ export function TipForm({ match, onSubmit, isLoading }: TipFormProps) {
       {/* Submit Button */}
       <PremiumButton
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || isLocked}
         className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg transition disabled:opacity-50"
       >
         {isLoading ? 'Creating Tip...' : 'Post Tip'}

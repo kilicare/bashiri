@@ -10,13 +10,15 @@ from django.utils import timezone
 from asgiref.sync import async_to_sync
 import logging
 
-from .models import UserTip, TipPerformance, TipComment, TipVote, TipShare
+from .models import UserTip, TipPerformance, TipComment, TipVote, TipShare, TipSlip
 from .serializers import (
     UserTipSerializer, UserTipListSerializer, CreateTipSerializer,
-    UpdateTipSerializer, TipPerformanceSerializer, TipCommentSerializer
+    UpdateTipSerializer, TipPerformanceSerializer, TipCommentSerializer,
+    TipSlipSerializer, CreateTipSlipSerializer
 )
 from .permissions import IsTipOwnerOrReadOnly, CanViewTip
 from .cache import TipsCache
+from .market_registry import get_available_markets, get_markets_by_category
 from predictions.models import Match
 
 logger = logging.getLogger(__name__)
@@ -47,11 +49,11 @@ class TipListView(APIView):
         if cached_data:
             return Response(cached_data)
 
-        # Query if not cached
+        # Query if not cached with optimized selects
         tips = UserTip.objects.filter(
             visibility="PUBLIC",
             status="PENDING"
-        ).select_related('user', 'match')
+        ).select_related('user', 'match', 'user__tip_performance').prefetch_related('ai_snapshot')
 
         # Apply filters
         if filters['league']:
@@ -61,16 +63,42 @@ class TipListView(APIView):
         if filters['user']:
             tips = tips.filter(user__username__iexact=filters['user'])
 
-        # Sort
+        # Sort - Enhanced discovery ranking
         sort = filters['sort']
         allowed_sorts = [
             '-created_at', 'created_at',
             '-views_count', 'views_count',
             '-upvotes_count', 'upvotes_count',
-            '-confidence', 'confidence'
+            '-confidence', 'confidence',
+            'engagement', '-engagement',  # Composite engagement score
+            'ai_agrees', '-ai_agrees',  # AI-aligned tips
+            'recent_form', '-recent_form',  # Hot form tipsters
         ]
 
-        if sort in allowed_sorts:
+        if sort == 'engagement':
+            # Sort by composite engagement score (views + upvotes + comments)
+            tips = tips.order_by('-engagement_score', '-created_at')
+        elif sort == '-engagement':
+            tips = tips.order_by('engagement_score', 'created_at')
+        elif sort == 'ai_agrees':
+            # Sort by AI agreement (tips where AI agrees first)
+            tips = tips.filter(ai_snapshot__ai_agrees=True).order_by('-created_at')
+        elif sort == '-ai_agrees':
+            tips = tips.filter(ai_snapshot__ai_agrees=False).order_by('-created_at')
+        elif sort == 'recent_form':
+            # Sort by tipster's recent form (hot form tipsters first)
+            tips = tips.select_related('user__tip_performance').order_by(
+                '-user__tip_performance__recent_form_correct',
+                '-user__tip_performance__current_streak',
+                '-created_at'
+            )
+        elif sort == '-recent_form':
+            tips = tips.select_related('user__tip_performance').order_by(
+                'user__tip_performance__recent_form_correct',
+                'user__tip_performance__current_streak',
+                '-created_at'
+            )
+        elif sort in allowed_sorts:
             tips = tips.order_by(sort)
         else:
             tips = tips.order_by('-created_at')
@@ -137,7 +165,7 @@ class TipDetailView(APIView):
     PUT /tips/{id}/ - Update tip (before match starts)
     DELETE /tips/{id}/ - Delete tip
     """
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # Visibility checked in GET, ownership in PUT/DELETE
     
     def get(self, request, tip_id):
         """Get tip details with caching"""
@@ -154,6 +182,20 @@ class TipDetailView(APIView):
                 {'detail': 'Not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+        # Check followers-only visibility
+        if tip.visibility == "FOLLOWERS" and tip.user != request.user:
+            if not request.user.is_authenticated:
+                return Response(
+                    {'detail': 'Authentication required'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            # Check if user follows tipster
+            if not tip.user.followers.filter(id=request.user.id).exists():
+                return Response(
+                    {'detail': 'Not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
         # Increment view count (async, no refresh needed)
         UserTip.objects.filter(pk=tip_id).update(
@@ -180,10 +222,10 @@ class TipDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Check match hasn't started
-        if tip.match.kickoff_at < timezone.now():
+        # Server-side locking enforcement
+        if tip.is_locked:
             return Response(
-                {'detail': 'Cannot update tip for match that has started'},
+                {'detail': 'Cannot update a locked tip. Match has already started.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -349,36 +391,73 @@ class TipCommentView(APIView):
 class TipLeaderboardView(APIView):
     """
     GET /tips/leaderboard/ - Get tipster rankings
+    
+    Query params:
+    - period: 'all', 'week', 'month' (default: 'all')
+    - market: 'all', '1x2', 'btts', 'goals', 'double_chance', 'dnb' (default: 'all')
+    - min_tips: minimum tip count (default: 10)
     """
     permission_classes = [AllowAny]
     
     def get(self, request):
-        """Get top tipsters with caching"""
-        # Try to get from cache
-        cached_data = TipsCache.get_cached_leaderboard()
-        if cached_data:
-            return Response(cached_data)
-
-        # Get top tipsters (min 10 tips, ordered by accuracy)
-        leaderboard = TipPerformance.objects.filter(
-            total_tips__gte=10
-        ).select_related('user').order_by(
-            '-accuracy_percentage', '-total_tips'
-        )[:100]
-
+        """Get top tipsters with filtering options"""
+        period = request.query_params.get('period', 'all')
+        market = request.query_params.get('market', 'all')
+        min_tips = int(request.query_params.get('min_tips', 10))
+        
+        # Market field mapping
+        market_field_map = {
+            '1x2': 'tips_1x2',
+            'btts': 'tips_btts',
+            'goals': 'tips_over_under',
+            'double_chance': 'tips_double_chance',
+            'dnb': 'tips_dnb',
+        }
+        
+        # Build base queryset
+        queryset = TipPerformance.objects.select_related('user')
+        
+        # Apply minimum tip filter
+        if market == 'all':
+            queryset = queryset.filter(total_tips__gte=min_tips)
+        else:
+            # Market-specific minimum tips
+            market_field = market_field_map.get(market, 'total_tips')
+            queryset = queryset.filter(**{f'{market_field}__gte': min_tips})
+        
+        # Time period filtering (simplified - uses recent form for week/month)
+        # For production, would need actual date-based filtering on tips
+        if period in ['week', 'month']:
+            # Use recent form as proxy for period performance
+            # In production, would filter tips by date
+            queryset = queryset.filter(recent_form_tips__gte=min_tips)
+        
+        # Ordering based on market filter
+        if market == 'all':
+            order_by = ['-accuracy_percentage', '-total_tips']
+        else:
+            market_accuracy_field = f'accuracy_{market_field_map.get(market, "")}'
+            market_tips_field = market_field_map.get(market, 'total_tips')
+            order_by = [f'-{market_accuracy_field}', f'-{market_tips_field}']
+        
+        leaderboard = queryset.order_by(*order_by)[:100]
+        
         serializer = TipPerformanceSerializer(
             leaderboard, many=True,
             context={'request': request}
         )
-
+        
         response_data = {
             'count': len(serializer.data),
+            'period': period,
+            'market': market,
+            'min_tips': min_tips,
             'results': serializer.data
         }
-
+        
         # Cache the response
         TipsCache.cache_leaderboard(response_data)
-
+        
         return Response(response_data)
 
 
@@ -394,8 +473,8 @@ class UserTipsView(APIView):
         
         user = get_object_or_404(User, username=username)
         tips = UserTip.objects.filter(user=user).select_related(
-            'user', 'match'
-        )
+            'user', 'match', 'user__tip_performance'
+        ).prefetch_related('ai_snapshot')
         
         # Filter by visibility
         if request.user != user and not request.user.is_staff:
@@ -440,3 +519,123 @@ class TipShareView(APIView):
             'message': 'Share tracked successfully',
             'shared_to': shared_to
         })
+
+
+class TipSlipListView(APIView):
+    """
+    GET /tips/slips/ - List user's slips
+    POST /tips/slips/ - Create new slip
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """List user's slips"""
+        slips = TipSlip.objects.filter(
+            creator=request.user
+        ).select_related('creator').prefetch_related('legs__tip')
+        
+        serializer = TipSlipSerializer(slips, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        """Create new slip"""
+        serializer = CreateTipSlipSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        
+        if serializer.is_valid():
+            slip = serializer.save()
+            return Response(
+                TipSlipSerializer(slip).data,
+                status=status.HTTP_201_CREATED
+            )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TipSlipDetailView(APIView):
+    """
+    GET /tips/slips/{id}/ - Get slip details
+    DELETE /tips/slips/{id}/ - Delete slip
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, slip_id):
+        """Get slip details"""
+        slip = get_object_or_404(TipSlip, pk=slip_id)
+        
+        # Check ownership
+        if slip.creator != request.user:
+            return Response(
+                {'detail': 'Not authorized'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = TipSlipSerializer(slip)
+        return Response(serializer.data)
+    
+    def delete(self, request, slip_id):
+        """Delete slip"""
+        slip = get_object_or_404(TipSlip, pk=slip_id)
+        
+        # Check ownership
+        if slip.creator != request.user:
+            return Response(
+                {'detail': 'Not authorized'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Can only delete pending slips
+        if slip.status != "PENDING":
+            return Response(
+                {'detail': 'Cannot delete a slip that has already been verified'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        slip.delete()
+        
+        # Invalidate cache
+        cache.delete_pattern("tips:slip:*")
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MarketRegistryView(APIView):
+    """
+    GET /tips/markets/ - Get available market definitions
+    
+    This endpoint provides the canonical market registry to the frontend.
+    Frontend should consume this API rather than hardcoding market options.
+    """
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        """Get all available market definitions"""
+        category = request.query_params.get('category')
+        
+        if category:
+            # Get markets by category
+            markets = get_markets_by_category(category)
+        else:
+            # Get all available markets
+            markets = get_available_markets()
+        
+        # Format for API response
+        response_data = {
+            'markets': [
+                {
+                    'key': market['key'],
+                    'label': market['label'],
+                    'category': market['category'].value,
+                    'selections': market['selections'],
+                    'available': market['available'],
+                    'requires_final_score': market['requires_final_score'],
+                    'supports_draw_void': market['supports_draw_void'],
+                }
+                for market in markets
+            ],
+            'categories': ['result', 'goals', 'both_teams', 'correct_score']
+        }
+        
+        return Response(response_data)

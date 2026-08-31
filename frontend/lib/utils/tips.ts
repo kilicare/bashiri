@@ -1,54 +1,41 @@
-export function getMarketLabel(marketKey: string): string {
-  const labels: Record<string, string> = {
-    '1X2': 'Win/Draw/Loss',
-    'DRAW_NO_BET': 'Draw No Bet',
-    'OVER_UNDER_0_5': 'Over/Under 0.5',
-    'OVER_UNDER_1_5': 'Over/Under 1.5',
-    'OVER_UNDER_2_5': 'Over/Under 2.5',
-    'OVER_UNDER_3_5': 'Over/Under 3.5',
-    'OVER_UNDER_4_5': 'Over/Under 4.5',
-    'BTTS': 'Both Teams To Score',
-    'DOUBLE_CHANCE': 'Double Chance',
-    'CORRECT_SCORE': 'Correct Score',
+// ============================================
+// TIPS UTILITIES
+// ============================================
+
+import { getMarketRegistry } from '@/lib/api/tips'
+
+// Cache for market registry to avoid repeated API calls
+let marketRegistryCache: any = null
+let cacheTimestamp = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+async function getMarketRegistryCached() {
+  const now = Date.now()
+  if (!marketRegistryCache || now - cacheTimestamp > CACHE_DURATION) {
+    try {
+      const response = await getMarketRegistry()
+      marketRegistryCache = response
+      cacheTimestamp = now
+    } catch (error) {
+      console.error('Failed to fetch market registry:', error)
+      // Return empty cache on error
+      marketRegistryCache = { markets: [] }
+    }
   }
-  return labels[marketKey] || marketKey
+  return marketRegistryCache
 }
 
-export function getSelectionLabel(selectionKey: string): string {
-  const labels: Record<string, string> = {
-    // 1X2
-    'home_win': 'Home Win',
-    'draw': 'Draw',
-    'away_win': 'Away Win',
-    // Double Chance
-    '1x': '1X (Home or Draw)',
-    'x2': 'X2 (Away or Draw)',
-    '12': '12 (Home or Away)',
-    // Draw No Bet
-    'home_dnb': 'Home DNB',
-    'away_dnb': 'Away DNB',
-    // BTTS
-    'yes': 'Yes (Both Score)',
-    'no': 'No (One Doesn\'t Score)',
-    // Over/Under (all lines)
-    'over_0_5': 'Over 0.5',
-    'under_0_5': 'Under 0.5',
-    'over_1_5': 'Over 1.5',
-    'under_1_5': 'Under 1.5',
-    'over_2_5': 'Over 2.5',
-    'under_2_5': 'Under 2.5',
-    'over_3_5': 'Over 3.5',
-    'under_3_5': 'Under 3.5',
-    'over_4_5': 'Over 4.5',
-    'under_4_5': 'Under 4.5',
-    // Legacy keys (for backward compatibility)
-    'home_win_or_draw': 'Home or Draw',
-    'draw_or_away_win': 'Draw or Away',
-    'home_win_or_away_win': 'Either Wins',
-    'both_teams_score_yes': 'Both Score',
-    'both_teams_score_no': "One Doesn't Score",
-  }
-  return labels[selectionKey] || selectionKey
+export async function getMarketLabel(marketKey: string): Promise<string> {
+  const registry = await getMarketRegistryCached()
+  const market = registry.markets.find((m: any) => m.key === marketKey)
+  return market?.label || marketKey
+}
+
+export async function getSelectionLabel(marketKey: string, selectionKey: string): Promise<string> {
+  const registry = await getMarketRegistryCached()
+  const market = registry.markets.find((m: any) => m.key === marketKey)
+  const selection = market?.selections.find((s: any) => s.key === selectionKey)
+  return selection?.label || selectionKey
 }
 
 export function getStatusColor(status: string): string {
@@ -59,4 +46,14 @@ export function getStatusColor(status: string): string {
     'VOID': 'bg-gray-500/20 text-gray-400',
   }
   return colors[status] || ''
+}
+
+export function getStatusIcon(status: string) {
+  const icons: Record<string, string> = {
+    'PENDING': '⏳',
+    'CORRECT': '✅',
+    'INCORRECT': '❌',
+    'VOID': '⏸️',
+  }
+  return icons[status] || '❓'
 }

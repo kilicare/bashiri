@@ -14,6 +14,8 @@ import {
   TipsListResponse,
   LeaderboardResponse,
   CommentsResponse,
+  MarketDefinition,
+  MarketRegistryResponse,
 } from '@/lib/types/tips'
 
 const BASE_URL = '/tips'
@@ -43,10 +45,19 @@ export async function getTips(filters?: TipFilters) {
 }
 
 /**
+ * GET /tips/?match={matchId}
+ * Get tips for a specific match
+ */
+export async function getTipsByMatch(matchId: number) {
+  return apiClient<TipsListResponse>(`${BASE_URL}/?match=${matchId}`, { skipAuth: true })
+}
+
+/**
  * POST /tips/
  * Create a new tip (authenticated)
  */
 export async function createTip(data: CreateTipRequest) {
+  console.log('[CreateTip] Sending data:', JSON.stringify(data, null, 2))
   return apiClient<UserTip>(`${BASE_URL}/`, {
     method: 'POST',
     body: JSON.stringify(data),
@@ -143,6 +154,19 @@ export async function addTipComment(tipId: number, content: string, parentId?: n
 }
 
 // ============================================
+// MARKET REGISTRY
+// ============================================
+
+/**
+ * GET /tips/markets/
+ * Get available market definitions from centralized registry
+ */
+export async function getMarketRegistry(category?: string) {
+  const params = category ? `?category=${category}` : ''
+  return apiClient<MarketRegistryResponse>(`${BASE_URL}/markets/${params}`, { skipAuth: true })
+}
+
+// ============================================
 // RANKINGS & LEADERBOARD
 // ============================================
 
@@ -150,8 +174,10 @@ export async function addTipComment(tipId: number, content: string, parentId?: n
  * GET /tips/leaderboard/
  * Get tipster rankings
  */
-export async function getTipLeaderboard() {
-  return apiClient<LeaderboardResponse>(`${BASE_URL}/leaderboard/`, {
+export async function getTipLeaderboard(params?: URLSearchParams) {
+  const query = params?.toString() || ''
+  const url = query ? `${BASE_URL}/leaderboard/?${query}` : `${BASE_URL}/leaderboard/`
+  return apiClient<LeaderboardResponse>(url, {
     skipAuth: true,
   })
 }
@@ -193,6 +219,10 @@ export function handleTipError(error: any): string {
   if (error instanceof TipError) {
     switch (error.statusCode) {
       case 400:
+        // Try to extract more detailed error from the error message
+        if (error.message && typeof error.message === 'object') {
+          return JSON.stringify(error.message)
+        }
         return 'Invalid tip data. Please check your input.'
       case 401:
         return 'You must be logged in to create tips.'
@@ -205,6 +235,10 @@ export function handleTipError(error: any): string {
       default:
         return error.message
     }
+  }
+  // If error has a message property, return it
+  if (error?.message) {
+    return error.message
   }
   return 'An unexpected error occurred. Please try again.'
 }

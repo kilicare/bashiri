@@ -17,6 +17,18 @@ app.conf.beat_schedule = {
         'schedule': crontab(minute='*/5'),  # Every 5 minutes
     },
     
+    # Lock tips at kickoff (every minute)
+    'lock-tips-at-kickoff': {
+        'task': 'tips.tasks.lock_tips_at_kickoff_task',
+        'schedule': crontab(minute='*'),  # Every minute
+    },
+    
+    # Verify slips (every 5 minutes)
+    'verify-slips': {
+        'task': 'tips.tasks.verify_slips_task',
+        'schedule': crontab(minute='*/5'),  # Every 5 minutes
+    },
+    
     # Update leaderboard (every 10 minutes)
     'update-leaderboard': {
         'task': 'tips.tasks.update_leaderboard_task',
@@ -27,6 +39,48 @@ app.conf.beat_schedule = {
     'clean-old-shares': {
         'task': 'tips.tasks.clean_old_shares_task',
         'schedule': crontab(hour=3, minute=0),
+    },
+    
+    # Sync live and upcoming matches (every minute)
+    'sync-live-matches': {
+        'task': 'predictions.tasks.sync_live_and_upcoming_matches',
+        'schedule': crontab(minute='*'),  # Every minute
+    },
+    
+    # Sync recently finished matches (every 30 minutes)
+    'sync-finished-matches': {
+        'task': 'predictions.tasks.sync_recently_finished_matches',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
+    
+    # Generate daily AI picks (daily at 4 AM)
+    'generate-daily-picks': {
+        'task': 'predictions.tasks.generate_daily_picks',
+        'schedule': crontab(hour=4, minute=0),
+    },
+    
+    # Generate AI track record snapshot (daily at 4 AM)
+    'generate-ai-track-record': {
+        'task': 'predictions.tasks.generate_ai_track_record_snapshot',
+        'schedule': crontab(hour=4, minute=0),
+    },
+    
+    # Fetch live odds (every 5 minutes)
+    'fetch-live-odds': {
+        'task': 'predictions.tasks.fetch_live_odds_task',
+        'schedule': crontab(minute='*/5'),
+    },
+    
+    # Fetch upcoming odds (every 15 minutes)
+    'fetch-upcoming-odds': {
+        'task': 'predictions.tasks.fetch_upcoming_odds_task',
+        'schedule': crontab(minute='*/15'),
+    },
+    
+    # Fetch team standings (daily at midnight)
+    'fetch-team-standings': {
+        'task': 'predictions.tasks.fetch_team_standings_task',
+        'schedule': crontab(hour=0, minute=0),
     },
 }
 

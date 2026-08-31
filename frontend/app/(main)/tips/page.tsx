@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTipsStore } from '@/stores/tips.store'
 import { useFetchTips } from '@/hooks/useTips'
 import { TipCard } from '@/components/tips/TipCard'
 import { TipFilter } from '@/components/tips/TipFilter'
 import { useRouter } from 'next/navigation'
-import { Loader, ArrowLeft, Plus } from 'lucide-react'
+import { Loader, ArrowLeft, Plus, TrendingUp, Flame, Brain, Users, Target, Zap, Clock, Sparkles } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 
 export default function TipsPage() {
@@ -14,10 +14,57 @@ export default function TipsPage() {
   const { tips, filters, isLoading, error } = useTipsStore()
   const { fetchTips } = useFetchTips(filters)
   const { user } = useAuthStore()
+  const [activeTab, setActiveTab] = useState<'all' | 'following' | 'trending' | 'ai_aligned' | 'hot_form' | 'pending'>('all')
 
   useEffect(() => {
     fetchTips()
-  }, [filters])
+  }, [filters, activeTab])
+
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab)
+    const newFilters = { ...filters }
+    
+    switch (tab) {
+      case 'following':
+        newFilters.user = user?.username || undefined
+        newFilters.status = undefined
+        break
+      case 'trending':
+        newFilters.sort = 'engagement'
+        newFilters.status = undefined
+        break
+      case 'ai_aligned':
+        newFilters.sort = 'ai_agrees'
+        newFilters.status = undefined
+        break
+      case 'hot_form':
+        newFilters.sort = 'recent_form'
+        newFilters.status = undefined
+        break
+      case 'pending':
+        newFilters.status = 'PENDING'
+        newFilters.sort = undefined
+        break
+      default:
+        newFilters.sort = undefined
+        newFilters.user = undefined
+        newFilters.status = undefined
+    }
+    
+    useTipsStore.getState().setFilters(newFilters)
+  }
+
+  const getTabIcon = (tab: string) => {
+    switch (tab) {
+      case 'all': return null
+      case 'following': return Users
+      case 'trending': return TrendingUp
+      case 'ai_aligned': return Brain
+      case 'hot_form': return Flame
+      case 'pending': return Clock
+      default: return null
+    }
+  }
 
   return (
     <div className="min-h-dvh px-5 pt-safe pb-24">
@@ -31,8 +78,8 @@ export default function TipsPage() {
             <ArrowLeft size={20} className="text-white" />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Tips Marketplace</h1>
-            <p className="text-white/50">Discover predictions from top tipsters</p>
+            <h1 className="text-3xl font-bold text-white mb-1">Tips Marketplace</h1>
+            <p className="text-sm text-white/50">Discover predictions from verified tipsters</p>
           </div>
         </div>
 
@@ -40,12 +87,40 @@ export default function TipsPage() {
         {user && (
           <button
             onClick={() => router.push('/matches')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-bold transition"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">Create Tip</span>
           </button>
         )}
+      </div>
+
+      {/* Discovery Tabs */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {[
+          { key: 'all', label: 'All Tips', icon: null, gradient: 'from-blue-500 to-purple-600' },
+          { key: 'following', label: 'Following', icon: Users, gradient: 'from-green-500 to-emerald-600' },
+          { key: 'trending', label: 'Trending', icon: TrendingUp, gradient: 'from-orange-500 to-red-600' },
+          { key: 'ai_aligned', label: 'AI Aligned', icon: Brain, gradient: 'from-purple-500 to-pink-600' },
+          { key: 'hot_form', label: 'Hot Form', icon: Flame, gradient: 'from-yellow-500 to-orange-600' },
+          { key: 'pending', label: 'Pending', icon: Clock, gradient: 'from-cyan-500 to-blue-600' },
+        ].map((tab) => {
+          const TabIcon = getTabIcon(tab.key)
+          return (
+            <button
+              key={tab.key}
+              onClick={() => handleTabChange(tab.key as any)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                activeTab === tab.key
+                  ? `bg-gradient-to-r ${tab.gradient} text-white shadow-lg shadow-${tab.gradient.split('-')[1]}-500/20`
+                  : 'bg-white/5 text-white/70 hover:bg-white/10 hover:scale-105'
+              }`}
+            >
+              {TabIcon && <TabIcon size={14} />}
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* Filters */}
@@ -60,34 +135,67 @@ export default function TipsPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader size={40} className="text-blue-500 animate-spin mb-4" />
-          <p className="text-white/50">Loading tips...</p>
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="relative">
+            <Loader size={48} className="text-blue-500 animate-spin" />
+            <Sparkles size={24} className="text-purple-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <p className="text-white/50 mt-4">Loading tips...</p>
         </div>
       )}
 
       {/* Tips Grid */}
       {!isLoading && tips.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tips.map((tip) => (
-            <TipCard
-              key={tip.id}
-              tip={tip}
-              onClick={() => router.push(`/tips/${tip.id}`)}
-            />
-          ))}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-sm text-white/50 mb-2">
+            <span className="flex items-center gap-2">
+              <Target size={14} />
+              <span>{tips.length} tips found</span>
+            </span>
+            {activeTab !== 'all' && (
+              <button
+                onClick={() => handleTabChange('all')}
+                className="text-blue-400 hover:text-blue-300 transition"
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {tips.map((tip) => (
+              <TipCard
+                key={tip.id}
+                tip={tip}
+                onClick={() => router.push(`/tips/${tip.id}`)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && tips.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-white/50 mb-4">No tips found</p>
+        <div className="text-center py-20">
+          <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
+            <Target size={48} className="text-white/30" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">No tips found</h3>
+          <p className="text-sm text-white/50 mb-6">
+            {activeTab === 'following' 
+              ? "You're not following any tipsters yet"
+              : activeTab === 'pending'
+              ? "No pending tips available"
+              : "Try adjusting your filters or check back later"
+            }
+          </p>
           <button
-            onClick={() => useTipsStore.getState().resetFilters()}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
+            onClick={() => {
+              useTipsStore.getState().resetFilters()
+              handleTabChange('all')
+            }}
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-bold transition"
           >
-            Clear Filters
+            Reset Filters
           </button>
         </div>
       )}
