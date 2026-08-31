@@ -123,7 +123,7 @@ export function MarketRow({ market, onLockedClick, matchId, isSaved = false, onS
                 </>
               ) : (
                 <>
-                  {showRank && (
+                  {showRank && opt.extra && (
                     <span className="text-xs font-bold w-6 text-center" style={{ color: "#D4AF37" }}>
                       #{opt.extra.rank}
                     </span>
