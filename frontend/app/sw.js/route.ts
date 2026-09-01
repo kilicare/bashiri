@@ -1,4 +1,3 @@
-```typescript
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -59,7 +58,7 @@ export async function GET() {
  */
 
 const CACHE_VERSION = "bashiri-v6";
-const STATIC_CACHE = \`\${CACHE_VERSION}-static`;
+const STATIC_CACHE = \`\${CACHE_VERSION}-static\`;
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_URLS = [
@@ -403,4 +402,3 @@ self.addEventListener(
     },
   })
 }
-```
