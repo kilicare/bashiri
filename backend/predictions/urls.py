@@ -6,6 +6,7 @@ from .views import (
     SavedMatchesListView, SavedMarketsListView, SaveMatchView, SaveMarketView, SearchView, TeamListView, FinishedMatchesView, SyncHistoricalView, GenerateSavedMarketsPDFView,
     TeamStandingsView, HeadToHeadView, TeamDetailView, LeagueDetailView,
 )
+from .ai_pick_views import AIPickListView, AIResultRecapView, AIAnalyticsView
 
 urlpatterns = [
     path("fixtures/", FixturesView.as_view(), name="fixtures"),
@@ -34,4 +35,8 @@ urlpatterns = [
     path("sync-historical/", SyncHistoricalView.as_view(), name="sync-historical"),
     path("standings/", TeamStandingsView.as_view(), name="team-standings"),
     path("h2h/", HeadToHeadView.as_view(), name="head-to-head"),
+    # AI Pick Feed + Result Recap + Accuracy Tracking
+    path("ai-picks/", AIPickListView.as_view(), name="ai-picks"),
+    path("ai-results/", AIResultRecapView.as_view(), name="ai-results"),
+    path("ai-analytics/", AIAnalyticsView.as_view(), name="ai-analytics"),
 ]

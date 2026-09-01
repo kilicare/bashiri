@@ -249,12 +249,12 @@ BASHIRI = {
     "DAILY_SYNC_DAYS_FORWARD": 30,  # 30 days forward (upcoming fixtures)
 
     # Markets from production JSON market_contract
-    "FREE_MARKETS": ["1X2", "OVER_UNDER_2_5", "BTTS"],
+    "FREE_MARKETS": ["1X2", "BTTS"],
     "LOCKED_MARKETS": [
         "DOUBLE_CHANCE", "DRAW_NO_BET",
         "OVER_UNDER_1_5",
-        "HOME_GOALS_OVER_0_5", "HOME_GOALS_OVER_1_5", "HOME_GOALS_OVER_2_5",
-        "AWAY_GOALS_OVER_0_5", "AWAY_GOALS_OVER_1_5", "AWAY_GOALS_OVER_2_5",
+        "HOME_GOALS_OVER_0_5", "HOME_GOALS_OVER_1_5",
+        "AWAY_GOALS_OVER_0_5", "AWAY_GOALS_OVER_1_5",
         "CORRECT_SCORE",
     ],
 

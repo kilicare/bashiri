@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAITrackRecord, AITrackRecord, League } from "@/lib/api/predictions";
+import { getAITrackRecord, AITrackRecord, League, getAIAnalytics, AIAnalytics } from "@/lib/api/predictions";
 import { getLeagues } from "@/lib/api/settings";
 import { CardSkeleton } from "@/components/ui/Skeleton";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Area, AreaChart } from "recharts";
-import { ArrowLeft, TrendingUp } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Area, AreaChart, BarChart, Bar } from "recharts";
+import { ArrowLeft, TrendingUp, Sparkles, Filter } from "lucide-react";
 import { shouldReduceMotion, getAnimationDuration, getAnimationEasing } from "@/utils/animation";
 import { useMobileTooltip } from "@/hooks/useMobileTooltip";
 
@@ -33,11 +33,14 @@ export default function AITrackRecordPage() {
   const router = useRouter();
   const [league, setLeague] = useState("");
   const [data, setData] = useState<AITrackRecord | null>(null);
+  const [aiAnalytics, setAiAnalytics] = useState<AIAnalytics | null>(null);
   const [leagues, setLeagues] = useState<{ key: string; label: string }[]>([
     { key: "", label: "Ligi Zote" }
   ]);
   const [loading, setLoading] = useState(true);
   const [notReady, setNotReady] = useState(false);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [feedType, setFeedType] = useState<"STANDARD" | "PREMIUM">("STANDARD");
   const { tooltip, handleChartClick, hideTooltip } = useMobileTooltip();
 
   useEffect(() => {
@@ -71,6 +74,13 @@ export default function AITrackRecordPage() {
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => { setNotReady(true); setLoading(false); });
   }, [league]);
+
+  useEffect(() => {
+    setAnalyticsLoading(true);
+    getAIAnalytics({ range: "this_week", breakdown: "all" })
+      .then((d) => { setAiAnalytics(d); setAnalyticsLoading(false); })
+      .catch(() => { setAnalyticsLoading(false); });
+  }, [feedType]);
 
   return (
     <div>
@@ -227,8 +237,88 @@ export default function AITrackRecordPage() {
             </div>
           )}
 
+          {/* AI Pick Live Accuracy Section */}
+          {aiAnalytics && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} style={{ color: "var(--brand-primary)" }} />
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>AI Pick Live Accuracy</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setFeedType("STANDARD")}
+                    className="px-3 py-1.5 rounded-full text-xs font-bold"
+                    style={{ background: feedType === "STANDARD" ? "var(--brand-accent)" : "rgba(255,255,255,0.06)", color: feedType === "STANDARD" ? "#000" : "rgba(255,255,255,0.5)" }}
+                  >
+                    Standard
+                  </button>
+                  <button
+                    onClick={() => setFeedType("PREMIUM")}
+                    className="px-3 py-1.5 rounded-full text-xs font-bold"
+                    style={{ background: feedType === "PREMIUM" ? "var(--brand-accent)" : "rgba(255,255,255,0.06)", color: feedType === "PREMIUM" ? "#000" : "rgba(255,255,255,0.5)" }}
+                  >
+                    Premium
+                  </button>
+                </div>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="rounded-2xl p-4" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Total Picks</p>
+                  <p className="text-2xl font-black text-white">{aiAnalytics.total_picks}</p>
+                </div>
+                <div className="rounded-2xl p-4" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Settled</p>
+                  <p className="text-2xl font-black text-white">{aiAnalytics.total_picks - (aiAnalytics.market_breakdown?.reduce((acc, m) => acc + (m.picks - m.won - m.lost), 0) || 0)}</p>
+                </div>
+              </div>
+
+              {/* Tier Breakdown */}
+              {aiAnalytics.tier_breakdown && aiAnalytics.tier_breakdown.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Accuracy by Tier</p>
+                  <div className="space-y-2">
+                    {aiAnalytics.tier_breakdown.map((tier) => (
+                      <div key={tier.tier} className="rounded-2xl p-4 flex items-center justify-between" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div>
+                          <p className="text-sm font-bold text-white">{tier.tier}</p>
+                          <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>{tier.won}/{tier.picks} picks</p>
+                        </div>
+                        <span className="text-lg font-black" style={{ color: tier.hit_rate >= 70 ? "var(--success)" : tier.hit_rate >= 50 ? "var(--warning)" : "var(--danger)" }}>
+                          {tier.hit_rate}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Market Breakdown */}
+              {aiAnalytics.market_breakdown && aiAnalytics.market_breakdown.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>Accuracy by Market</p>
+                  <div className="space-y-2">
+                    {aiAnalytics.market_breakdown.map((market) => (
+                      <div key={market.market} className="rounded-2xl p-4 flex items-center justify-between" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div>
+                          <p className="text-sm font-bold text-white">{market.market_label}</p>
+                          <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>{market.won}/{market.picks} picks</p>
+                        </div>
+                        <span className="text-lg font-black" style={{ color: market.hit_rate >= 70 ? "var(--success)" : market.hit_rate >= 50 ? "var(--warning)" : "var(--danger)" }}>
+                          {market.hit_rate}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <p className="text-center text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
-            Imetengenezwa: {new Date(data.generated_at).toLocaleString("sw-TZ")}
+            Imetengenezwa: {data ? new Date(data.generated_at).toLocaleString("sw-TZ") : "N/A"}
           </p>
         </div>
       )}

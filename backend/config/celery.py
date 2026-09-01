@@ -53,10 +53,16 @@ app.conf.beat_schedule = {
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
     },
     
-    # Generate daily AI picks (daily at 4 AM)
-    'generate-daily-picks': {
-        'task': 'predictions.tasks.generate_daily_picks',
+    # Generate daily AI picks (daily at 4 AM) - NEW AI PICK SYSTEM
+    'generate-daily-ai-picks': {
+        'task': 'predictions.ai_pick_tasks.generate_daily_ai_picks',
         'schedule': crontab(hour=4, minute=0),
+    },
+    
+    # Update AI pick status (every 10 minutes) - NEW AI PICK SYSTEM
+    'update-ai-pick-status': {
+        'task': 'predictions.ai_pick_tasks.update_pick_status_periodic',
+        'schedule': crontab(minute='*/10'),
     },
     
     # Generate AI track record snapshot (daily at 4 AM)

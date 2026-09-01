@@ -119,20 +119,7 @@ MARKET_REGISTRY: Dict[str, MarketDefinition] = {
         "supports_draw_void": False,
     },
 
-    "OVER_UNDER_2_5": {
-        "key": "OVER_UNDER_2_5",
-        "label": "Over/Under 2.5 Goals",
-        "category": MarketCategory.GOALS,
-        "selections": [
-            {"key": "over_2_5", "label": "Over 2.5"},
-            {"key": "under_2_5", "label": "Under 2.5"},
-        ],
-        "available": True,
-        "requires_final_score": True,
-        "supports_draw_void": False,
-    },
-
-    # --- Home Team Goals Over/Under (production contract: 0.5, 1.5, 2.5) ---
+    # --- Home Team Goals Over/Under (production contract: 0.5, 1.5) ---
     "HOME_GOALS_OVER_0_5": {
         "key": "HOME_GOALS_OVER_0_5",
         "label": "Home Over 0.5 Goals",
@@ -159,20 +146,7 @@ MARKET_REGISTRY: Dict[str, MarketDefinition] = {
         "supports_draw_void": False,
     },
 
-    "HOME_GOALS_OVER_2_5": {
-        "key": "HOME_GOALS_OVER_2_5",
-        "label": "Home Over 2.5 Goals",
-        "category": MarketCategory.HOME_GOALS,
-        "selections": [
-            {"key": "home_over_2_5", "label": "Over 2.5"},
-            {"key": "home_under_2_5", "label": "Under 2.5"},
-        ],
-        "available": True,
-        "requires_final_score": True,
-        "supports_draw_void": False,
-    },
-
-    # --- Away Team Goals Over/Under (production contract: 0.5, 1.5, 2.5) ---
+    # --- Away Team Goals Over/Under (production contract: 0.5, 1.5) ---
     "AWAY_GOALS_OVER_0_5": {
         "key": "AWAY_GOALS_OVER_0_5",
         "label": "Away Over 0.5 Goals",
@@ -193,19 +167,6 @@ MARKET_REGISTRY: Dict[str, MarketDefinition] = {
         "selections": [
             {"key": "away_over_1_5", "label": "Over 1.5"},
             {"key": "away_under_1_5", "label": "Under 1.5"},
-        ],
-        "available": True,
-        "requires_final_score": True,
-        "supports_draw_void": False,
-    },
-
-    "AWAY_GOALS_OVER_2_5": {
-        "key": "AWAY_GOALS_OVER_2_5",
-        "label": "Away Over 2.5 Goals",
-        "category": MarketCategory.AWAY_GOALS,
-        "selections": [
-            {"key": "away_over_2_5", "label": "Over 2.5"},
-            {"key": "away_under_2_5", "label": "Under 2.5"},
         ],
         "available": True,
         "requires_final_score": True,

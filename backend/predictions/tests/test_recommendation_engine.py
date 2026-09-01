@@ -39,17 +39,14 @@ class TestDataQualityAssessment:
             "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
                 "over_1_5": 70.0, "under_1_5": 30.0,
-                "over_2_5": 45.0, "under_2_5": 55.0,
             },
             "home_goals": {
                 "home_over_0_5": 95.0, "home_under_0_5": 5.0,
                 "home_over_1_5": 70.0, "home_under_1_5": 30.0,
-                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
             },
             "away_goals": {
                 "away_over_0_5": 95.0, "away_under_0_5": 5.0,
                 "away_over_1_5": 70.0, "away_under_1_5": 30.0,
-                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
             }
         }
         
@@ -65,17 +62,17 @@ class TestDataQualityAssessment:
             "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
                 "over_1_5": 70.0, "under_1_5": 30.0,
-                "over_2_5": 45.0, "under_2_5": 55.0,
+
             },
             "home_goals": {
                 "home_over_0_5": 95.0, "home_under_0_5": 5.0,
                 "home_over_1_5": 70.0, "home_under_1_5": 30.0,
-                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+
             },
             "away_goals": {
                 "away_over_0_5": 95.0, "away_under_0_5": 5.0,
                 "away_over_1_5": 70.0, "away_under_1_5": 30.0,
-                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
+
             }
         }
         
@@ -101,17 +98,17 @@ class TestDataQualityAssessment:
             "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
                 "over_1_5": 70.0, "under_1_5": 30.0,
-                "over_2_5": 45.0, "under_2_5": 55.0,
+
             },
             "home_goals": {
                 "home_over_0_5": 95.0, "home_under_0_5": 5.0,
                 "home_over_1_5": 70.0, "home_under_1_5": 30.0,
-                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+
             },
             "away_goals": {
                 "away_over_0_5": 95.0, "away_under_0_5": 5.0,
                 "away_over_1_5": 70.0, "away_under_1_5": 30.0,
-                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
+
             }
         }
         
@@ -326,17 +323,17 @@ class TestRecommendationGeneration:
             "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
                 "over_1_5": 70.0, "under_1_5": 30.0,
-                "over_2_5": 45.0, "under_2_5": 55.0,
+
             },
             "home_goals": {
                 "home_over_0_5": 95.0, "home_under_0_5": 5.0,
                 "home_over_1_5": 70.0, "home_under_1_5": 30.0,
-                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+
             },
             "away_goals": {
                 "away_over_0_5": 95.0, "away_under_0_5": 5.0,
                 "away_over_1_5": 70.0, "away_under_1_5": 30.0,
-                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
+
             }
         }
         
@@ -357,17 +354,17 @@ class TestRecommendationGeneration:
             "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
                 "over_1_5": 70.0, "under_1_5": 30.0,
-                "over_2_5": 45.0, "under_2_5": 55.0,
+
             },
             "home_goals": {
                 "home_over_0_5": 95.0, "home_under_0_5": 5.0,
                 "home_over_1_5": 70.0, "home_under_1_5": 30.0,
-                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+
             },
             "away_goals": {
                 "away_over_0_5": 95.0, "away_under_0_5": 5.0,
                 "away_over_1_5": 70.0, "away_under_1_5": 30.0,
-                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
+
             }
         }
         
@@ -393,17 +390,15 @@ class TestRecommendationGeneration:
             "btts": {"btts_yes": 60.0, "btts_no": 40.0},
             "over_under": {
                 "over_1_5": 75.0, "under_1_5": 25.0,
-                "over_2_5": 50.0, "under_2_5": 50.0,
             },
             "home_goals": {
                 "home_over_0_5": 98.0, "home_under_0_5": 2.0,  # Very high probability
                 "home_over_1_5": 75.0, "home_under_1_5": 25.0,
-                "home_over_2_5": 50.0, "home_under_2_5": 50.0,
             },
             "away_goals": {
                 "away_over_0_5": 95.0, "away_under_0_5": 5.0,
                 "away_over_1_5": 70.0, "away_under_1_5": 30.0,
-                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
+
             }
         }
         
@@ -427,17 +422,17 @@ class TestRecommendationObject:
             "btts": {"btts_yes": 55.0, "btts_no": 45.0},
             "over_under": {
                 "over_1_5": 70.0, "under_1_5": 30.0,
-                "over_2_5": 45.0, "under_2_5": 55.0,
+
             },
             "home_goals": {
                 "home_over_0_5": 95.0, "home_under_0_5": 5.0,
                 "home_over_1_5": 70.0, "home_under_1_5": 30.0,
-                "home_over_2_5": 45.0, "home_under_2_5": 55.0,
+
             },
             "away_goals": {
                 "away_over_0_5": 95.0, "away_under_0_5": 5.0,
                 "away_over_1_5": 70.0, "away_under_1_5": 30.0,
-                "away_over_2_5": 45.0, "away_under_2_5": 55.0,
+
             }
         }
         
@@ -485,11 +480,11 @@ class TestMarketDefinitions:
         expected_markets = [
             # Full Match
             "1X2", "DOUBLE_CHANCE", "DRAW_NO_BET", "BTTS",
-            "OVER_UNDER_1_5", "OVER_UNDER_2_5",
+            "OVER_UNDER_1_5",
             # Home Team Goals
-            "HOME_GOALS_OVER_0_5", "HOME_GOALS_OVER_1_5", "HOME_GOALS_OVER_2_5",
+            "HOME_GOALS_OVER_0_5", "HOME_GOALS_OVER_1_5",
             # Away Team Goals
-            "AWAY_GOALS_OVER_0_5", "AWAY_GOALS_OVER_1_5", "AWAY_GOALS_OVER_2_5",
+            "AWAY_GOALS_OVER_0_5", "AWAY_GOALS_OVER_1_5",
             # Correct Score
             "CORRECT_SCORE",
         ]

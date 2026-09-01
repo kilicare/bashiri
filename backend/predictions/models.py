@@ -326,10 +326,105 @@ class HeadToHead(models.Model):
     away_goals = models.PositiveSmallIntegerField(default=0)
     last_5_matches = models.JSONField(default=list, help_text="Last 5 H2H matches with results")
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = "predictions_headtohead"
         unique_together = ["home_team", "away_team", "league"]
-    
+
     def __str__(self):
         return f"{self.home_team} vs {self.away_team}: {self.home_wins}-{self.draws}-{self.away_wins}"
+
+
+class AIPick(models.Model):
+    """
+    Immutable AI Pick snapshot with stable ID for accuracy tracking.
+    Hii ndiyo source of truth kwa AI Pick Feed na Result Recap.
+    """
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("LIVE", "Live"),
+        ("WON", "Won"),
+        ("LOST", "Lost"),
+        ("PUSH", "Push"),
+        ("VOID", "Void"),
+        ("CANCELLED", "Cancelled"),
+    ]
+
+    TIER_CHOICES = [
+        ("ELITE", "Elite"),
+        ("STRONG", "Strong"),
+        ("MINIMUM", "Minimum"),
+    ]
+
+    FEED_CHOICES = [
+        ("STANDARD", "Standard"),
+        ("PREMIUM", "Premium"),
+    ]
+
+    # Stable unique identifier
+    pick_id = models.UUIDField(unique=True, db_index=True, help_text="Stable unique ID for tracking")
+
+    # Match reference
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="ai_picks")
+
+    # Snapshot data (immutable after creation)
+    home_team = models.CharField(max_length=150, help_text="Snapshot of home team name at prediction time")
+    away_team = models.CharField(max_length=150, help_text="Snapshot of away team name at prediction time")
+    league = models.CharField(max_length=100, help_text="Snapshot of league name at prediction time")
+    kickoff_at = models.DateTimeField(help_text="Snapshot of kickoff time at prediction time")
+
+    # Prediction data (immutable)
+    market = models.CharField(max_length=50, help_text="Market key: 1x2_home, btts_yes, dc_1x, etc.")
+    selection = models.CharField(max_length=50, help_text="Selection key: Home, Away, 1X, etc.")
+    probability = models.FloatField(help_text="Raw probability (0.0-1.0)")
+    probability_percent = models.FloatField(help_text="Display percentage (0-100)")
+
+    # Classification
+    tier = models.CharField(max_length=10, choices=TIER_CHOICES, help_text="AI Pick tier")
+    feed = models.CharField(max_length=10, choices=FEED_CHOICES, default="STANDARD", help_text="Feed type")
+
+    # Status tracking
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="PENDING", db_index=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When prediction was generated")
+    published_at = models.DateTimeField(null=True, blank=True, help_text="When pick was published to feed")
+    settled_at = models.DateTimeField(null=True, blank=True, help_text="When match was settled")
+
+    # Version tracking
+    model_version = models.CharField(max_length=50, help_text="Model version that generated this pick")
+    threshold_config_version = models.CharField(max_length=50, default="v1", help_text="Threshold config version")
+    market_config_version = models.CharField(max_length=50, default="v1", help_text="Market contract version")
+
+    # Result data (nullable until settlement)
+    actual_home_score = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Final home score")
+    actual_away_score = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Final away score")
+    result = models.CharField(max_length=10, choices=STATUS_CHOICES, null=True, blank=True, help_text="Settlement result")
+    settlement_version = models.CharField(max_length=20, default="v1", help_text="Settlement engine version")
+
+    class Meta:
+        db_table = "predictions_aipick"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["pick_id"]),
+            models.Index(fields=["match", "status"]),
+            models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["tier", "created_at"]),
+            models.Index(fields=["feed", "created_at"]),
+            models.Index(fields=["-kickoff_at"]),
+        ]
+
+    def __str__(self):
+        return f"AI Pick {self.pick_id}: {self.market} {self.selection} ({self.tier})"
+
+    @property
+    def is_settled(self):
+        return self.status in ["WON", "LOST", "PUSH", "VOID"]
+
+    @property
+    def is_live(self):
+        return self.status == "LIVE"
+
+    @property
+    def is_pending(self):
+        return self.status == "PENDING"

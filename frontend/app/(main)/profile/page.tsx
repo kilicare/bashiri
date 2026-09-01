@@ -674,12 +674,12 @@ export default function ProfilePage() {
             transition={{ delay: 0.32 }}
           >
             <button
-              onClick={() => router.push("/tips")}
+              onClick={() => router.push("/ai-picks")}
               className="w-full rounded-2xl p-4 flex flex-col items-center gap-2 text-center"
               style={{ background: "#111111" }}
             >
-              <Trophy size={20} style={{ color: "var(--brand-accent)" }} />
-              <span className="text-xs font-bold text-white">Tips</span>
+              <Sparkles size={20} style={{ color: "var(--brand-accent)" }} />
+              <span className="text-xs font-bold text-white">AI Picks</span>
             </button>
           </motion.div>
 

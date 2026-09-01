@@ -20,6 +20,7 @@ export default function HomePage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   
   // Search state
   const [showSearch, setShowSearch] = useState(false);
@@ -167,13 +168,19 @@ export default function HomePage() {
               <button
                 type="button"
                 aria-label="Go to profile"
-                onClick={() => router.push("/profile")}
+                onClick={() => {
+                  if (user) {
+                    router.push("/profile");
+                  } else {
+                    setShowLoginPrompt(true);
+                  }
+                }}
                 className="relative w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0 overflow-hidden"
               >
                 {user?.avatar_url ? (
-                  <img 
-                    src={user.avatar_url} 
-                    alt="Profile" 
+                  <img
+                    src={user.avatar_url}
+                    alt="Profile"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
@@ -268,6 +275,60 @@ export default function HomePage() {
             router.push("/review");
           }}
         />
+
+        {/* Login Prompt Modal */}
+        <AnimatePresence>
+          {showLoginPrompt && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }}
+              onClick={() => setShowLoginPrompt(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-sm rounded-2xl p-6"
+                style={{ background: "#111111", border: "1px solid rgba(212,175,55,0.2)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white">Fungua Account</h3>
+                  <button
+                    onClick={() => setShowLoginPrompt(false)}
+                    className="text-white/60 hover:text-white transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  Kuona AI Picks, accuracy stats, na zaidi - fungua account bure.
+                </p>
+                <div className="space-y-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setShowLoginPrompt(false);
+                      router.push("/login");
+                    }}
+                    className="w-full py-3 rounded-xl font-bold text-sm transition-all"
+                    style={{
+                      background: "linear-gradient(135deg, #D4AF37 0%, #F5D77A 100%)",
+                      color: "#0A0A0A",
+                      boxShadow: "0 10px 30px rgba(212,175,55,0.3)"
+                    }}
+                  >
+                    Endelea
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Search Modal */}
         <AnimatePresence>

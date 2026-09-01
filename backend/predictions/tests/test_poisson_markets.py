@@ -314,21 +314,17 @@ class TestPoissonMarketIntegrity:
         home_goals = sample_prediction["home_goals"]
         away_goals = sample_prediction["away_goals"]
         
-        # Check Home Team Goals lines (0.5, 1.5, 2.5 per production contract)
+        # Check Home Team Goals lines (0.5, 1.5 per production contract)
         assert "home_over_0_5" in home_goals
         assert "home_under_0_5" in home_goals
         assert "home_over_1_5" in home_goals
         assert "home_under_1_5" in home_goals
-        assert "home_over_2_5" in home_goals
-        assert "home_under_2_5" in home_goals
         
-        # Check Away Team Goals lines (0.5, 1.5, 2.5 per production contract)
+        # Check Away Team Goals lines (0.5, 1.5 per production contract)
         assert "away_over_0_5" in away_goals
         assert "away_under_0_5" in away_goals
         assert "away_over_1_5" in away_goals
         assert "away_under_1_5" in away_goals
-        assert "away_over_2_5" in away_goals
-        assert "away_under_2_5" in away_goals
     
     def test_correct_score_present(self, sample_prediction):
         """Test that Correct Score market is present and valid."""

@@ -39,10 +39,6 @@ class TestGoalLineParsing:
         """Test parsing Full Match 1.5"""
         assert parse_goal_line("OVER_UNDER_1_5") == 1.5
     
-    def test_parse_full_match_2_5(self):
-        """Test parsing Full Match 2.5"""
-        assert parse_goal_line("OVER_UNDER_2_5") == 2.5
-    
     def test_parse_home_goals_0_5(self):
         """Test parsing Home Goals 0.5"""
         assert parse_goal_line("HOME_GOALS_OVER_0_5") == 0.5
@@ -51,10 +47,6 @@ class TestGoalLineParsing:
         """Test parsing Home Goals 1.5"""
         assert parse_goal_line("HOME_GOALS_OVER_1_5") == 1.5
     
-    def test_parse_home_goals_2_5(self):
-        """Test parsing Home Goals 2.5"""
-        assert parse_goal_line("HOME_GOALS_OVER_2_5") == 2.5
-    
     def test_parse_away_goals_0_5(self):
         """Test parsing Away Goals 0.5"""
         assert parse_goal_line("AWAY_GOALS_OVER_0_5") == 0.5
@@ -62,10 +54,6 @@ class TestGoalLineParsing:
     def test_parse_away_goals_1_5(self):
         """Test parsing Away Goals 1.5"""
         assert parse_goal_line("AWAY_GOALS_OVER_1_5") == 1.5
-    
-    def test_parse_away_goals_2_5(self):
-        """Test parsing Away Goals 2.5"""
-        assert parse_goal_line("AWAY_GOALS_OVER_2_5") == 2.5
     
     def test_parse_invalid_market(self):
         """Test invalid market returns None"""

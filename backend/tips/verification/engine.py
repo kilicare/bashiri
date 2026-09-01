@@ -51,8 +51,8 @@ class VerificationEngine:
         Verify a tip against final match score.
         
         Args:
-            market_key: Market identifier (e.g., "1X2", "OVER_UNDER_2_5")
-            selection_key: Selection identifier (e.g., "home_win", "over_2_5")
+            market_key: Market identifier (e.g., "1X2", "OVER_UNDER_1_5")
+            selection_key: Selection identifier (e.g., "home_win", "over_1_5")
             home_score: Final home team score
             away_score: Final away team score
         
@@ -193,7 +193,7 @@ class VerificationEngine:
         Verify Over/Under market (Full Match totals).
         
         FIXED: Properly parses goal line from market key.
-        Example: OVER_UNDER_2_5 → threshold = 2.5
+        Example: OVER_UNDER_1_5 → threshold = 1.5
         
         Rules:
         - Over X: Total goals > X → WON, otherwise → LOST

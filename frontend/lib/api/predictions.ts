@@ -342,3 +342,132 @@ export function getTeamDetail(teamId: number) {
 export function getLeagueDetail(leagueCode: string) {
   return apiClient<LeagueDetail>(`/predictions/leagues/${leagueCode}/`, { skipAuth: true });
 }
+
+// AI Pick Feed + Result Recap + Accuracy Tracking API types
+export interface AIPick {
+  pick_id: string;
+  match_id: number;
+  home_team: string;
+  away_team: string;
+  league: string;
+  kickoff_at: string;
+  market: string;
+  market_label: string;
+  selection: string;
+  selection_label: string;
+  probability: number;
+  probability_percent: number;
+  tier: "ELITE" | "STRONG" | "MINIMUM";
+  feed: "STANDARD" | "PREMIUM";
+  status: "PENDING" | "LIVE" | "WON" | "LOST" | "PUSH" | "VOID" | "CANCELLED";
+  created_at: string;
+  published_at: string | null;
+  settled_at: string | null;
+  actual_home_score: number | null;
+  actual_away_score: number | null;
+  result: string | null;
+}
+
+export interface AIPickListResponse {
+  count: number;
+  limit: number;
+  offset: number;
+  results: AIPick[];
+}
+
+export function getAIPicks(params?: {
+  feed?: "STANDARD" | "PREMIUM";
+  tier?: "ELITE" | "STRONG" | "MINIMUM";
+  status?: "PENDING" | "LIVE" | "WON" | "LOST" | "PUSH";
+  date?: string;
+  range?: "today" | "yesterday" | "this_week" | "last_7_days" | "this_month";
+  league?: string;
+  market?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const query = new URLSearchParams();
+  if (params?.feed) query.append("feed", params.feed);
+  if (params?.tier) query.append("tier", params.tier);
+  if (params?.status) query.append("status", params.status);
+  if (params?.date) query.append("date", params.date);
+  if (params?.range) query.append("range", params.range);
+  if (params?.league) query.append("league", params.league);
+  if (params?.market) query.append("market", params.market);
+  if (params?.limit) query.append("limit", params.limit.toString());
+  if (params?.offset) query.append("offset", params.offset.toString());
+  return apiClient<AIPickListResponse>(`/predictions/ai-picks/${query ? '?' + query : ''}`, { skipAuth: true });
+}
+
+export interface AIResultRecap {
+  range: string;
+  total_picks: number;
+  settled: number;
+  pending: number;
+  live: number;
+  won: number;
+  lost: number;
+  push: number;
+  void: number;
+  hit_rate: number;
+  win_rate: number;
+  settlement_rate: number;
+}
+
+export function getAIResultRecap(params?: {
+  range?: "today" | "yesterday" | "this_week" | "last_7_days" | "this_month" | "custom";
+  start_date?: string;
+  end_date?: string;
+  tier?: "ELITE" | "STRONG" | "MINIMUM";
+  feed?: "STANDARD" | "PREMIUM";
+  league?: string;
+  market?: string;
+}) {
+  const query = new URLSearchParams();
+  if (params?.range) query.append("range", params.range);
+  if (params?.start_date) query.append("start_date", params.start_date);
+  if (params?.end_date) query.append("end_date", params.end_date);
+  if (params?.tier) query.append("tier", params.tier);
+  if (params?.feed) query.append("feed", params.feed);
+  if (params?.league) query.append("league", params.league);
+  if (params?.market) query.append("market", params.market);
+  return apiClient<AIResultRecap>(`/predictions/ai-results/${query ? '?' + query : ''}`, { skipAuth: true });
+}
+
+export interface AIAnalytics {
+  range: string;
+  total_picks: number;
+  market_breakdown?: Array<{
+    market: string;
+    market_label: string;
+    picks: number;
+    won: number;
+    lost: number;
+    hit_rate: number;
+  }>;
+  tier_breakdown?: Array<{
+    tier: string;
+    picks: number;
+    won: number;
+    lost: number;
+    hit_rate: number;
+  }>;
+  league_breakdown?: Array<{
+    league: string;
+    league_name: string;
+    picks: number;
+    won: number;
+    lost: number;
+    hit_rate: number;
+  }>;
+}
+
+export function getAIAnalytics(params?: {
+  range?: "today" | "yesterday" | "this_week" | "last_7_days" | "this_month";
+  breakdown?: "market" | "tier" | "league" | "all";
+}) {
+  const query = new URLSearchParams();
+  if (params?.range) query.append("range", params.range);
+  if (params?.breakdown) query.append("breakdown", params.breakdown);
+  return apiClient<AIAnalytics>(`/predictions/ai-analytics/${query ? '?' + query : ''}`, { skipAuth: true });
+}

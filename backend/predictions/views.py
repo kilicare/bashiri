@@ -673,14 +673,16 @@ class AITrackRecordView(APIView):
 
 
 class AIPerformanceStatsView(APIView):
-    """GET /ai-performance/ — Daily & Weekly AI accuracy stats kwa profile page."""
+    """
+    GET /ai-performance/ — Daily & Weekly AI accuracy stats kwa profile page.
+    Updated to use AIPick model for accurate tracking.
+    """
     permission_classes = [AllowAny]
 
     def get(self, request):
         from django.core.cache import cache
         from datetime import timedelta
-        from .models import AIPerformance
-        from feed.models import Card
+        from .models import AIPick
 
         # Cache for 5 minutes
         cache_key = "ai_performance_stats"
@@ -692,21 +694,67 @@ class AIPerformanceStatsView(APIView):
         week_ago = today - timedelta(days=7)
         month_ago = today - timedelta(days=30)
 
-        # Daily performance (today) with market-specific data
-        daily_performance = AIPerformance.objects.filter(date=today).first()
-        if daily_performance and daily_performance.total_predictions > 0:
+        # Daily performance (today) - using AIPick model
+        daily_picks = AIPick.objects.filter(created_at__date=today, feed='STANDARD')
+        daily_total = daily_picks.count()
+        daily_won = daily_picks.filter(status='WON').count()
+        daily_lost = daily_picks.filter(status='LOST').count()
+        daily_push = daily_picks.filter(status='PUSH').count()
+
+        # Calculate daily accuracy
+        daily_decisions = daily_won + daily_lost
+        daily_accuracy = round((daily_won / daily_decisions * 100), 1) if daily_decisions > 0 else None
+
+        # Daily market-specific accuracy
+        daily_1x2_picks = daily_picks.filter(market__startswith='1x2')
+        daily_1x2_won = daily_1x2_picks.filter(status='WON').count()
+        daily_1x2_lost = daily_1x2_picks.filter(status='LOST').count()
+        daily_1x2_accuracy = round((daily_1x2_won / (daily_1x2_won + daily_1x2_lost) * 100), 1) if (daily_1x2_won + daily_1x2_lost) > 0 else None
+
+        daily_btts_picks = daily_picks.filter(market__startswith='btts')
+        daily_btts_won = daily_btts_picks.filter(status='WON').count()
+        daily_btts_lost = daily_btts_picks.filter(status='LOST').count()
+        daily_btts_accuracy = round((daily_btts_won / (daily_btts_won + daily_btts_lost) * 100), 1) if (daily_btts_won + daily_btts_lost) > 0 else None
+
+        daily_ou_picks = daily_picks.filter(market__startswith='over')
+        daily_ou_won = daily_ou_picks.filter(status='WON').count()
+        daily_ou_lost = daily_ou_picks.filter(status='LOST').count()
+        daily_ou_accuracy = round((daily_ou_won / (daily_ou_won + daily_ou_lost) * 100), 1) if (daily_ou_won + daily_ou_lost) > 0 else None
+
+        # High confidence (Elite tier) accuracy
+        daily_elite_picks = daily_picks.filter(tier='ELITE')
+        daily_elite_won = daily_elite_picks.filter(status='WON').count()
+        daily_elite_lost = daily_elite_picks.filter(status='LOST').count()
+        daily_elite_accuracy = round((daily_elite_won / (daily_elite_won + daily_elite_lost) * 100), 1) if (daily_elite_won + daily_elite_lost) > 0 else None
+
+        # Calculate streak
+        all_settled = AIPick.objects.filter(status__in=['WON', 'LOST']).order_by('settled_at')
+        current_streak = 0
+        best_streak = 0
+        temp_streak = 0
+
+        for pick in all_settled:
+            if pick.status == 'WON':
+                temp_streak += 1
+                best_streak = max(best_streak, temp_streak)
+            else:
+                temp_streak = 0
+
+        current_streak = temp_streak  # This is the ongoing streak from the end
+
+        if daily_total > 0:
             daily_stats = {
-                "accuracy_percentage": daily_performance.accuracy_percentage,
-                "total_predictions": daily_performance.total_predictions,
-                "correct_predictions": daily_performance.correct_predictions,
-                "high_confidence_accuracy": daily_performance.high_confidence_accuracy,
+                "accuracy_percentage": daily_accuracy,
+                "total_predictions": daily_total,
+                "correct_predictions": daily_won,
+                "high_confidence_accuracy": daily_elite_accuracy,
                 "market_accuracy": {
-                    "1x2": daily_performance.accuracy_1x2 if daily_performance.predictions_1x2 > 0 else None,
-                    "btts": daily_performance.accuracy_btts if daily_performance.predictions_btts > 0 else None,
-                    "over_under": daily_performance.accuracy_over_under if daily_performance.predictions_over_under > 0 else None,
+                    "1x2": daily_1x2_accuracy,
+                    "btts": daily_btts_accuracy,
+                    "over_under": daily_ou_accuracy,
                 },
-                "current_streak": daily_performance.current_streak,
-                "best_streak": daily_performance.best_streak,
+                "current_streak": current_streak,
+                "best_streak": best_streak,
             }
         else:
             daily_stats = {
@@ -723,146 +771,122 @@ class AIPerformanceStatsView(APIView):
                 "best_streak": 0,
             }
 
-        # Weekly performance (last 7 days) with market-specific aggregation
-        weekly_performances = AIPerformance.objects.filter(date__gte=week_ago, date__lte=today)
-        weekly_total = weekly_performances.aggregate(
-            total_predictions=Sum('total_predictions'),
-            correct_predictions=Sum('correct_predictions'),
-            high_conf_predictions=Sum('high_confidence_predictions'),
-            high_conf_correct=Sum('high_confidence_correct'),
-            predictions_1x2=Sum('predictions_1x2'),
-            correct_1x2=Sum('correct_1x2'),
-            predictions_btts=Sum('predictions_btts'),
-            correct_btts=Sum('correct_btts'),
-            predictions_over_under=Sum('predictions_over_under'),
-            correct_over_under=Sum('correct_over_under'),
-            best_streak=Max('best_streak'),
+        # Weekly performance (last 7 days) - using AIPick model
+        weekly_picks = AIPick.objects.filter(
+            created_at__date__gte=week_ago,
+            created_at__date__lte=today,
+            feed='STANDARD'
         )
+        weekly_total = weekly_picks.count()
+        weekly_won = weekly_picks.filter(status='WON').count()
+        weekly_lost = weekly_picks.filter(status='LOST').count()
+        weekly_push = weekly_picks.filter(status='PUSH').count()
 
-        weekly_total_predictions = weekly_total['total_predictions'] or 0
-        weekly_correct = weekly_total['correct_predictions'] or 0
-        weekly_high_conf = weekly_total['high_conf_predictions'] or 0
-        weekly_high_conf_correct = weekly_total['high_conf_correct'] or 0
-        weekly_predictions_1x2 = weekly_total['predictions_1x2'] or 0
-        weekly_correct_1x2 = weekly_total['correct_1x2'] or 0
-        weekly_predictions_btts = weekly_total['predictions_btts'] or 0
-        weekly_correct_btts = weekly_total['correct_btts'] or 0
-        weekly_predictions_over_under = weekly_total['predictions_over_under'] or 0
-        weekly_correct_over_under = weekly_total['correct_over_under'] or 0
-        weekly_best_streak = weekly_total['best_streak'] or 0
+        # Calculate weekly accuracy
+        weekly_decisions = weekly_won + weekly_lost
+        weekly_accuracy = round((weekly_won / weekly_decisions * 100), 1) if weekly_decisions > 0 else None
 
-        if weekly_total_predictions > 0:
-            weekly_accuracy = round((weekly_correct / weekly_total_predictions) * 100, 1)
-            weekly_high_conf_accuracy = round((weekly_high_conf_correct / weekly_high_conf) * 100, 1) if weekly_high_conf > 0 else 0.0
-        else:
-            weekly_accuracy = None
-            weekly_high_conf_accuracy = None
+        # Weekly market-specific accuracy
+        weekly_1x2_picks = weekly_picks.filter(market__startswith='1x2')
+        weekly_1x2_won = weekly_1x2_picks.filter(status='WON').count()
+        weekly_1x2_lost = weekly_1x2_picks.filter(status='LOST').count()
+        weekly_1x2_accuracy = round((weekly_1x2_won / (weekly_1x2_won + weekly_1x2_lost) * 100), 1) if (weekly_1x2_won + weekly_1x2_lost) > 0 else None
 
-        # Calculate market-specific accuracy
-        weekly_accuracy_1x2 = round((weekly_correct_1x2 / weekly_predictions_1x2) * 100, 1) if weekly_predictions_1x2 > 0 else None
-        weekly_accuracy_btts = round((weekly_correct_btts / weekly_predictions_btts) * 100, 1) if weekly_predictions_btts > 0 else None
-        weekly_accuracy_over_under = round((weekly_correct_over_under / weekly_predictions_over_under) * 100, 1) if weekly_predictions_over_under > 0 else None
+        weekly_btts_picks = weekly_picks.filter(market__startswith='btts')
+        weekly_btts_won = weekly_btts_picks.filter(status='WON').count()
+        weekly_btts_lost = weekly_btts_picks.filter(status='LOST').count()
+        weekly_btts_accuracy = round((weekly_btts_won / (weekly_btts_won + weekly_btts_lost) * 100), 1) if (weekly_btts_won + weekly_btts_lost) > 0 else None
+
+        weekly_ou_picks = weekly_picks.filter(market__startswith='over')
+        weekly_ou_won = weekly_ou_picks.filter(status='WON').count()
+        weekly_ou_lost = weekly_ou_picks.filter(status='LOST').count()
+        weekly_ou_accuracy = round((weekly_ou_won / (weekly_ou_won + weekly_ou_lost) * 100), 1) if (weekly_ou_won + weekly_ou_lost) > 0 else None
+
+        # Weekly high confidence accuracy
+        weekly_elite_picks = weekly_picks.filter(tier='ELITE')
+        weekly_elite_won = weekly_elite_picks.filter(status='WON').count()
+        weekly_elite_lost = weekly_elite_picks.filter(status='LOST').count()
+        weekly_elite_accuracy = round((weekly_elite_won / (weekly_elite_won + weekly_elite_lost) * 100), 1) if (weekly_elite_won + weekly_elite_lost) > 0 else None
 
         weekly_stats = {
             "accuracy_percentage": weekly_accuracy,
-            "total_predictions": weekly_total_predictions,
-            "correct_predictions": weekly_correct,
-            "high_confidence_accuracy": weekly_high_conf_accuracy,
+            "total_predictions": weekly_total,
+            "correct_predictions": weekly_won,
+            "high_confidence_accuracy": weekly_elite_accuracy,
             "market_accuracy": {
-                "1x2": weekly_accuracy_1x2,
-                "btts": weekly_accuracy_btts,
-                "over_under": weekly_accuracy_over_under,
+                "1x2": weekly_1x2_accuracy,
+                "btts": weekly_btts_accuracy,
+                "over_under": weekly_ou_accuracy,
             },
-            "best_streak": weekly_best_streak,
+            "best_streak": best_streak,
         }
 
-        # Monthly performance (last 30 days) - for better trend analysis with market-specific and streak data
-        monthly_performances = AIPerformance.objects.filter(date__gte=month_ago, date__lte=today)
-        monthly_total = monthly_performances.aggregate(
-            total_predictions=Sum('total_predictions'),
-            correct_predictions=Sum('correct_predictions'),
-            high_conf_predictions=Sum('high_confidence_predictions'),
-            high_conf_correct=Sum('high_confidence_correct'),
-            predictions_1x2=Sum('predictions_1x2'),
-            correct_1x2=Sum('correct_1x2'),
-            predictions_btts=Sum('predictions_btts'),
-            correct_btts=Sum('correct_btts'),
-            predictions_over_under=Sum('predictions_over_under'),
-            correct_over_under=Sum('correct_over_under'),
-            best_streak=Max('best_streak'),
+        # Monthly performance (last 30 days) - using AIPick model
+        monthly_picks = AIPick.objects.filter(
+            created_at__date__gte=month_ago,
+            created_at__date__lte=today,
+            feed='STANDARD'
         )
+        monthly_total = monthly_picks.count()
+        monthly_won = monthly_picks.filter(status='WON').count()
+        monthly_lost = monthly_picks.filter(status='LOST').count()
 
-        monthly_total_predictions = monthly_total['total_predictions'] or 0
-        monthly_correct = monthly_total['correct_predictions'] or 0
-        monthly_high_conf = monthly_total['high_conf_predictions'] or 0
-        monthly_high_conf_correct = monthly_total['high_conf_correct'] or 0
-        monthly_predictions_1x2 = monthly_total['predictions_1x2'] or 0
-        monthly_correct_1x2 = monthly_total['correct_1x2'] or 0
-        monthly_predictions_btts = monthly_total['predictions_btts'] or 0
-        monthly_correct_btts = monthly_total['correct_btts'] or 0
-        monthly_predictions_over_under = monthly_total['predictions_over_under'] or 0
-        monthly_correct_over_under = monthly_total['correct_over_under'] or 0
-        monthly_best_streak = monthly_total['best_streak'] or 0
+        # Calculate monthly accuracy
+        monthly_decisions = monthly_won + monthly_lost
+        monthly_accuracy = round((monthly_won / monthly_decisions * 100), 1) if monthly_decisions > 0 else None
 
-        if monthly_total_predictions > 0:
-            monthly_accuracy = round((monthly_correct / monthly_total_predictions) * 100, 1)
-            monthly_high_conf_accuracy = round((monthly_high_conf_correct / monthly_high_conf) * 100, 1) if monthly_high_conf > 0 else 0.0
-        else:
-            monthly_accuracy = None
-            monthly_high_conf_accuracy = None
-
-        # Calculate market-specific accuracy
-        monthly_accuracy_1x2 = round((monthly_correct_1x2 / monthly_predictions_1x2) * 100, 1) if monthly_predictions_1x2 > 0 else None
-        monthly_accuracy_btts = round((monthly_correct_btts / monthly_predictions_btts) * 100, 1) if monthly_predictions_btts > 0 else None
-        monthly_accuracy_over_under = round((monthly_correct_over_under / monthly_predictions_over_under) * 100, 1) if monthly_predictions_over_under > 0 else None
+        # Monthly high confidence accuracy
+        monthly_elite_picks = monthly_picks.filter(tier='ELITE')
+        monthly_elite_won = monthly_elite_picks.filter(status='WON').count()
+        monthly_elite_lost = monthly_elite_picks.filter(status='LOST').count()
+        monthly_elite_accuracy = round((monthly_elite_won / (monthly_elite_won + monthly_elite_lost) * 100), 1) if (monthly_elite_won + monthly_elite_lost) > 0 else None
 
         monthly_stats = {
             "accuracy_percentage": monthly_accuracy,
-            "total_predictions": monthly_total_predictions,
-            "correct_predictions": monthly_correct,
-            "high_confidence_accuracy": monthly_high_conf_accuracy,
-            "market_accuracy": {
-                "1x2": monthly_accuracy_1x2,
-                "btts": monthly_accuracy_btts,
-                "over_under": monthly_accuracy_over_under,
-            },
-            "best_streak": monthly_best_streak,
+            "total_predictions": monthly_total,
+            "correct_predictions": monthly_won,
+            "high_confidence_accuracy": monthly_elite_accuracy,
         }
 
-        # All-time performance
-        all_time_performances = AIPerformance.objects.all()
-        all_time_total = all_time_performances.aggregate(
-            total_predictions=Sum('total_predictions'),
-            correct_predictions=Sum('correct_predictions'),
-            high_conf_predictions=Sum('high_confidence_predictions'),
-            high_conf_correct=Sum('high_confidence_correct')
-        )
+        # All-time performance - using AIPick model
+        all_time_picks = AIPick.objects.filter(feed='STANDARD')
+        all_time_total = all_time_picks.count()
+        all_time_won = all_time_picks.filter(status='WON').count()
+        all_time_lost = all_time_picks.filter(status='LOST').count()
 
-        all_time_total_predictions = all_time_total['total_predictions'] or 0
-        all_time_correct = all_time_total['correct_predictions'] or 0
-        all_time_high_conf = all_time_total['high_conf_predictions'] or 0
-        all_time_high_conf_correct = all_time_total['high_conf_correct'] or 0
+        # Calculate all-time accuracy
+        all_time_decisions = all_time_won + all_time_lost
+        all_time_accuracy = round((all_time_won / all_time_decisions * 100), 1) if all_time_decisions > 0 else 0.0
 
-        all_time_accuracy = round((all_time_correct / all_time_total_predictions) * 100, 1) if all_time_total_predictions > 0 else 0.0
-        all_time_high_conf_accuracy = round((all_time_high_conf_correct / all_time_high_conf) * 100, 1) if all_time_high_conf > 0 else 0.0
+        # All-time high confidence accuracy
+        all_time_elite_picks = all_time_picks.filter(tier='ELITE')
+        all_time_elite_won = all_time_elite_picks.filter(status='WON').count()
+        all_time_elite_lost = all_time_elite_picks.filter(status='LOST').count()
+        all_time_elite_accuracy = round((all_time_elite_won / (all_time_elite_won + all_time_elite_lost) * 100), 1) if (all_time_elite_won + all_time_elite_lost) > 0 else 0.0
 
         all_time_stats = {
             "accuracy_percentage": all_time_accuracy,
-            "total_predictions": all_time_total_predictions,
-            "correct_predictions": all_time_correct,
-            "high_confidence_accuracy": all_time_high_conf_accuracy,
+            "total_predictions": all_time_total,
+            "correct_predictions": all_time_won,
+            "high_confidence_accuracy": all_time_elite_accuracy,
         }
 
-        # Weekly trend (last 7 days daily accuracy) - ensure all days have data
+        # Weekly trend (last 7 days daily accuracy) - using AIPick model
         weekly_trend = []
         for i in range(7):
             date = today - timedelta(days=i)
-            perf = AIPerformance.objects.filter(date=date).first()
-            if perf and perf.total_predictions > 0:
+            day_picks = AIPick.objects.filter(created_at__date=date, feed='STANDARD')
+            day_total = day_picks.count()
+            day_won = day_picks.filter(status='WON').count()
+            day_lost = day_picks.filter(status='LOST').count()
+
+            if day_total > 0:
+                day_decisions = day_won + day_lost
+                day_accuracy = round((day_won / day_decisions * 100), 1) if day_decisions > 0 else None
                 weekly_trend.append({
                     "date": date.isoformat(),
-                    "accuracy_percentage": perf.accuracy_percentage,
-                    "total_predictions": perf.total_predictions,
+                    "accuracy_percentage": day_accuracy,
+                    "total_predictions": day_total,
                 })
             else:
                 # Add placeholder for days with no data
