@@ -32,13 +32,6 @@
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Bashiri Track Record",
-      "short_name": "Track Record",
-      "description": "Ona jinsi AI ilivyofanya kazi",
-      "url": "/track-record",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    },
-    {
       "name": "Admin Panel",
       "short_name": "Admin",
       "description": "Ingia kwenye Admin Dashboard",
