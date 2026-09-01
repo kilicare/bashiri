@@ -218,6 +218,16 @@ body {
   50% { box-shadow: 0 0 30px rgba(255, 213, 74, 0.5); }
 }
 
+/* ========================================
+   P1 LANDSCAPE RESPONSIVENESS FIX
+   ======================================== */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Mobile landscape: remove vertical centering to allow natural content flow */
+  .fixed.inset-0.flex.flex-col.justify-center {
+    justify-content: flex-start;
+  }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out;
 }

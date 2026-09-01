@@ -56,10 +56,10 @@ export function BashiriSplash() {
 
   return (
     <motion.div
-      className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden px-4 pt-safe pb-safe"
+      className="fixed inset-0 flex flex-col items-center justify-center overflow-y-auto px-4 pt-safe pb-safe"
       style={{
         background: SPLASH_CONFIG.backgroundColor,
-        minHeight: "100dvh",
+        minHeight: "100svh",
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: exiting ? 0 : 1 }}
@@ -79,7 +79,7 @@ export function BashiriSplash() {
       {/* Main content */}
       <div className="relative z-10 w-full max-w-md flex flex-col items-center">
         {/* Hero Card */}
-        <div className="mb-6" style={{ marginBottom: `${SPLASH_CONFIG.spacingHeroToBrand}rem` }}>
+        <div className="mb-6" style={{ marginBottom: SPLASH_CONFIG.spacingHeroToBrand }}>
           <HeroCard />
         </div>
 
@@ -89,7 +89,7 @@ export function BashiriSplash() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: SPLASH_CONFIG.baseAnimationDuration, delay: 0.1 }}
-          style={{ marginBottom: `${SPLASH_CONFIG.spacingBrandToStats}rem` }}
+          style={{ marginBottom: SPLASH_CONFIG.spacingBrandToStats }}
         >
           <h1
             className="font-black tracking-wider"
@@ -114,17 +114,17 @@ export function BashiriSplash() {
         </motion.div>
 
         {/* Performance Stats */}
-        <div className="w-full mb-4" style={{ marginBottom: `${SPLASH_CONFIG.spacingStatsToLeagues}rem` }}>
+        <div className="w-full mb-4" style={{ marginBottom: SPLASH_CONFIG.spacingStatsToLeagues }}>
           <PerformanceStats />
         </div>
 
         {/* League Accuracy */}
-        <div className="w-full mb-6" style={{ marginBottom: `${SPLASH_CONFIG.spacingLeaguesToProgress}rem` }}>
+        <div className="w-full mb-6" style={{ marginBottom: SPLASH_CONFIG.spacingLeaguesToProgress }}>
           <LeagueAccuracy />
         </div>
 
         {/* Loading Progress */}
-        <div className="w-full mb-4" style={{ marginBottom: `${SPLASH_CONFIG.spacingProgressToFooter}rem` }}>
+        <div className="w-full mb-4" style={{ marginBottom: SPLASH_CONFIG.spacingProgressToFooter }}>
           <LoadingProgress
             progress={progress}
             loadingMessage={loadingMessage}

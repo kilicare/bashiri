@@ -29,12 +29,12 @@ export const SPLASH_CONFIG = {
   heroFontSize: "clamp(1.25rem, 4vw, 1.5rem)",
   statsFontSize: "clamp(1rem, 3vw, 1.25rem)",
   
-  // Spacing (in rem)
-  spacingHeroToBrand: 2,
-  spacingBrandToStats: 1.5,
-  spacingStatsToLeagues: 1.5,
-  spacingLeaguesToProgress: 2,
-  spacingProgressToFooter: 1,
+  // Spacing (fluid clamp for responsive adaptation)
+  spacingHeroToBrand: "clamp(1.5rem, 3vw, 2.5rem)",
+  spacingBrandToStats: "clamp(1rem, 2.5vw, 1.75rem)",
+  spacingStatsToLeagues: "clamp(1rem, 2.5vw, 1.75rem)",
+  spacingLeaguesToProgress: "clamp(1.5rem, 3vw, 2.5rem)",
+  spacingProgressToFooter: "clamp(0.75rem, 2vw, 1.25rem)",
   
   // Branding
   appName: "BASHIRI",

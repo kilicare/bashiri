@@ -5,8 +5,8 @@ import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 
 export const metadata: Metadata = {
-  title: "Bashiri — AI Sports Predictions",
-  description: "Prediction intelligence tool ya Tanzania — AI predictions, live scores, na jamii ya mpira.",
+  title: "Bashiri Elite",
+  description: "Football predictions and sports insights.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -28,8 +28,8 @@ export const viewport: Viewport = {
   themeColor: "#0A0A0A",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: "cover",
 };
 
