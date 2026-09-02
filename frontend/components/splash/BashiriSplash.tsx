@@ -81,7 +81,7 @@ export function BashiriSplash() {
       </video>
 
       {/* Semi-transparent overlay to ensure content visibility */}
-      <div className="absolute inset-0 bg-black/70 z-10" />
+      <div className="absolute inset-0 bg-black/40 z-10" />
 
       {/* Subtle background glow */}
       <div
