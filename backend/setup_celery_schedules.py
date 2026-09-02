@@ -47,7 +47,7 @@ make_task("Sync Football Data", "predictions.tasks.sync_daily_task", {"minute": 
 
 # Historical Sync — mara moja tu kwa import data ya 2023, 2024, 2025, 2026, 2027 (ENABLED for now)
 # DISABLE after completion by commenting out this line
-make_task("Historical Sync 2023-2027", "predictions.tasks.sync_historical_task", {"minute": "5", "hour": "16"})
+make_task("Historical Sync 2023-2027", "predictions.tasks.sync_historical_task", {"minute": "40", "hour": "17"})
 
 # Sync NDOGO — mpya, kila sekunde 30 (status/score za mechi za sasa) - production safe
 make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_live_and_upcoming_matches", 30)
