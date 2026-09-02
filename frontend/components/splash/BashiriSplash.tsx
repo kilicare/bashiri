@@ -63,21 +63,36 @@ export function BashiriSplash() {
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: exiting ? 0 : 1 }}
-      transition={{ 
+      transition={{
         duration: exiting ? SPLASH_CONFIG.exitDuration / 1000 : SPLASH_CONFIG.baseAnimationDuration,
-        ease: "easeInOut" 
+        ease: "easeInOut"
       }}
     >
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        style={{ objectFit: 'cover' }}
+      >
+        <source src="/splash-background.mp4" type="video/mp4" />
+      </video>
+
+      {/* Semi-transparent overlay to ensure content visibility */}
+      <div className="absolute inset-0 bg-black/70 z-10" />
+
       {/* Subtle background glow */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none z-10"
         style={{
           background: "radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.05) 0%, transparent 50%)",
         }}
       />
 
       {/* Main content */}
-      <div className="relative z-10 w-full max-w-md flex flex-col items-center">
+      <div className="relative z-20 w-full max-w-md flex flex-col items-center">
         {/* Hero Card */}
         <div className="mb-6" style={{ marginBottom: SPLASH_CONFIG.spacingHeroToBrand }}>
           <HeroCard />
