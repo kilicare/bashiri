@@ -25,3 +25,4 @@ RUN chmod +x /app/entrypoint.sh
 EXPOSE 8000
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["sh", "-c", "daphne -b 0.0.0.0 -p $PORT config.asgi:application"]
