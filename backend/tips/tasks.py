@@ -121,13 +121,16 @@ def verify_tips_task(self):
                 # Update recent form
                 if not is_void:
                     perf.update_recent_form(is_correct)
-                
+
                 # Recalculate accuracies
                 perf.calculate_accuracy()
-                
+
                 # Calculate tipster score
                 perf.calculate_tipster_score()
-                
+
+                # Save TipPerformance to database
+                perf.save()
+
                 # Update user model
                 tip.user.tip_accuracy = perf.accuracy_percentage
                 tip.user.tipster_score = perf.tipster_score
@@ -238,6 +241,66 @@ def clean_old_shares_task():
     except Exception as e:
         logger.error(f"clean_old_shares_task failed: {str(e)}")
         return {'status': 'error', 'error': str(e)}
+
+
+@shared_task(bind=True, max_retries=3)
+def create_best_streak_card_task(self):
+    """
+    Create Best Streak User card for the feed.
+    Runs daily at 5 AM via Celery Beat.
+    """
+    
+    try:
+        from django.utils import timezone
+        from feed.models import Card
+        from .models import TipPerformance
+        
+        today = timezone.localdate()
+        
+        # Get user with highest best_streak overall
+        best_streak_user = TipPerformance.objects.filter(
+            best_streak__gt=0
+        ).order_by('-best_streak').first()
+        
+        if not best_streak_user:
+            logger.info("No user with streak found")
+            return {'status': 'success', 'message': 'No user with streak found'}
+        
+        # Check if card already exists for today
+        existing_card = Card.objects.filter(
+            type='BEST_STREAK_USER',
+            created_at__date=today
+        ).first()
+        
+        if existing_card:
+            logger.info(f"Best Streak card already exists for {today}")
+            return {'status': 'success', 'message': 'Card already exists for today'}
+        
+        # Create the card
+        card = Card.objects.create(
+            type='BEST_STREAK_USER',
+            data={
+                'user_id': best_streak_user.user.id,
+                'username': best_streak_user.user.username,
+                'avatar_url': best_streak_user.user.avatar_url,
+                'verified_tipster': best_streak_user.user.verified_tipster,
+                'best_streak': best_streak_user.best_streak,
+                'total_tips': best_streak_user.total_tips,
+                'accuracy': best_streak_user.accuracy_percentage,
+                'current_streak': best_streak_user.current_streak,
+            },
+        )
+        
+        logger.info(f"Created Best Streak card for user {best_streak_user.user.username} with streak {best_streak_user.best_streak}")
+        return {
+            'status': 'success',
+            'user': best_streak_user.user.username,
+            'best_streak': best_streak_user.best_streak,
+        }
+    
+    except Exception as exc:
+        logger.error(f"create_best_streak_card_task failed: {str(exc)}")
+        return {'status': 'error', 'error': str(exc)}
 
 
 @shared_task(bind=True, max_retries=3)

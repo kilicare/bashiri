@@ -5,11 +5,11 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://your-backend-url.onrender.com"
+    "NEXT_PUBLIC_API_BASE_URL": "https://bashiri-web.onrender.com/api"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "https://your-backend-url.onrender.com"
+      "NEXT_PUBLIC_API_BASE_URL": "https://bashiri-web.onrender.com/api"
     }
   }
 }

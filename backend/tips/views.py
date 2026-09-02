@@ -20,6 +20,7 @@ from .permissions import IsTipOwnerOrReadOnly, CanViewTip
 from .cache import TipsCache
 from .market_registry import get_available_markets, get_markets_by_category
 from predictions.models import Match
+from accounts.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -525,6 +526,54 @@ class TipShareView(APIView):
             'message': 'Share tracked successfully',
             'shared_to': shared_to
         })
+
+
+class BestStreakUserView(APIView):
+    """
+    GET /tips/best-streak-user/ - Get user with best streak for today
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """Get user with best streak for today"""
+        # Cache for 1 hour
+        cache_key = "best_streak_user_today"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
+        today = timezone.localdate()
+
+        # Get tip performance with highest best_streak from users who have tips today
+        best_streak_user = TipPerformance.objects.filter(
+            user__tips__created_at__date=today
+        ).order_by('-best_streak').first()
+
+        if not best_streak_user:
+            return Response({
+                'user': None,
+                'best_streak': 0,
+                'total_tips': 0,
+                'accuracy': 0
+            })
+
+        user_data = {
+            'user': {
+                'id': best_streak_user.user.id,
+                'username': best_streak_user.user.username,
+                'avatar_url': best_streak_user.user.avatar_url,
+                'verified_tipster': best_streak_user.user.verified_tipster,
+            },
+            'best_streak': best_streak_user.best_streak,
+            'total_tips': best_streak_user.total_tips,
+            'accuracy': best_streak_user.accuracy_percentage,
+            'current_streak': best_streak_user.current_streak,
+        }
+
+        # Cache for 1 hour
+        cache.set(cache_key, user_data, 3600)
+
+        return Response(user_data)
 
 
 class TipSlipListView(APIView):

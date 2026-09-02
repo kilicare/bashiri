@@ -19,9 +19,19 @@ export default function MatchOverviewPage() {
   const [h2hRange, setH2hRange] = useState(5);
   const [homeStandings, setHomeStandings] = useState<any>(null);
   const [awayStandings, setAwayStandings] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getMatchOverview(matchId, formRange, h2hRange).then(setData);
+    setLoading(true);
+    setError(null);
+    getMatchOverview(matchId, formRange, h2hRange)
+      .then(setData)
+      .catch((err) => {
+        setError("Mechi hii haipatikani. Rudi nyuma ujaribu mechi nyingine.");
+        console.error("Match overview error:", err);
+      })
+      .finally(() => setLoading(false));
   }, [matchId, formRange, h2hRange]);
 
   useEffect(() => {
@@ -35,7 +45,23 @@ export default function MatchOverviewPage() {
     }
   }, [data?.match]);
 
-  if (!data) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  if (loading) return <div className="px-4 pt-safe pt-6"><CardSkeleton /></div>;
+  if (error) return (
+    <div className="px-4 pt-safe pt-6">
+      <div className="flex items-center gap-3 mb-4">
+        <button 
+          onClick={() => router.back()} 
+          aria-label="Rudi nyuma"
+          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"
+        >
+          <ArrowLeft size={20} className="text-white/60" />
+        </button>
+      </div>
+      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
+        <p className="text-red-400 text-sm">{error}</p>
+      </div>
+    </div>
+  );
 
   const { match, home_form, away_form, head_to_head } = data;
   const isFinished = match.status === "FINISHED";

@@ -17,7 +17,7 @@ export default function PublicProfilePage() {
   const router = useRouter();
   const username = params.username as string;
   const { user: currentUser } = useAuthStore();
-  
+
   const [profileData, setProfileData] = useState<any>(null);
   const [tipPerformance, setTipPerformance] = useState<TipPerformance | null>(null);
   const [userTips, setUserTips] = useState<UserTipList[]>([]);
@@ -33,10 +33,32 @@ export default function PublicProfilePage() {
     loadProfile();
   }, [username]);
 
+  // Helper functions for user tip stats
+  const calculateUserAccuracy = (tips: any[]) => {
+    const settled = tips.filter((t: any) => ['CORRECT', 'INCORRECT', 'VOID'].includes(t.status));
+    const correct = tips.filter((t: any) => t.status === 'CORRECT');
+    return settled.length > 0 ? Math.round((correct.length / settled.length) * 100) : 0;
+  };
+
+  const calculateUserStreak = (tips: any[]) => {
+    let streak = 0;
+    let bestStreak = 0;
+    const sortedTips = [...tips].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    for (const tip of sortedTips) {
+      if (tip.status === 'CORRECT') {
+        streak++;
+        bestStreak = Math.max(bestStreak, streak);
+      } else if (tip.status === 'INCORRECT') {
+        streak = 0;
+      }
+    }
+    return bestStreak;
+  };
+
   const loadProfile = async () => {
     try {
       setLoading(true);
-      
+
       const [profile, performance, tips] = await Promise.all([
         getPublicProfile(username),
         getTipLeaderboard().then(data => {
@@ -45,16 +67,16 @@ export default function PublicProfilePage() {
         }),
         getUserTips(username).then(data => data.results || [])
       ]);
-      
+
       setProfileData(profile);
       setTipPerformance(performance);
       setUserTips(tips);
-      
+
       // Set followers count from server response
       if (profile.user && profile.user.followers_count !== undefined) {
         setFollowersCount(profile.user.followers_count);
       }
-      
+
       // Use follow status from backend response
       if (profile.is_following !== undefined) {
         setIsFollowing(profile.is_following);
@@ -96,7 +118,7 @@ export default function PublicProfilePage() {
       router.push('/login');
       return;
     }
-    
+
     try {
       setFollowLoading(true);
       if (isFollowing) {
@@ -323,15 +345,15 @@ export default function PublicProfilePage() {
         ) : (
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-              <p className="text-2xl font-black text-white mb-1">{user.total_predictions || 0}</p>
+              <p className="text-2xl font-black text-white mb-1">{userTips.length}</p>
               <p className="text-xs text-white/50">Predictions</p>
             </div>
             <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-              <p className="text-2xl font-black text-white mb-1">{user.accuracy_percentage || 0}%</p>
+              <p className="text-2xl font-black text-white mb-1">{calculateUserAccuracy(userTips)}%</p>
               <p className="text-xs text-white/50">Accuracy</p>
             </div>
             <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-              <p className="text-2xl font-black text-white mb-1">{user.best_streak || 0}</p>
+              <p className="text-2xl font-black text-white mb-1">{calculateUserStreak(userTips)}</p>
               <p className="text-xs text-white/50">Best Streak</p>
             </div>
           </div>
@@ -467,52 +489,51 @@ export default function PublicProfilePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-6 border border-white/10 mb-6"
+            className="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-5 sm:p-6 border border-white/10 mb-6"
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-5">
               <Award size={20} className="text-[var(--brand-accent)]" />
               <h3 className="text-lg font-bold text-white">Performance Stats</h3>
             </div>
-            
-            {tipPerformance ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Total Tips</span>
-                  <span className="text-sm font-bold text-white">{tipPerformance.total_tips}</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Correct Tips</span>
-                  <span className="text-sm font-bold text-green-400">{tipPerformance.correct_tips}</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Incorrect Tips</span>
-                  <span className="text-sm font-bold text-red-400">{tipPerformance.incorrect_tips}</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Void Tips</span>
-                  <span className="text-sm font-bold text-gray-400">{tipPerformance.void_tips}</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Best Streak</span>
-                  <span className="text-sm font-bold text-white">{tipPerformance.best_streak}</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Total Upvotes</span>
-                  <span className="text-sm font-bold text-white">{tipPerformance.total_upvotes_received}</span>
-                </div>
+
+            {/* Responsive Stats Grid */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 xl:max-w-[1200px] xl:mx-auto">
+              {/* Total Tips */}
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:bg-white/8 transition-all">
+                <div className="text-[13px] sm:text-[14px] font-medium text-white/60 mb-2 sm:mb-3">Total Tips</div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-white leading-none">{userTips.length}</div>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Current Streak</span>
-                  <span className="text-sm font-bold text-white">{user.current_streak || 0}</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                  <span className="text-sm text-white/70">Correct Predictions</span>
-                  <span className="text-sm font-bold text-white">{user.correct_predictions || 0}</span>
-                </div>
+
+              {/* Correct Tips */}
+              <div className="bg-white/5 border border-green-500/30 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:bg-white/8 hover:border-green-500/50 transition-all">
+                <div className="text-[13px] sm:text-[14px] font-medium text-white/60 mb-2 sm:mb-3">Correct Tips</div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-green-400 leading-none">{userTips.filter((t: any) => t.status === 'CORRECT').length}</div>
               </div>
-            )}
+
+              {/* Incorrect Tips */}
+              <div className="bg-white/5 border border-red-500/30 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:bg-white/8 hover:border-red-500/50 transition-all">
+                <div className="text-[13px] sm:text-[14px] font-medium text-white/60 mb-2 sm:mb-3">Incorrect Tips</div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-red-400 leading-none">{userTips.filter((t: any) => t.status === 'INCORRECT').length}</div>
+              </div>
+
+              {/* Void Tips */}
+              <div className="bg-white/5 border border-gray-500/30 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:bg-white/8 hover:border-gray-500/50 transition-all">
+                <div className="text-[13px] sm:text-[14px] font-medium text-white/60 mb-2 sm:mb-3">Void Tips</div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-gray-400 leading-none">{userTips.filter((t: any) => t.status === 'VOID').length}</div>
+              </div>
+
+              {/* Best Streak */}
+              <div className="bg-white/5 border border-yellow-500/30 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:bg-white/8 hover:border-yellow-500/50 transition-all">
+                <div className="text-[13px] sm:text-[14px] font-medium text-white/60 mb-2 sm:mb-3">Best Streak</div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-yellow-400 leading-none">{calculateUserStreak(userTips)}</div>
+              </div>
+
+              {/* Total Upvotes */}
+              <div className="bg-white/5 border border-blue-500/30 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:bg-white/8 hover:border-blue-500/50 transition-all">
+                <div className="text-[13px] sm:text-[14px] font-medium text-white/60 mb-2 sm:mb-3">Total Upvotes</div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-blue-400 leading-none">{userTips.reduce((sum: number, t: any) => sum + (t.upvotes_count || 0), 0)}</div>
+              </div>
+            </div>
           </motion.div>
         </>
       )}

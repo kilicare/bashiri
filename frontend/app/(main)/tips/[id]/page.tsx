@@ -8,9 +8,10 @@ import { TipComments } from '@/components/tips/TipComments'
 import { TipStats } from '@/components/tips/TipStats'
 import { ThumbsUp, Share2, MessageCircle, ArrowLeft, Brain, TrendingUp, Target, Flame, Clock, CheckCircle, XCircle, Shield, Users, Award, Crown, Star, Zap, BarChart3, PieChart, Activity, Eye } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PremiumButton } from '@/components/ui/Button'
 import { formatDistanceToNow } from 'date-fns'
+import { getUserTips } from '@/lib/api/tips'
 
 export default function TipDetailPage() {
   const params = useParams()
@@ -19,9 +20,19 @@ export default function TipDetailPage() {
   const { vote, isLoading: isVoting } = useVoteTip(tipId)
   const { share, isLoading: isSharing } = useShareTip(tipId)
   const [showShareMenu, setShowShareMenu] = useState(false)
+  const [userTips, setUserTips] = useState<any[]>([])
 
   useFetchTip(tipId)
   const { isConnected } = useTipsRealtime(tipId)
+
+  // Load user tips for stats calculation
+  useEffect(() => {
+    if (selectedTip?.user?.username) {
+      getUserTips(selectedTip.user.username).then(data => {
+        setUserTips(data.results || [])
+      })
+    }
+  }, [selectedTip?.user?.username])
 
   if (isLoading) {
     return (
@@ -407,7 +418,7 @@ export default function TipDetailPage() {
       </div>
 
       {/* Stats Component */}
-      <TipStats tip={selectedTip} />
+      <TipStats tip={selectedTip} userTips={userTips} />
 
       {/* Comments */}
       <div className="bg-gradient-to-br from-gray-900 to-black rounded-xl p-6 border border-white/10">

@@ -727,6 +727,43 @@ class AIPerformanceStatsView(APIView):
         daily_elite_lost = daily_elite_picks.filter(status='LOST').count()
         daily_elite_accuracy = round((daily_elite_won / (daily_elite_won + daily_elite_lost) * 100), 1) if (daily_elite_won + daily_elite_lost) > 0 else None
 
+        # Daily market-specific accuracy
+        daily_1x2_picks = daily_picks.filter(market__startswith='1x2')
+        daily_1x2_won = daily_1x2_picks.filter(status='WON').count()
+        daily_1x2_lost = daily_1x2_picks.filter(status='LOST').count()
+        daily_1x2_accuracy = round((daily_1x2_won / (daily_1x2_won + daily_1x2_lost) * 100), 1) if (daily_1x2_won + daily_1x2_lost) > 0 else None
+
+        daily_btts_picks = daily_picks.filter(market__startswith='btts')
+        daily_btts_won = daily_btts_picks.filter(status='WON').count()
+        daily_btts_lost = daily_btts_picks.filter(status='LOST').count()
+        daily_btts_accuracy = round((daily_btts_won / (daily_btts_won + daily_btts_lost) * 100), 1) if (daily_btts_won + daily_btts_lost) > 0 else None
+
+        daily_ou_picks = daily_picks.filter(market__startswith='over')
+        daily_ou_won = daily_ou_picks.filter(status='WON').count()
+        daily_ou_lost = daily_ou_picks.filter(status='LOST').count()
+        daily_ou_accuracy = round((daily_ou_won / (daily_ou_won + daily_ou_lost) * 100), 1) if (daily_ou_won + daily_ou_lost) > 0 else None
+
+        # Additional daily market calculations
+        daily_dc_picks = daily_picks.filter(market__startswith='dc')
+        daily_dc_won = daily_dc_picks.filter(status='WON').count()
+        daily_dc_lost = daily_dc_picks.filter(status='LOST').count()
+        daily_dc_accuracy = round((daily_dc_won / (daily_dc_won + daily_dc_lost) * 100), 1) if (daily_dc_won + daily_dc_lost) > 0 else None
+
+        daily_ou15_picks = daily_picks.filter(market__contains='1.5')
+        daily_ou15_won = daily_ou15_picks.filter(status='WON').count()
+        daily_ou15_lost = daily_ou15_picks.filter(status='LOST').count()
+        daily_ou15_accuracy = round((daily_ou15_won / (daily_ou15_won + daily_ou15_lost) * 100), 1) if (daily_ou15_won + daily_ou15_lost) > 0 else None
+
+        daily_home_goals_picks = daily_picks.filter(market__contains='home')
+        daily_home_goals_won = daily_home_goals_picks.filter(status='WON').count()
+        daily_home_goals_lost = daily_home_goals_picks.filter(status='LOST').count()
+        daily_home_goals_accuracy = round((daily_home_goals_won / (daily_home_goals_won + daily_home_goals_lost) * 100), 1) if (daily_home_goals_won + daily_home_goals_lost) > 0 else None
+
+        daily_away_goals_picks = daily_picks.filter(market__contains='away')
+        daily_away_goals_won = daily_away_goals_picks.filter(status='WON').count()
+        daily_away_goals_lost = daily_away_goals_picks.filter(status='LOST').count()
+        daily_away_goals_accuracy = round((daily_away_goals_won / (daily_away_goals_won + daily_away_goals_lost) * 100), 1) if (daily_away_goals_won + daily_away_goals_lost) > 0 else None
+
         # Calculate streak
         all_settled = AIPick.objects.filter(status__in=['WON', 'LOST']).order_by('settled_at')
         current_streak = 0
@@ -752,6 +789,19 @@ class AIPerformanceStatsView(APIView):
                     "1x2": daily_1x2_accuracy,
                     "btts": daily_btts_accuracy,
                     "over_under": daily_ou_accuracy,
+                    "double_chance": daily_dc_accuracy,
+                    "over_under_15": daily_ou15_accuracy,
+                    "home_goals": daily_home_goals_accuracy,
+                    "away_goals": daily_away_goals_accuracy,
+                },
+                "market_counts": {
+                    "1x2": daily_1x2_picks.count(),
+                    "btts": daily_btts_picks.count(),
+                    "over_under": daily_ou_picks.count(),
+                    "double_chance": daily_dc_picks.count(),
+                    "over_under_15": daily_ou15_picks.count(),
+                    "home_goals": daily_home_goals_picks.count(),
+                    "away_goals": daily_away_goals_picks.count(),
                 },
                 "current_streak": current_streak,
                 "best_streak": best_streak,
@@ -766,6 +816,19 @@ class AIPerformanceStatsView(APIView):
                     "1x2": None,
                     "btts": None,
                     "over_under": None,
+                    "double_chance": None,
+                    "over_under_15": None,
+                    "home_goals": None,
+                    "away_goals": None,
+                },
+                "market_counts": {
+                    "1x2": 0,
+                    "btts": 0,
+                    "over_under": 0,
+                    "double_chance": 0,
+                    "over_under_15": 0,
+                    "home_goals": 0,
+                    "away_goals": 0,
                 },
                 "current_streak": 0,
                 "best_streak": 0,
@@ -802,6 +865,27 @@ class AIPerformanceStatsView(APIView):
         weekly_ou_lost = weekly_ou_picks.filter(status='LOST').count()
         weekly_ou_accuracy = round((weekly_ou_won / (weekly_ou_won + weekly_ou_lost) * 100), 1) if (weekly_ou_won + weekly_ou_lost) > 0 else None
 
+        # Additional market calculations
+        weekly_dc_picks = weekly_picks.filter(market__startswith='dc')
+        weekly_dc_won = weekly_dc_picks.filter(status='WON').count()
+        weekly_dc_lost = weekly_dc_picks.filter(status='LOST').count()
+        weekly_dc_accuracy = round((weekly_dc_won / (weekly_dc_won + weekly_dc_lost) * 100), 1) if (weekly_dc_won + weekly_dc_lost) > 0 else None
+
+        weekly_ou15_picks = weekly_picks.filter(market__contains='1.5')
+        weekly_ou15_won = weekly_ou15_picks.filter(status='WON').count()
+        weekly_ou15_lost = weekly_ou15_picks.filter(status='LOST').count()
+        weekly_ou15_accuracy = round((weekly_ou15_won / (weekly_ou15_won + weekly_ou15_lost) * 100), 1) if (weekly_ou15_won + weekly_ou15_lost) > 0 else None
+
+        weekly_home_goals_picks = weekly_picks.filter(market__contains='home')
+        weekly_home_goals_won = weekly_home_goals_picks.filter(status='WON').count()
+        weekly_home_goals_lost = weekly_home_goals_picks.filter(status='LOST').count()
+        weekly_home_goals_accuracy = round((weekly_home_goals_won / (weekly_home_goals_won + weekly_home_goals_lost) * 100), 1) if (weekly_home_goals_won + weekly_home_goals_lost) > 0 else None
+
+        weekly_away_goals_picks = weekly_picks.filter(market__contains='away')
+        weekly_away_goals_won = weekly_away_goals_picks.filter(status='WON').count()
+        weekly_away_goals_lost = weekly_away_goals_picks.filter(status='LOST').count()
+        weekly_away_goals_accuracy = round((weekly_away_goals_won / (weekly_away_goals_won + weekly_away_goals_lost) * 100), 1) if (weekly_away_goals_won + weekly_away_goals_lost) > 0 else None
+
         # Weekly high confidence accuracy
         weekly_elite_picks = weekly_picks.filter(tier='ELITE')
         weekly_elite_won = weekly_elite_picks.filter(status='WON').count()
@@ -817,6 +901,19 @@ class AIPerformanceStatsView(APIView):
                 "1x2": weekly_1x2_accuracy,
                 "btts": weekly_btts_accuracy,
                 "over_under": weekly_ou_accuracy,
+                "double_chance": weekly_dc_accuracy,
+                "over_under_15": weekly_ou15_accuracy,
+                "home_goals": weekly_home_goals_accuracy,
+                "away_goals": weekly_away_goals_accuracy,
+            },
+            "market_counts": {
+                "1x2": weekly_1x2_picks.count(),
+                "btts": weekly_btts_picks.count(),
+                "over_under": weekly_ou_picks.count(),
+                "double_chance": weekly_dc_picks.count(),
+                "over_under_15": weekly_ou15_picks.count(),
+                "home_goals": weekly_home_goals_picks.count(),
+                "away_goals": weekly_away_goals_picks.count(),
             },
             "best_streak": best_streak,
         }

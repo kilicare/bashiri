@@ -108,6 +108,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_tip_accuracy(self):
         """Get user's tip accuracy percentage"""
         try:
+            # Return accuracy from TipPerformance (calculated correctly from settled tips only)
             return self.user_tip_stats.accuracy_percentage
         except:
             return 0.0

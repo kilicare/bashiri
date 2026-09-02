@@ -236,10 +236,11 @@ class TipPerformance(models.Model):
     
     def calculate_accuracy(self):
         """Recalculate all accuracy percentages"""
-        # Overall accuracy
-        if self.total_tips > 0:
+        # Overall accuracy (only settled tips: CORRECT + INCORRECT)
+        settled_count = self.correct_tips + self.incorrect_tips
+        if settled_count > 0:
             self.accuracy_percentage = round(
-                (self.correct_tips / self.total_tips) * 100, 1
+                (self.correct_tips / settled_count) * 100, 1
             )
         else:
             self.accuracy_percentage = 0.0

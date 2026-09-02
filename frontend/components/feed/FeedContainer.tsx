@@ -14,6 +14,7 @@ import { AIWeeklyReportCard } from "./cards/AIWeeklyReportCard";
 import { DidYouKnowCard } from "./cards/DidYouKnowCard";
 import { DebateCard } from "./cards/DebateCard";
 import { MicWinnerCard } from "./cards/MicWinnerCard";
+import { BestStreakCard } from "./cards/BestStreakCard";
 import { ChevronDown, RefreshCw } from "lucide-react";
 
 function renderCard(card: Card) {
@@ -28,6 +29,7 @@ function renderCard(card: Card) {
     case "DID_YOU_KNOW": return <DidYouKnowCard data={card.data} />;
     case "DEBATE": return <DebateCard cardId={card.id} data={card.data} />;
     case "MIC_WINNER": return <MicWinnerCard cardId={card.id} data={card.data} />;
+    case "BEST_STREAK_USER": return <BestStreakCard data={card.data} />;
     default: return null;
   }
 }
@@ -161,7 +163,7 @@ export function FeedContainer({ externalRefreshKey }: { externalRefreshKey?: num
             📚 Jifunze kuhusu market predictions
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => <CardSkeleton key={i} />)}
         </div>
       </div>
@@ -186,15 +188,17 @@ export function FeedContainer({ externalRefreshKey }: { externalRefreshKey?: num
         </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((card) => (
           <div key={card.id}>{renderCard(card)}</div>
         ))}
       </div>
       {hasMore && (
-        <BookButton onClick={() => loadMore()} icon={ChevronDown}>
-          Pakia Zaidi
-        </BookButton>
+        <div className="mt-8">
+          <BookButton onClick={() => loadMore()} icon={ChevronDown}>
+            Pakia Zaidi
+          </BookButton>
+        </div>
       )}
       {showTutorial && <PredictionTutorial onClose={() => setShowTutorial(false)} />}
     </div>

@@ -201,12 +201,51 @@ export interface AIPerformanceStats {
     total_predictions: number;
     correct_predictions: number;
     high_confidence_accuracy: number;
+    market_accuracy: {
+      "1x2": number | null;
+      "btts": number | null;
+      "over_under": number | null;
+      "double_chance": number | null;
+      "over_under_15": number | null;
+      "home_goals": number | null;
+      "away_goals": number | null;
+    };
+    market_counts: {
+      "1x2": number;
+      "btts": number;
+      "over_under": number;
+      "double_chance": number;
+      "over_under_15": number;
+      "home_goals": number;
+      "away_goals": number;
+    };
+    current_streak: number;
+    best_streak: number;
   };
   weekly: {
     accuracy_percentage: number;
     total_predictions: number;
     correct_predictions: number;
     high_confidence_accuracy: number;
+    market_accuracy: {
+      "1x2": number | null;
+      "btts": number | null;
+      "over_under": number | null;
+      "double_chance": number | null;
+      "over_under_15": number | null;
+      "home_goals": number | null;
+      "away_goals": number | null;
+    };
+    market_counts: {
+      "1x2": number;
+      "btts": number;
+      "over_under": number;
+      "double_chance": number;
+      "over_under_15": number;
+      "home_goals": number;
+      "away_goals": number;
+    };
+    best_streak: number;
   };
   all_time: {
     accuracy_percentage: number;

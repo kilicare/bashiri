@@ -268,6 +268,7 @@ BASHIRI = {
         "DID_YOU_KNOW": 45,
         "POLL": 40,
         "MILESTONE": 10,
+        "BEST_STREAK_USER": 110,
     },
 
     "SUBSCRIPTION_PRICES": {

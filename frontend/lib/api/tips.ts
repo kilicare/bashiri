@@ -193,9 +193,17 @@ export async function getUserTips(username: string, filters?: TipFilters) {
   if (filters?.page_size) params.append('page_size', filters.page_size.toString())
 
   const query = params.toString()
-  const url = query ? `${BASE_URL}/user/${username}/?${query}` : `${BASE_URL}/user/${username}/` 
+  const url = query ? `${BASE_URL}/user/${username}/?${query}` : `${BASE_URL}/user/${username}/`
 
   return apiClient<TipsListResponse>(url, { skipAuth: true })
+}
+
+/**
+ * GET /tips/best-streak-user/
+ * Get user with best streak for today
+ */
+export async function getBestStreakUser() {
+  return apiClient<any>(`${BASE_URL}/best-streak-user/`, { skipAuth: true })
 }
 
 // ============================================

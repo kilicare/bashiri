@@ -203,7 +203,7 @@ export default function HomePage() {
           <div className="pt-4 pb-8">
             <HeroCarousel />
           </div>
-          
+
           {/* Live Odds Section */}
           <div className="mb-8">
             <motion.div

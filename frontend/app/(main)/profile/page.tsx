@@ -8,6 +8,7 @@ import { PremiumBadge } from "@/components/ui/Badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { updateAvatar, completeProfile, deleteAccount } from "@/lib/api/auth";
+import { getUserTips } from "@/lib/api/tips";
 import { getAIPerformanceStats } from "@/lib/api/predictions";
 import { ShareProfileModal } from "@/components/profile/ShareProfileModal";
 import { QRCodeModal } from "@/components/profile/QRCodeModal";
@@ -27,6 +28,8 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [aiPerformance, setAiPerformance] = useState<any>(null);
   const [loadingAI, setLoadingAI] = useState(true);
+  const [userTips, setUserTips] = useState<any[]>([]);
+  const [loadingTips, setLoadingTips] = useState(true);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; variant: "success" | "error" | "warning" | "info" }>({
@@ -45,7 +48,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchAIPerformance();
-  }, []);
+    if (user?.username) {
+      fetchUserTips();
+    }
+  }, [user?.username]);
 
   async function fetchAIPerformance() {
     try {
@@ -57,6 +63,39 @@ export default function ProfilePage() {
       setLoadingAI(false);
     }
   }
+
+  async function fetchUserTips() {
+    try {
+      if (!user?.username) return;
+      const data = await getUserTips(user.username);
+      setUserTips(data.results || []);
+    } catch (error) {
+      console.error("Failed to fetch user tips:", error);
+    } finally {
+      setLoadingTips(false);
+    }
+  }
+
+  // Calculate user tip stats
+  const totalTips = userTips.length;
+  const settledTips = userTips.filter((tip: any) => ['CORRECT', 'INCORRECT', 'VOID'].includes(tip.status));
+  const correctTips = userTips.filter((tip: any) => tip.status === 'CORRECT');
+  const accuracy = settledTips.length > 0 ? Math.round((correctTips.length / settledTips.length) * 100) : 0;
+  
+  // Calculate current streak
+  const calculateStreak = () => {
+    let streak = 0;
+    const sortedTips = [...userTips].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    for (const tip of sortedTips) {
+      if (tip.status === 'CORRECT') {
+        streak++;
+      } else if (tip.status === 'INCORRECT') {
+        break;
+      }
+    }
+    return streak;
+  };
+  const currentStreak = calculateStreak();
 
   if (!user) return null;
 
@@ -553,13 +592,13 @@ export default function ProfilePage() {
             </div>
             <MarketMasteryHeatmap
               data={[
-                { market: '1X2', accuracy: aiPerformance?.weekly?.market_accuracy?.["1x2"] || 0, predictions: aiPerformance?.weekly?.total_predictions || 0 },
-                { market: 'BTTS', accuracy: aiPerformance?.weekly?.market_accuracy?.["btts"] || 0, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.6) },
-                { market: 'O/U 2.5', accuracy: aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.8) },
-                { market: 'Dbl Chance', accuracy: (aiPerformance?.weekly?.market_accuracy?.["1x2"] || 0) * 0.95, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.4) },
-                { market: 'O/U 1.5', accuracy: (aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0) * 0.8, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.5) },
-                { market: 'Home Goals', accuracy: (aiPerformance?.weekly?.market_accuracy?.["home_goals"] || 0) * 0.85, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.7) },
-                { market: 'Away Goals', accuracy: (aiPerformance?.weekly?.market_accuracy?.["away_goals"] || 0) * 0.85, predictions: Math.floor((aiPerformance?.weekly?.total_predictions || 0) * 0.7) },
+                { market: '1X2', accuracy: aiPerformance?.weekly?.market_accuracy?.["1x2"] || 0, predictions: aiPerformance?.weekly?.market_counts?.["1x2"] || 0 },
+                { market: 'BTTS', accuracy: aiPerformance?.weekly?.market_accuracy?.["btts"] || 0, predictions: aiPerformance?.weekly?.market_counts?.["btts"] || 0 },
+                { market: 'O/U 2.5', accuracy: aiPerformance?.weekly?.market_accuracy?.["over_under"] || 0, predictions: aiPerformance?.weekly?.market_counts?.["over_under"] || 0 },
+                { market: 'Dbl Chance', accuracy: aiPerformance?.weekly?.market_accuracy?.["double_chance"] || 0, predictions: aiPerformance?.weekly?.market_counts?.["double_chance"] || 0 },
+                { market: 'O/U 1.5', accuracy: aiPerformance?.weekly?.market_accuracy?.["over_under_15"] || 0, predictions: aiPerformance?.weekly?.market_counts?.["over_under_15"] || 0 },
+                { market: 'Home Goals', accuracy: aiPerformance?.weekly?.market_accuracy?.["home_goals"] || 0, predictions: aiPerformance?.weekly?.market_counts?.["home_goals"] || 0 },
+                { market: 'Away Goals', accuracy: aiPerformance?.weekly?.market_accuracy?.["away_goals"] || 0, predictions: aiPerformance?.weekly?.market_counts?.["away_goals"] || 0 },
               ]}
             />
           </div>

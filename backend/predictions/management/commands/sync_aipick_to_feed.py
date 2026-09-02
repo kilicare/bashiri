@@ -12,7 +12,7 @@ class Command(BaseCommand):
         deleted = Card.objects.filter(type__in=['AI_PICK', 'BIG_MATCH']).delete()
         self.stdout.write(f'Deleted {deleted} old AI pick cards')
 
-        # Create feed cards from AIPick data
+        # Create feed cards from AIPick data - use actual AIPick fields
         created = 0
         for pick in AIPick.objects.filter(feed='STANDARD').select_related('match').order_by('-created_at')[:50]:
             match = pick.match
@@ -32,9 +32,10 @@ class Command(BaseCommand):
                         'league': pick.league,
                     },
                     'ai_pick': {
-                        'option_key': pick.selection.lower(),
+                        'selection': pick.selection,
+                        'selection_label': get_market_label(pick.market),
                         'market_label': get_market_label(pick.market),
-                        'confidence': pick.probability_percent,
+                        'probability_percent': pick.probability_percent,
                         'tier': pick.tier,
                         'status': pick.status,
                         'pick_id': str(pick.pick_id),

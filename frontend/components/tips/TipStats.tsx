@@ -1,42 +1,113 @@
 'use client'
 
-import { TipPerformance, UserTip } from '@/lib/types/tips'
+import { TipPerformance, UserTip, UserTipList } from '@/lib/types/tips'
 import { TrendingUp, Trophy, Flame, Target, Award, Zap, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 interface TipStatsProps {
   tip?: UserTip
   performance?: TipPerformance
+  userTips?: UserTipList[]
 }
 
-export function TipStats({ tip, performance }: TipStatsProps) {
+export function TipStats({ tip, performance, userTips }: TipStatsProps) {
   // If no performance data, show empty state or minimal tip info
-  if (!performance && !tip) {
+  if (!performance && !tip && !userTips) {
     return null
   }
 
-  // Use performance data if available, otherwise extract from tip
-  const stats = performance || {
-    accuracy_percentage: tip?.user?.tip_accuracy || 0,
-    total_tips: tip?.user?.total_tips || 0,
-    current_streak: tip?.user?.current_streak || 0,
-    best_streak: tip?.user?.best_streak || 0,
-    correct_tips: 0,
-    incorrect_tips: 0,
-    void_tips: 0,
-    accuracy_1x2: 0,
-    tips_1x2: 0,
-    accuracy_btts: 0,
-    tips_btts: 0,
-    accuracy_over_under: 0,
-    tips_over_under: 0,
-    accuracy_double_chance: 0,
-    tips_double_chance: 0,
-    accuracy_dnb: 0,
-    tips_dnb: 0,
-    recent_form_tips: 0,
-    recent_form_correct: 0,
-    tipster_score: tip?.user?.tipster_score || 0,
-    tipster_score_version: 'v1',
+  // Calculate stats from userTips if provided, otherwise use performance or fallback to tip user object
+  let stats: {
+    accuracy_percentage: number
+    total_tips: number
+    current_streak: number
+    best_streak: number
+    correct_tips: number
+    incorrect_tips: number
+    void_tips: number
+    accuracy_1x2: number
+    tips_1x2: number
+    accuracy_btts: number
+    tips_btts: number
+    accuracy_over_under: number
+    tips_over_under: number
+    accuracy_double_chance: number
+    tips_double_chance: number
+    accuracy_dnb: number
+    tips_dnb: number
+    recent_form_tips: number
+    recent_form_correct: number
+    tipster_score: number
+    tipster_score_version: string
+  }
+
+  if (userTips && userTips.length > 0) {
+    const correctTips = userTips.filter((t: any) => t.status === 'CORRECT').length
+    const incorrectTips = userTips.filter((t: any) => t.status === 'INCORRECT').length
+    const voidTips = userTips.filter((t: any) => t.status === 'VOID').length
+    const settledCount = correctTips + incorrectTips
+    const accuracy = settledCount > 0 ? Math.round((correctTips / settledCount) * 100) : 0
+
+    // Calculate streak
+    let currentStreak = 0
+    let bestStreak = 0
+    const sortedTips = [...userTips].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    for (const t of sortedTips) {
+      if (t.status === 'CORRECT') {
+        currentStreak++
+        bestStreak = Math.max(bestStreak, currentStreak)
+      } else if (t.status === 'INCORRECT') {
+        currentStreak = 0
+      }
+    }
+
+    stats = {
+      accuracy_percentage: accuracy,
+      total_tips: userTips.length,
+      current_streak: currentStreak,
+      best_streak: bestStreak,
+      correct_tips: correctTips,
+      incorrect_tips: incorrectTips,
+      void_tips: voidTips,
+      accuracy_1x2: 0,
+      tips_1x2: 0,
+      accuracy_btts: 0,
+      tips_btts: 0,
+      accuracy_over_under: 0,
+      tips_over_under: 0,
+      accuracy_double_chance: 0,
+      tips_double_chance: 0,
+      accuracy_dnb: 0,
+      tips_dnb: 0,
+      recent_form_tips: Math.min(10, userTips.length),
+      recent_form_correct: userTips.slice(0, 10).filter((t: any) => t.status === 'CORRECT').length,
+      tipster_score: tip?.user?.tipster_score || 0,
+      tipster_score_version: 'v1',
+    }
+  } else {
+    // Use performance data if available, otherwise extract from tip
+    stats = performance || {
+      accuracy_percentage: tip?.user?.tip_accuracy || 0,
+      total_tips: tip?.user?.total_tips || 0,
+      current_streak: tip?.user?.current_streak || 0,
+      best_streak: tip?.user?.best_streak || 0,
+      correct_tips: 0,
+      incorrect_tips: 0,
+      void_tips: 0,
+      accuracy_1x2: 0,
+      tips_1x2: 0,
+      accuracy_btts: 0,
+      tips_btts: 0,
+      accuracy_over_under: 0,
+      tips_over_under: 0,
+      accuracy_double_chance: 0,
+      tips_double_chance: 0,
+      accuracy_dnb: 0,
+      tips_dnb: 0,
+      recent_form_tips: 0,
+      recent_form_correct: 0,
+      tipster_score: tip?.user?.tipster_score || 0,
+      tipster_score_version: 'v1',
+    }
   }
 
   const coreStats = [

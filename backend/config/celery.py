@@ -88,6 +88,12 @@ app.conf.beat_schedule = {
         'task': 'predictions.tasks.fetch_team_standings_task',
         'schedule': crontab(hour=0, minute=0),
     },
+    
+    # Create Best Streak User card (daily at 5 AM)
+    'create-best-streak-card': {
+        'task': 'tips.tasks.create_best_streak_card_task',
+        'schedule': crontab(hour=5, minute=0),
+    },
 }
 
 
