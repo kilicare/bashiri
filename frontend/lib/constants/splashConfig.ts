@@ -5,7 +5,7 @@
 
 export const SPLASH_CONFIG = {
   // Timing configuration
-  displayDuration: 13000, // 13 seconds (10 + 3 added)
+  displayDuration: 15000, // 15 seconds (13 + 2 added)
   exitDuration: 400,
   initializationTimeout: 15000, // 15 second timeout for initialization
   
