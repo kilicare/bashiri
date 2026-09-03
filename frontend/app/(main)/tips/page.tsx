@@ -176,26 +176,26 @@ export default function TipsPage() {
         <div className="mb-6">
           <button
             onClick={() => setShowLeaderboard(!showLeaderboard)}
-            className="w-full flex items-center justify-between p-4 sm:p-5 rounded-xl transition-all duration-200 hover:scale-[1.01]"
+            className="w-full flex items-center justify-between p-3 sm:p-4 rounded-xl transition-all duration-200 hover:scale-[1.01]"
             style={{
-              background: 'linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(207,175,123,0.05) 100%)',
-              border: '1px solid rgba(212,175,55,0.3)'
+              background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(207,175,123,0.04) 100%)',
+              border: '1px solid rgba(212,175,55,0.15)'
             }}
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg" style={{ background: 'rgba(212,175,55,0.2)' }}>
-                <Trophy size={20} className="text-[#D4AF37]" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg" style={{ background: 'rgba(212,175,55,0.15)' }}>
+                <Trophy size={16} className="text-[#D4AF37] sm:size-20" />
               </div>
               <div className="text-left">
-                <span className="text-base sm:text-lg font-bold text-white block">Top 50 Tipsters</span>
-                <span className="text-xs sm:text-sm text-white/50">Professional ranking based on accuracy, tips count & streak</span>
+                <span className="text-sm sm:text-base font-bold text-white block">Top 50 Tipsters</span>
+                <span className="text-[10px] sm:text-xs text-white/50 block">Professional ranking based on accuracy, tips count & streak</span>
               </div>
             </div>
-            {showLeaderboard ? <ChevronUp size={24} className="text-[#D4AF37]" /> : <ChevronDown size={24} className="text-white/50" />}
+            {showLeaderboard ? <ChevronUp size={20} className="text-[#D4AF37] sm:size-24" /> : <ChevronDown size={20} className="text-white/50 sm:size-24" />}
           </button>
           
           {showLeaderboard && (
-            <div className="mt-4 p-4 sm:p-6 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="mt-4 p-3 sm:p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
               <TipstersLeaderboard />
             </div>
           )}

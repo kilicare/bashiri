@@ -61,13 +61,17 @@ export function TipstersLeaderboard() {
   const getRankBadge = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'bg-gradient-to-r from-yellow-500 to-amber-500 border-yellow-400'
+        return 'bg-gradient-to-r from-yellow-400 to-yellow-600 border-yellow-300 shadow-lg shadow-yellow-500/20'
       case 2:
-        return 'bg-gradient-to-r from-gray-400 to-gray-300 border-gray-200'
+        return 'bg-gradient-to-r from-gray-300 to-gray-400 border-gray-200 shadow-lg shadow-gray-400/20'
       case 3:
-        return 'bg-gradient-to-r from-amber-600 to-amber-500 border-amber-400'
+        return 'bg-gradient-to-r from-amber-600 to-amber-700 border-amber-500 shadow-lg shadow-amber-600/20'
+      case 4:
+        return 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-400 shadow-md shadow-blue-500/15'
+      case 5:
+        return 'bg-gradient-to-r from-purple-500 to-purple-600 border-purple-400 shadow-md shadow-purple-500/15'
       default:
-        return 'bg-gray-900/30 border-gray-700/30 hover:bg-gray-800/40'
+        return 'bg-gray-900/40 border-gray-700/40 hover:bg-gray-800/50'
     }
   }
 
@@ -81,14 +85,14 @@ export function TipstersLeaderboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Trophy size={24} className="text-yellow-400" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Trophy size={20} className="text-[#D4AF37] sm:size-24" />
           <div>
-            <h2 className="text-xl font-bold text-white">Top Tipsters</h2>
-            <p className="text-sm text-white/50">Best performers based on accuracy, tips count & streak</p>
+            <h2 className="text-lg sm:text-xl font-bold text-white">Top Tipsters</h2>
+            <p className="text-xs sm:text-sm text-white/50">Best performers based on accuracy, tips count & streak</p>
           </div>
         </div>
         
@@ -98,9 +102,9 @@ export function TipstersLeaderboard() {
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all ${
                 period === p
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#CFAF7B] text-black'
                   : 'bg-white/5 text-white/70 hover:bg-white/10'
               }`}
             >
@@ -111,72 +115,75 @@ export function TipstersLeaderboard() {
       </div>
 
       {/* Leaderboard */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {tipsters.map((tipster) => (
           <div
             key={tipster.user.id}
-            className={`flex items-center gap-4 p-4 rounded-xl border transition-all hover:scale-[1.02] ${getRankBadge(tipster.rank)}`}
+            className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border transition-all hover:scale-[1.01] ${getRankBadge(tipster.rank)}`}
           >
-            {/* Rank */}
-            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-              {getRankIcon(tipster.rank)}
-            </div>
+            {/* Header - Rank and User Info */}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {/* Rank */}
+              <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0">
+                {getRankIcon(tipster.rank)}
+              </div>
 
-            {/* User Info */}
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
-                  {tipster.user.avatar_url ? (
-                    <img
-                      src={tipster.user.avatar_url}
-                      alt={tipster.user.username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-lg font-bold text-white">
-                      {tipster.user.username[0]?.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                {tipster.user.verified_tipster && (
-                  <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
-                    <Award size={10} className="text-white" />
+              {/* User Info */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="relative flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#CFAF7B] flex items-center justify-center overflow-hidden">
+                    {tipster.user.avatar_url ? (
+                      <img
+                        src={tipster.user.avatar_url}
+                        alt={tipster.user.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm sm:text-lg font-bold text-black">
+                        {tipster.user.username[0]?.toUpperCase()}
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">@{tipster.user.username}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {tipster.user.tipster_score && tipster.user.tipster_score >= 90 && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-yellow-500/20 rounded-full border border-yellow-500/30">
-                      <Star size={8} className="text-yellow-400" />
-                      <span className="text-[10px] font-bold text-yellow-400">{tipster.user.tipster_score}</span>
+                  {tipster.user.verified_tipster && (
+                    <div className="absolute -bottom-0.5 -right-0.5 bg-[#D4AF37] rounded-full p-0.5 sm:p-1">
+                      <Award size={8} className="text-black sm:size-10" />
                     </div>
                   )}
-                  {tipster.current_streak >= 3 && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-500/20 rounded-full border border-orange-500/30">
-                      <Flame size={8} className="text-orange-400" />
-                      <span className="text-[10px] font-bold text-orange-400">{tipster.current_streak} streak</span>
-                    </div>
-                  )}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm sm:text-sm font-bold text-white truncate">@{tipster.user.username}</p>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
+                    {tipster.user.tipster_score && tipster.user.tipster_score >= 90 && (
+                      <div className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 bg-[#D4AF37]/20 rounded-full border border-[#D4AF37]/30">
+                        <Star size={6} className="text-[#D4AF37] sm:size-8" />
+                        <span className="text-[10px] sm:text-[10px] font-bold text-[#D4AF37]">{tipster.user.tipster_score}</span>
+                      </div>
+                    )}
+                    {tipster.current_streak >= 3 && (
+                      <div className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 bg-orange-500/20 rounded-full border border-orange-500/30">
+                        <Flame size={6} className="text-orange-400 sm:size-8" />
+                        <span className="text-[10px] sm:text-[10px] font-bold text-orange-400">{tipster.current_streak} streak</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="flex items-center gap-6 text-right">
-              <div>
-                <p className="text-xs text-white/50">Accuracy</p>
-                <p className="text-lg font-bold text-green-400">{tipster.accuracy_percentage}%</p>
+            {/* Stats - Full width on mobile, row on desktop */}
+            <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto">
+              <div className="flex-1 sm:flex-none">
+                <p className="text-[11px] sm:text-xs font-semibold text-black">Accuracy</p>
+                <p className="text-lg sm:text-xl font-black text-white">{tipster.accuracy_percentage}%</p>
               </div>
-              <div>
-                <p className="text-xs text-white/50">Tips</p>
-                <p className="text-lg font-bold text-white">{tipster.total_tips}</p>
+              <div className="flex-1 sm:flex-none">
+                <p className="text-[11px] sm:text-xs font-semibold text-white/50">Tips</p>
+                <p className="text-lg sm:text-xl font-black text-white">{tipster.total_tips}</p>
               </div>
-              <div>
-                <p className="text-xs text-white/50">Best Streak</p>
-                <p className="text-lg font-bold text-purple-400">{tipster.best_streak}</p>
+              <div className="flex-1 sm:flex-none">
+                <p className="text-[11px] sm:text-xs font-semibold text-white/50">Best Streak</p>
+                <p className="text-lg sm:text-xl font-black text-white">{tipster.best_streak}</p>
               </div>
             </div>
           </div>
