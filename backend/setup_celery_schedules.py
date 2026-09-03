@@ -55,8 +55,11 @@ make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_li
 # Sync mechi zilizoisha hivi karibuni — kila dakika 5
 make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_recently_finished_matches", 5)
 
-# AI Picks — kila siku asubuhi
-make_task("Generate Daily Picks", "predictions.tasks.generate_daily_picks", {"minute": "0", "hour": "6"})
+# AI Picks — kila siku asubuhi (NEW AI PICK SYSTEM)
+make_task("Generate Daily AI Picks", "predictions.ai_pick_tasks.generate_daily_ai_picks", {"minute": "0", "hour": "4"})
+
+# Update AI Pick Status — kila dakika 10 (NEW AI PICK SYSTEM)
+make_interval_task("Update AI Pick Status", "predictions.ai_pick_tasks.update_pick_status_periodic", 10)
 
 # Odds API tasks - Live odds every 5 minutes
 make_interval_task("Fetch Live Odds", "predictions.tasks.fetch_live_odds_task", 5)
@@ -66,7 +69,8 @@ make_interval_task("Fetch Upcoming Odds", "predictions.tasks.fetch_upcoming_odds
 
 # Feed tasks
 make_interval_task("Generate Result Recaps", "feed.tasks.generate_result_recaps", 15)
-make_task("Generate Stat Cards", "feed.tasks.generate_stat_cards", {"minute": "0", "hour": "5"})
+make_task("Clean old shares", "tips.tasks.clean_old_shares_task", {"minute": "0", "hour": "3"})
+make_task("Deactivate old tips", "tips.tasks.deactivate_old_tips_task", {"minute": "0", "hour": "3"})
 make_task("Generate Poll Cards", "feed.tasks.generate_poll_cards", {"minute": "0", "hour": "5"})
 make_interval_task_seconds("Update Live Match Cards", "feed.tasks.update_live_match_cards", 30)
 make_task("Generate Weekly Report", "feed.tasks.generate_weekly_report", {"minute": "0", "hour": "20", "day_of_week": "0"})

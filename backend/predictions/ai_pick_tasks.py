@@ -227,7 +227,7 @@ def generate_ai_picks(feed_type="STANDARD"):
                             'ai_pick': {
                                 'option_key': best_pick['selection'].lower(),
                                 'market_label': get_market_label(best_pick['market']),
-                                'confidence': best_pick['probability_percent'],
+                                'confidence': round(best_pick['probability'] * 100, 1),
                                 'tier': best_pick['tier'],
                                 'status': 'PENDING',
                                 'pick_id': str(pick.pick_id),

@@ -76,6 +76,11 @@ class UserTip(models.Model):
         default="PUBLIC",
         db_index=True
     )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text="Whether this tip is still active/visible in main feed"
+    )
     
     # Engagement metrics
     views_count = models.PositiveIntegerField(default=0, db_index=True)

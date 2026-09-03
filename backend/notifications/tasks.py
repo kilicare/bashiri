@@ -206,15 +206,23 @@ def notify_live_match_alerts():
 def notify_evening_recap():
     """Evening recap notification - AI accuracy for the day"""
     from accounts.models import User
-    from predictions.models import AIPerformance
+    from predictions.models import AIPick
     from .models import NotificationPreference
 
     today = timezone.localdate()
     
-    try:
-        performance = AIPerformance.objects.get(date=today)
-    except AIPerformance.DoesNotExist:
-        return "Hakuna performance data ya leo."
+    # Calculate accuracy from AIPick model
+    today_picks = AIPick.objects.filter(
+        created_at__date=today,
+        status__in=["WON", "LOST", "PUSH"]
+    )
+    
+    total = today_picks.count()
+    if total == 0:
+        return "Hakuna picks zilizomaliza leo."
+    
+    correct = today_picks.filter(status="WON").count()
+    accuracy = round((correct / total) * 100, 1)
 
     count = 0
     for user in User.objects.filter(is_active=True, username__isnull=False):
@@ -224,12 +232,12 @@ def notify_evening_recap():
 
         Notification.objects.create(
             user=user, type="EVENING_RECAP",
-            title="Leo AI ilikuwa na accuracy 75% 📊",
-            body=f"Total predictions: {performance.total_predictions}, Sahihi: {performance.correct_predictions}",
+            title=f"Leo AI ilikuwa na accuracy {accuracy}% 📊",
+            body=f"Total predictions: {total}, Sahihi: {correct}",
             data={
-                "accuracy": performance.accuracy_percentage,
-                "total": performance.total_predictions,
-                "correct": performance.correct_predictions,
+                "accuracy": accuracy,
+                "total": total,
+                "correct": correct,
             },
         )
         count += 1

@@ -317,8 +317,43 @@ export function useShareTip(tipId: number) {
       try {
         setIsLoading(true)
         setError(null)
-        const result = await shareTip(tipId, platform)
-        return result
+        
+        // Get current URL for sharing
+        const shareUrl = `${window.location.origin}/tips/${tipId}`
+        const shareText = `Check out this football prediction tip on Bashiri!`
+        
+        // Perform actual share action based on platform
+        switch (platform) {
+          case 'WHATSAPP':
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`
+            window.open(whatsappUrl, '_blank')
+            break
+          
+          case 'TWITTER':
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
+            window.open(twitterUrl, '_blank')
+            break
+          
+          case 'FACEBOOK':
+            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+            window.open(facebookUrl, '_blank')
+            break
+          
+          case 'COPY':
+            await navigator.clipboard.writeText(shareUrl)
+            // Show success feedback
+            break
+          
+          case 'SMS':
+            const smsUrl = `sms:?body=${encodeURIComponent(`${shareText} ${shareUrl}`)}`
+            window.open(smsUrl, '_blank')
+            break
+        }
+        
+        // Track share to backend (fire and forget)
+        shareTip(tipId, platform).catch(err => console.error('Failed to track share:', err))
+        
+        return { message: 'Share successful', shared_to: platform }
       } catch (error) {
         const errorMessage = handleTipError(error)
         setError(errorMessage)

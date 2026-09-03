@@ -400,3 +400,35 @@ def verify_slips_task(self):
     except Exception as exc:
         logger.error(f"verify_slips_task failed: {str(exc)}")
         raise self.retry(countdown=60, exc=exc)
+
+
+@shared_task
+def deactivate_old_tips_task():
+    """
+    Deactivate tips older than 30 days to keep the main feed clean.
+    Tips remain in database for analytics and user history.
+    Runs daily at 3 AM via Celery Beat.
+    """
+    try:
+        from datetime import timedelta
+        from .models import UserTip
+        
+        cutoff_date = timezone.now() - timedelta(days=30)
+        
+        deactivated_count = UserTip.objects.filter(
+            is_active=True,
+            created_at__lt=cutoff_date
+        ).update(is_active=False)
+        
+        logger.info(f"deactivate_old_tips_task: deactivated {deactivated_count} old tips")
+        return {
+            'status': 'success',
+            'deactivated_count': deactivated_count
+        }
+    
+    except Exception as e:
+        logger.error(f"deactivate_old_tips_task failed: {str(e)}")
+        return {
+            'status': 'error',
+            'error': str(e)
+        }

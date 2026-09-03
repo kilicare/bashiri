@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def generate_result_recaps():
-    from predictions.models import Match, AIPerformance
-    from predictions.services import is_prediction_correct
+    from predictions.models import Match, AIPick
+    from predictions.settlement_engine import settle_ai_pick
 
     today = timezone.localdate()
     yesterday = today - timedelta(days=1)
@@ -26,21 +26,6 @@ def generate_result_recaps():
     ).select_related("home_team", "away_team", "league")
 
     created_count = 0
-    total_predictions = 0
-    correct_predictions = 0
-    high_conf_predictions = 0
-    high_conf_correct = 0
-    
-    # Market-specific tracking
-    predictions_1x2 = 0
-    correct_1x2 = 0
-    predictions_btts = 0
-    correct_btts = 0
-    predictions_over_under = 0
-    correct_over_under = 0
-    
-    # Streak tracking
-    current_streak = 0
 
     for match in finished_recent:
         # Deactivate LIVE_MATCH card for this match if it exists and is still active
@@ -48,22 +33,33 @@ def generate_result_recaps():
             type="LIVE_MATCH", match_id=match.id, is_active=True
         ).update(is_active=False)
 
-        ai_pick_card = Card.objects.filter(
-            type__in=["AI_PICK", "BIG_MATCH"], match_id=match.id
-        ).first()
-        if not ai_pick_card:
-            continue
+        # Check if RESULT_RECAP already exists
         if Card.objects.filter(type="RESULT_RECAP", match_id=match.id).exists():
             continue
 
-        ai_pick = ai_pick_card.data.get("ai_pick", {})
-        # MUHIMU: sasa tunatumia market_key/option_key HALISI kutoka
-        # data ya card (si "1X2" iliyofungwa) — ai_pick inaweza kuwa
-        # soko lolote kati ya 3 za bure (1X2, O/U 2.5, BTTS).
-        market_key = ai_pick.get("market_key", "1X2")
-        option_key = ai_pick.get("option_key", "")
-        confidence = ai_pick.get("confidence", 0)
-        was_correct = is_prediction_correct(market_key, option_key, match.home_score, match.away_score)
+        # Get AI Pick for this match
+        ai_pick = AIPick.objects.filter(match=match, feed="STANDARD").first()
+        if not ai_pick:
+            continue
+
+        # Settle the pick if not already settled
+        if ai_pick.status == "PENDING" or ai_pick.status == "LIVE":
+            settlement = settle_ai_pick(
+                ai_pick.market,
+                ai_pick.selection,
+                match.home_score,
+                match.away_score
+            )
+            ai_pick.status = settlement.status
+            ai_pick.actual_home_score = match.home_score
+            ai_pick.actual_away_score = match.away_score
+            ai_pick.result = settlement.status
+            ai_pick.settled_at = timezone.now()
+            ai_pick.save(update_fields=['status', 'actual_home_score', 'actual_away_score', 'result', 'settled_at'])
+
+        # Create RESULT_RECAP card
+        from predictions.ai_pick_config import get_market_label, get_selection_label
+        was_correct = ai_pick.status == "WON"
 
         Card.objects.create(
             type="RESULT_RECAP", match_id=match.id,
@@ -72,76 +68,14 @@ def generate_result_recaps():
                     "home_team": match.home_team.name, "away_team": match.away_team.name,
                     "home_score": match.home_score, "away_score": match.away_score,
                 },
-                "ai_predicted": ai_pick.get("option_label", ai_pick.get("selection")),
-                "ai_market": ai_pick.get("market_label"),
-                "ai_confidence": confidence,
+                "ai_predicted": get_selection_label(ai_pick.market, ai_pick.selection),
+                "ai_market": get_market_label(ai_pick.market),
+                "ai_confidence": ai_pick.probability_percent,
                 "was_correct": was_correct,
+                "tier": ai_pick.tier,
             },
         )
         created_count += 1
-
-        # Track AI performance
-        total_predictions += 1
-        if was_correct:
-            correct_predictions += 1
-            current_streak += 1
-        else:
-            current_streak = 0
-        
-        if confidence >= 70:
-            high_conf_predictions += 1
-            if was_correct:
-                high_conf_correct += 1
-        
-        # Market-specific tracking
-        if market_key == "1X2":
-            predictions_1x2 += 1
-            if was_correct:
-                correct_1x2 += 1
-        elif market_key == "BTTS":
-            predictions_btts += 1
-            if was_correct:
-                correct_btts += 1
-        elif "OVER_UNDER" in market_key:
-            predictions_over_under += 1
-            if was_correct:
-                correct_over_under += 1
-
-    # Update or create AIPerformance record for today
-    if total_predictions > 0:
-        performance, created = AIPerformance.objects.get_or_create(
-            date=today,
-            defaults={
-                "total_predictions": total_predictions,
-                "correct_predictions": correct_predictions,
-                "high_confidence_predictions": high_conf_predictions,
-                "high_confidence_correct": high_conf_correct,
-                "predictions_1x2": predictions_1x2,
-                "correct_1x2": correct_1x2,
-                "predictions_btts": predictions_btts,
-                "correct_btts": correct_btts,
-                "predictions_over_under": predictions_over_under,
-                "correct_over_under": correct_over_under,
-                "current_streak": current_streak,
-                "best_streak": current_streak,
-            }
-        )
-        if not created:
-            performance.total_predictions += total_predictions
-            performance.correct_predictions += correct_predictions
-            performance.high_confidence_predictions += high_conf_predictions
-            performance.high_confidence_correct += high_conf_correct
-            performance.predictions_1x2 += predictions_1x2
-            performance.correct_1x2 += correct_1x2
-            performance.predictions_btts += predictions_btts
-            performance.correct_btts += correct_btts
-            performance.predictions_over_under += predictions_over_under
-            performance.correct_over_under += correct_over_under
-            performance.current_streak = current_streak
-            if current_streak > performance.best_streak:
-                performance.best_streak = current_streak
-            performance.save()
-        performance.calculate_accuracy()
 
     logger.info(f"generate_result_recaps: {created_count} recaps")
     return f"Result recaps: {created_count}"

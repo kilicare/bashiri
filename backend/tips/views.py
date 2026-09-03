@@ -54,7 +54,8 @@ class TipListView(APIView):
         # Query if not cached with optimized selects
         tips = UserTip.objects.filter(
             visibility="PUBLIC",
-            status="PENDING"
+            status="PENDING",
+            is_active=True  # Only show active tips in main feed
         ).select_related('user', 'match', 'user__tip_performance').prefetch_related('ai_snapshot')
 
         # Apply filters
