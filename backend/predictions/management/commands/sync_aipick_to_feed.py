@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from predictions.models import AIPick, Match
-from predictions.ai_pick_config import get_market_label
+from predictions.ai_pick_config import get_market_label, get_selection_label
 from feed.models import Card
 
 
@@ -32,10 +32,9 @@ class Command(BaseCommand):
                         'league': pick.league,
                     },
                     'ai_pick': {
-                        'selection': pick.selection,
-                        'selection_label': get_market_label(pick.market),
+                        'option_key': pick.selection.lower(),
                         'market_label': get_market_label(pick.market),
-                        'probability_percent': pick.probability_percent,
+                        'probability_percent': pick.probability_percent,  # This is the percentage (82.7)
                         'tier': pick.tier,
                         'status': pick.status,
                         'pick_id': str(pick.pick_id),
