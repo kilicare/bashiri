@@ -219,12 +219,35 @@ body {
 }
 
 /* ========================================
-   P1 LANDSCAPE RESPONSIVENESS FIX
+   SPLASH LANDSCAPE SAFETY
    ======================================== */
+
+/*
+  On short landscape screens, force the splash
+  content to start from the top instead of
+  vertically centering a tall content stack.
+
+  This prevents top/bottom clipping on laptops,
+  tablets and mobile landscape.
+*/
+
 @media (orientation: landscape) and (max-height: 500px) {
-  /* Mobile landscape: remove vertical centering to allow natural content flow */
-  .fixed.inset-0.flex.flex-col.justify-center {
+  .splash-scroll-container {
+    align-items: stretch;
+  }
+
+  .splash-content {
     justify-content: flex-start;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* Extra protection for very short viewports */
+@media (max-height: 700px) {
+  .splash-content {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 }
 

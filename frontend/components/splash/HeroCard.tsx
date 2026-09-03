@@ -10,13 +10,18 @@ export function HeroCard() {
 
   return (
     <motion.div
-      className="relative"
+      className="relative shrink-0"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: SPLASH_CONFIG.baseAnimationDuration, ease: "easeOut" }}
+      transition={{
+        duration: SPLASH_CONFIG.baseAnimationDuration,
+        ease: "easeOut",
+      }}
       style={{
         width: "clamp(140px, 35vw, 180px)",
         height: "clamp(140px, 35vw, 180px)",
+        maxWidth: "100%",
+        maxHeight: "100%",
       }}
     >
       {/* Gold border with subtle glow */}
@@ -45,15 +50,23 @@ export function HeroCard() {
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
         {/* Logo image */}
         <motion.div
-          className="relative mb-3"
-          animate={!prefersReducedMotion ? {
-            y: [0, -8, 0],
-          } : undefined}
-          transition={!prefersReducedMotion ? {
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          } : undefined}
+          className="relative mb-3 shrink-0"
+          animate={
+            !prefersReducedMotion
+              ? {
+                  y: [0, -8, 0],
+                }
+              : undefined
+          }
+          transition={
+            !prefersReducedMotion
+              ? {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }
+              : undefined
+          }
         >
           <img
             src="/icon.png"
@@ -68,7 +81,7 @@ export function HeroCard() {
         </motion.div>
 
         {/* Text */}
-        <div className="text-center">
+        <div className="text-center min-w-0 max-w-full">
           <div
             className="text-lg font-bold leading-tight"
             style={{ 

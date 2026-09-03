@@ -13,19 +13,31 @@ export function PerformanceStats() {
 
   return (
     <motion.div
-      className="relative rounded-2xl p-4 w-full max-w-sm mx-auto"
+      className="
+        relative
+        rounded-2xl
+        p-4
+        w-full
+        max-w-sm
+        mx-auto
+        min-w-0
+      "
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: SPLASH_CONFIG.baseAnimationDuration, delay: 0.2 }}
+      transition={{
+        duration: SPLASH_CONFIG.baseAnimationDuration,
+        delay: 0.2,
+      }}
       style={{
         background: SPLASH_CONFIG.surface,
         border: `1px solid ${SPLASH_CONFIG.surfaceBorder}`,
         backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
       }}
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-3 min-w-0">
         {/* Accuracy Section */}
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{
@@ -35,10 +47,10 @@ export function PerformanceStats() {
           >
             <Target size={18} style={{ color: SPLASH_CONFIG.primaryGold }} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div
-              className="text-xl font-bold"
-              style={{ 
+              className="text-xl font-bold truncate"
+              style={{
                 color: SPLASH_CONFIG.white,
                 fontSize: SPLASH_CONFIG.statsFontSize,
               }}
@@ -46,8 +58,10 @@ export function PerformanceStats() {
               {accuracy}%
             </div>
             <div
-              className="text-xs font-medium"
-              style={{ color: SPLASH_CONFIG.textSecondary }}
+              className="text-xs font-medium truncate"
+              style={{
+                color: SPLASH_CONFIG.textSecondary,
+              }}
             >
               Accuracy
             </div>
@@ -55,20 +69,24 @@ export function PerformanceStats() {
         </div>
 
         {/* Divider */}
-        <div 
-          className="w-px h-8"
-          style={{ background: SPLASH_CONFIG.surfaceBorder }}
+        <div
+          className="w-px h-8 flex-shrink-0"
+          style={{
+            background: SPLASH_CONFIG.surfaceBorder,
+          }}
         />
 
         {/* Rating Section */}
-        <div className="flex items-center gap-3 flex-1 justify-end">
-          <div className="text-right">
-            <div className="flex items-center gap-1 justify-end">
+        <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
+          <div className="text-right min-w-0">
+            <div className="flex items-center gap-1 justify-end shrink-0">
               {[...Array(5)].map((_, i) => (
                 <motion.span
                   key={i}
-                  className="text-sm"
-                  style={{ color: SPLASH_CONFIG.primaryGold }}
+                  className="text-sm shrink-0"
+                  style={{
+                    color: SPLASH_CONFIG.primaryGold,
+                  }}
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ 

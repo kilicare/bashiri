@@ -19,13 +19,21 @@ export function LoadingProgress({ progress, loadingMessage, error, onRetry }: Lo
   if (error) {
     return (
       <motion.div
-        className="w-full max-w-sm mx-auto text-center"
+        className="
+          w-full
+          max-w-sm
+          mx-auto
+          text-center
+          min-w-0
+        "
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <div
-          className="text-sm font-medium mb-3"
-          style={{ color: "rgba(239, 68, 68, 0.8)" }}
+          className="text-sm font-medium mb-3 break-words"
+          style={{
+            color: "rgba(239, 68, 68, 0.8)",
+          }}
         >
           Initialization failed
         </div>
@@ -44,7 +52,15 @@ export function LoadingProgress({ progress, loadingMessage, error, onRetry }: Lo
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto space-y-4">
+    <div
+      className="
+        w-full
+        max-w-sm
+        mx-auto
+        space-y-4
+        min-w-0
+      "
+    >
       {/* Progress bar */}
       <div className="relative">
         <div 
@@ -77,11 +93,23 @@ export function LoadingProgress({ progress, loadingMessage, error, onRetry }: Lo
       </div>
 
       {/* Progress text and message */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div
+        className="
+          flex
+          items-start
+          justify-between
+          gap-3
+          min-w-0
+        "
+      >
+        {/* Percentage */}
+        <div className="flex items-center gap-2 shrink-0">
           <motion.div
-            className="w-2 h-2 rounded-full"
-            style={{ background: SPLASH_CONFIG.primaryGold }}
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{
+              background:
+                SPLASH_CONFIG.primaryGold,
+            }}
             animate={!prefersReducedMotion ? {
               scale: [1, 1.2, 1],
               opacity: [0.5, 1, 0.5],
@@ -108,11 +136,36 @@ export function LoadingProgress({ progress, loadingMessage, error, onRetry }: Lo
           </motion.p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Rocket size={14} style={{ color: SPLASH_CONFIG.primaryGold }} />
+        {/* Loading message */}
+        <div
+          className="
+            flex
+            items-start
+            gap-2
+            min-w-0
+            max-w-[75%]
+          "
+        >
+          <Rocket
+            size={14}
+            className="shrink-0 mt-0.5"
+            style={{
+              color:
+                SPLASH_CONFIG.primaryGold,
+            }}
+          />
           <motion.p
-            className="text-xs font-medium text-right"
-            style={{ color: SPLASH_CONFIG.textSecondary }}
+            className="
+              text-xs
+              font-medium
+              text-right
+              break-words
+              min-w-0
+            "
+            style={{
+              color:
+                SPLASH_CONFIG.textSecondary,
+            }}
             animate={!prefersReducedMotion ? {
               opacity: [0.7, 1, 0.7],
             } : undefined}
