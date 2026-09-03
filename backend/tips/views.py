@@ -3,8 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from django.shortcuts import get_object_or_404
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count, F, Case, When
+from django.db import models
 from django.core.cache import cache
 from django.utils import timezone
 from asgiref.sync import async_to_sync
@@ -31,6 +33,8 @@ class TipListView(APIView):
     POST /tips/ - Create new tip
     """
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
+    throttle_scope = 'tips'
     
     def get(self, request):
         """List public tips with caching"""
@@ -396,7 +400,7 @@ class TipCommentView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class TipLeaderboardView(APIView):
+class LeaderboardView(APIView):
     """
     GET /tips/leaderboard/ - Get tipster rankings
     
@@ -404,14 +408,29 @@ class TipLeaderboardView(APIView):
     - period: 'all', 'week', 'month' (default: 'all')
     - market: 'all', '1x2', 'btts', 'goals', 'double_chance', 'dnb' (default: 'all')
     - min_tips: minimum tip count (default: 10)
+    - limit: number of results (default: 50)
     """
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
+    throttle_scope = 'tips'
     
     def get(self, request):
-        """Get top tipsters with filtering options"""
+        """Get top tipsters with professional ranking logic"""
         period = request.query_params.get('period', 'all')
         market = request.query_params.get('market', 'all')
-        min_tips = int(request.query_params.get('min_tips', 10))
+        min_tips = int(request.query_params.get('min_tips', 5))
+        limit = int(request.query_params.get('limit', 50))
+        
+        # Calculate date range for period filtering
+        from datetime import timedelta
+        now = timezone.now()
+        
+        if period == 'week':
+            date_from = now - timedelta(days=7)
+        elif period == 'month':
+            date_from = now - timedelta(days=30)
+        else:
+            date_from = None
         
         # Market field mapping
         market_field_map = {
@@ -422,8 +441,139 @@ class TipLeaderboardView(APIView):
             'dnb': 'tips_dnb',
         }
         
-        # Build base queryset
-        queryset = TipPerformance.objects.select_related('user')
+        # For period-specific filtering, we need to calculate from UserTip
+        if period in ['week', 'month']:
+            # Get users with tips in the period
+            users_with_tips = UserTip.objects.filter(
+                created_at__gte=date_from,
+                status__in=['CORRECT', 'INCORRECT']
+            ).values('user').annotate(
+                total_tips=Count('id'),
+                correct_tips=Count('id', filter=Q(status='CORRECT'))
+            ).filter(total_tips__gte=min_tips)
+            
+            user_ids = [u['user'] for u in users_with_tips]
+            
+            # Calculate period-specific stats for each user
+            tipster_stats = []
+            for user_id in user_ids:
+                tips = UserTip.objects.filter(
+                    user_id=user_id,
+                    created_at__gte=date_from,
+                    status__in=['CORRECT', 'INCORRECT']
+                )
+                
+                total = tips.count()
+                correct = tips.filter(status='CORRECT').count()
+                accuracy = (correct / total * 100) if total > 0 else 0
+                
+                # Calculate current streak (consecutive correct tips ending today)
+                recent_tips = tips.order_by('-created_at')
+                current_streak = 0
+                for tip in recent_tips:
+                    if tip.status == 'CORRECT':
+                        current_streak += 1
+                    else:
+                        break
+                
+                # Calculate best streak
+                best_streak = 0
+                temp_streak = 0
+                for tip in tips.order_by('created_at'):
+                    if tip.status == 'CORRECT':
+                        temp_streak += 1
+                        best_streak = max(best_streak, temp_streak)
+                    else:
+                        temp_streak = 0
+                
+                # Composite score calculation
+                tips_score = (
+                    100 if total >= 100 else
+                    80 if total >= 50 else
+                    60 if total >= 20 else
+                    40 if total >= 10 else
+                    20
+                )
+                
+                streak_score = (
+                    100 if current_streak >= 10 else
+                    80 if current_streak >= 5 else
+                    60 if current_streak >= 3 else
+                    40 if current_streak >= 1 else
+                    0
+                )
+                
+                composite_score = (accuracy * 0.6) + (tips_score * 0.2) + (streak_score * 0.2)
+                
+                tipster_stats.append({
+                    'user_id': user_id,
+                    'total_tips': total,
+                    'correct_tips': correct,
+                    'accuracy_percentage': accuracy,
+                    'current_streak': current_streak,
+                    'best_streak': best_streak,
+                    'composite_score': composite_score
+                })
+            
+            # Sort by composite score, then accuracy, then tips count
+            tipster_stats.sort(key=lambda x: (-x['composite_score'], -x['accuracy_percentage'], -x['total_tips']))
+            
+            # Get user details and create results
+            from accounts.models import User
+            ranked_results = []
+            for idx, stats in enumerate(tipster_stats[:limit], 1):
+                user = User.objects.get(id=stats['user_id'])
+                ranked_results.append({
+                    'rank': idx,
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'avatar_url': user.avatar_url if hasattr(user, 'avatar_url') else None,
+                        'tipster_score': stats.get('composite_score', 0),
+                        'verified_tipster': getattr(user, 'verified_tipster', False)
+                    },
+                    'total_tips': stats['total_tips'],
+                    'accuracy_percentage': stats['accuracy_percentage'],
+                    'current_streak': stats['current_streak'],
+                    'best_streak': stats['best_streak'],
+                    'recent_form_correct': stats['correct_tips'],
+                    'recent_form_tips': stats['total_tips']
+                })
+            
+            response_data = {
+                'count': len(ranked_results),
+                'period': period,
+                'market': market,
+                'min_tips': min_tips,
+                'results': ranked_results
+            }
+            
+            TipsCache.cache_leaderboard(response_data)
+            return Response(response_data)
+        
+        # For "all" period, use TipPerformance model
+        queryset = TipPerformance.objects.select_related('user').annotate(
+            # Composite score: accuracy (60%) + tips_count (20%) + streak (20%)
+            composite_score=(
+                F('accuracy_percentage') * 0.6 +
+                Case(
+                    When(total_tips__gte=100, then=100),
+                    When(total_tips__gte=50, then=80),
+                    When(total_tips__gte=20, then=60),
+                    When(total_tips__gte=10, then=40),
+                    default=20,
+                    output_field=models.FloatField()
+                ) * 0.2 +
+                Case(
+                    When(current_streak__gte=10, then=100),
+                    When(current_streak__gte=5, then=80),
+                    When(current_streak__gte=3, then=60),
+                    When(current_streak__gte=1, then=40),
+                    default=0,
+                    output_field=models.FloatField()
+                ) * 0.2
+            )
+        )
         
         # Apply minimum tip filter
         if market == 'all':
@@ -433,34 +583,33 @@ class TipLeaderboardView(APIView):
             market_field = market_field_map.get(market, 'total_tips')
             queryset = queryset.filter(**{f'{market_field}__gte': min_tips})
         
-        # Time period filtering (simplified - uses recent form for week/month)
-        # For production, would need actual date-based filtering on tips
-        if period in ['week', 'month']:
-            # Use recent form as proxy for period performance
-            # In production, would filter tips by date
-            queryset = queryset.filter(recent_form_tips__gte=min_tips)
-        
-        # Ordering based on market filter
+        # Ordering by composite score, then accuracy, then tips count
         if market == 'all':
-            order_by = ['-accuracy_percentage', '-total_tips']
+            order_by = ['-composite_score', '-accuracy_percentage', '-total_tips']
         else:
             market_accuracy_field = f'accuracy_{market_field_map.get(market, "")}'
             market_tips_field = market_field_map.get(market, 'total_tips')
-            order_by = [f'-{market_accuracy_field}', f'-{market_tips_field}']
+            order_by = [f'-{market_accuracy_field}', f'-{market_tips_field}', '-current_streak']
         
-        leaderboard = queryset.order_by(*order_by)[:100]
+        leaderboard = queryset.order_by(*order_by)[:limit]
         
         serializer = TipPerformanceSerializer(
             leaderboard, many=True,
             context={'request': request}
         )
         
+        # Add rank to each result
+        ranked_results = []
+        for idx, tipster in enumerate(serializer.data, 1):
+            tipster['rank'] = idx
+            ranked_results.append(tipster)
+        
         response_data = {
-            'count': len(serializer.data),
+            'count': len(ranked_results),
             'period': period,
             'market': market,
             'min_tips': min_tips,
-            'results': serializer.data
+            'results': ranked_results
         }
         
         # Cache the response

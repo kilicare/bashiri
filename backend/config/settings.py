@@ -168,9 +168,10 @@ REST_FRAMEWORK = {
         "otp": "5/minute",  # imehifadhiwa — haitumiki kwa sasa (OTP flow imesimamishwa)
         "content_report": "10/hour",
         "auth_login": "10/minute",
-        "auth_register": "5/hour",
+        "auth_register": "5/minute",
         "password_reset": "5/hour",
         "feed": "10000/hour",  # Feed endpoint needs high rate limit for smooth scrolling
+        "tips": "200/hour",  # Tips API rate limit to prevent external app scraping
     },
 }
 

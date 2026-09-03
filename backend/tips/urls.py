@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     TipListView, TipDetailView, TipVoteView, TipCommentView,
-    TipLeaderboardView, UserTipsView, TipShareView,
+    LeaderboardView, UserTipsView, TipShareView,
     TipSlipListView, TipSlipDetailView, MarketRegistryView,
     BestStreakUserView
 )
@@ -23,7 +23,7 @@ urlpatterns = [
     path('slips/<int:slip_id>/', TipSlipDetailView.as_view(), name='slip-detail'),
 
     # Leaderboard & User Tips
-    path('leaderboard/', TipLeaderboardView.as_view(), name='leaderboard'),
+    path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
     path('user/<str:username>/', UserTipsView.as_view(), name='user-tips'),
 
     # Best Streak User
