@@ -3,7 +3,7 @@ from .views import (
     TipListView, TipDetailView, TipVoteView, TipCommentView,
     LeaderboardView, UserTipsView, TipShareView,
     TipSlipListView, TipSlipDetailView, MarketRegistryView,
-    BestStreakUserView
+    BestStreakUserView, TipStarsView
 )
 
 app_name = 'tips'
@@ -24,6 +24,7 @@ urlpatterns = [
 
     # Leaderboard & User Tips
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
+    path('tip-stars/', TipStarsView.as_view(), name='tip-stars'),
     path('user/<str:username>/', UserTipsView.as_view(), name='user-tips'),
 
     # Best Streak User

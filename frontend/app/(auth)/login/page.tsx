@@ -10,6 +10,7 @@ import { register, login } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth.store";
 import { consumeReturnTo } from "@/lib/return-to";
 import { isNetworkError, showNetworkErrorToast } from "@/lib/toast-utils";
+import { getPostAuthPath } from "@/lib/auth/onboarding";
 
 type Tab = "login" | "register";
 
@@ -46,12 +47,7 @@ export default function LoginPage() {
     try {
       const data = await login(phone, password);
       setSession(data.access, data.refresh, data.user);
-      // Redirect to onboarding if profile is not complete, otherwise home
-      if (!data.profile_complete) {
-        router.push(consumeReturnTo() || "/onboarding");
-      } else {
-        router.push(consumeReturnTo() || "/home");
-      }
+      router.push(consumeReturnTo() || getPostAuthPath(data.user));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Hitilafu wakati wa kuingia");
       if (isNetworkError(e)) showNetworkErrorToast();

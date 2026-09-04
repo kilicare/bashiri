@@ -27,6 +27,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text="Inawekwa baada ya OTP kuthibitishwa (complete-profile step).",
     )
     date_of_birth = models.DateField(null=True, blank=True)
+    onboarding_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("not_started", "Not Started"),
+            ("completed", "Completed"),
+            ("skipped", "Skipped"),
+        ],
+        default="not_started",
+    )
+    onboarding_completed_at = models.DateTimeField(null=True, blank=True)
+    tip_preferences = models.JSONField(default=list, blank=True)
     avatar_url = models.URLField(max_length=500, blank=True, default="")
     preferred_language = models.CharField(
         max_length=2, choices=[("sw", "Kiswahili"), ("en", "English")], default="sw"

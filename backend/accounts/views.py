@@ -6,6 +6,7 @@ login (phone+password) -> me/logout. OTP views zimewekwa chini kama
 COMMENT.
 """
 from django.contrib.auth import authenticate
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -52,6 +53,8 @@ class RegisterView(APIView):
             "access": str(refresh.access_token),
             "refresh": str(refresh),
             "profile_complete": user.profile_complete,
+            "onboarding_status": user.onboarding_status,
+            "onboarding_completed_at": user.onboarding_completed_at,
             "user": UserSerializer(user).data,
         }, status=status.HTTP_201_CREATED)
 
@@ -87,6 +90,8 @@ class LoginView(APIView):
             "access": str(refresh.access_token),
             "refresh": str(refresh),
             "profile_complete": user.profile_complete,
+            "onboarding_status": user.onboarding_status,
+            "onboarding_completed_at": user.onboarding_completed_at,
             "user": UserSerializer(user).data,
         })
 
@@ -187,15 +192,28 @@ class OnboardingView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user = request.user
-        league_ids = serializer.validated_data["favorite_leagues"]
+        action = serializer.validated_data["action"]
+
+        if action == "skip":
+            user.onboarding_status = "skipped"
+            user.onboarding_completed_at = None
+            user.save(update_fields=["onboarding_status", "onboarding_completed_at"])
+            return Response(UserSerializer(user).data)
+
+        league_ids = serializer.validated_data.get("favorite_leagues", [])
         favorite_teams = serializer.validated_data.get("favorite_teams", [])
+        tip_preferences = serializer.validated_data.get("tip_preferences", [])
 
         from predictions.models import League, Team
         leagues = League.objects.filter(id__in=league_ids)
-        user.favorite_leagues.set(leagues)
+        user.favorite_leagues.add(*leagues)
 
         teams = Team.objects.filter(id__in=favorite_teams)
-        user.favorite_teams.set(teams)
+        user.favorite_teams.add(*teams)
+        user.tip_preferences = tip_preferences
+        user.onboarding_status = "completed"
+        user.onboarding_completed_at = timezone.now()
+        user.save(update_fields=["tip_preferences", "onboarding_status", "onboarding_completed_at"])
 
         return Response(UserSerializer(user).data)
 
@@ -319,7 +337,7 @@ class PublicProfileView(APIView):
         
         # Cache key should include user authentication status to avoid serving cached data with wrong follow status
         is_authenticated = request.user.is_authenticated
-        cache_key = f"public_profile_{username}_{is_authenticated}"
+        cache_key = f"public_profile_{username}_{request.user.id if is_authenticated else 'guest'}"
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
@@ -347,8 +365,8 @@ class PublicProfileView(APIView):
         # Check if current user is following this profile
         is_following = False
         if is_authenticated and request.user != user:
-            from accounts.models import Follow
-            is_following = Follow.objects.filter(
+            from accounts.models import UserFollow
+            is_following = UserFollow.objects.filter(
                 follower=request.user, 
                 following=user
             ).exists()
@@ -428,8 +446,8 @@ class FollowUserView(APIView):
             target_user.save(update_fields=['followers_count'])
             
             # Clear cached profile data for both authenticated and non-authenticated users
-            cache.delete(f"public_profile_{username}_True")
-            cache.delete(f"public_profile_{username}_False")
+            cache.delete(f"public_profile_{username}_{request.user.id}")
+            cache.delete(f"public_profile_{username}_guest")
             
             return Response({
                 "detail": "Umefollow mtumiaji huyu.",
@@ -470,8 +488,8 @@ class UnfollowUserView(APIView):
             target_user.save(update_fields=['followers_count'])
             
             # Clear cached profile data for both authenticated and non-authenticated users
-            cache.delete(f"public_profile_{username}_True")
-            cache.delete(f"public_profile_{username}_False")
+            cache.delete(f"public_profile_{username}_{request.user.id}")
+            cache.delete(f"public_profile_{username}_guest")
             
             return Response({
                 "detail": "Umestop kumfollow mtumiaji huyu.",
@@ -484,6 +502,16 @@ class UnfollowUserView(APIView):
                 {"detail": "Mtumiaji hapatikani."},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class CheckFollowStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username):
+        target_user = get_object_or_404(User, username=username)
+        return Response({
+            "is_following": request.user.following.filter(id=target_user.id).exists()
+        })
 
 
 class FollowingListView(APIView):

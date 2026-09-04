@@ -16,6 +16,7 @@ import {
   CommentsResponse,
   MarketDefinition,
   MarketRegistryResponse,
+  TipStar,
 } from '@/lib/types/tips'
 
 const BASE_URL = '/tips'
@@ -180,6 +181,12 @@ export async function getTipLeaderboard(params?: URLSearchParams) {
   return apiClient<LeaderboardResponse>(url, {
     skipAuth: true,
   })
+}
+
+export async function getTipStars(params?: URLSearchParams) {
+  const query = params?.toString() || ''
+  const url = query ? `${BASE_URL}/tip-stars/?${query}` : `${BASE_URL}/tip-stars/`
+  return apiClient<{ count: number; next: number | null; previous: number | null; results: TipStar[] }>(url, { skipAuth: true })
 }
 
 /**

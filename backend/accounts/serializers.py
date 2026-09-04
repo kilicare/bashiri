@@ -138,6 +138,8 @@ class UserSerializer(serializers.ModelSerializer):
             "is_subscriber", "is_subscription_active", "subscription_expires_at",
             "current_streak", "best_streak", "total_predictions",
             "correct_predictions", "accuracy_percentage", "profile_complete",
+            "onboarding_status", "onboarding_completed_at",
+            "tip_preferences",
             "preferred_language", "favorite_team_ids", "favorite_league_ids",
             "date_joined", "is_staff", "followers_count", "following_count",
         ]
@@ -161,9 +163,11 @@ class UpdateAvatarSerializer(serializers.Serializer):
 
 
 class OnboardingSerializer(serializers.Serializer):
+    action = serializers.ChoiceField(choices=("complete", "skip"), default="complete")
     favorite_leagues = serializers.ListField(
         child=serializers.IntegerField(),
-        allow_empty=False,
+        allow_empty=True,
+        required=False,
         help_text="List of league IDs (e.g., [1, 2, 3])"
     )
     favorite_teams = serializers.ListField(
@@ -171,6 +175,13 @@ class OnboardingSerializer(serializers.Serializer):
         allow_empty=True,
         required=False,
         help_text="List of team IDs (optional, e.g., [10, 23])"
+    )
+    tip_preferences = serializers.ListField(
+        child=serializers.ChoiceField(choices=(
+            "high_confidence", "hot_tips", "best_value", "top_tipsters", "all_tips"
+        )),
+        allow_empty=True,
+        required=False,
     )
 
     def validate_favorite_leagues(self, value):

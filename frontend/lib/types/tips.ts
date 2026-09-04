@@ -167,6 +167,19 @@ export interface TipPerformance {
   updated_at: string
 }
 
+export interface TipStar {
+  id: number
+  user: BashiriUser
+  total_tips: number
+  correct_tips: number
+  accuracy_percentage: number
+  tipster_score: number
+  current_streak: number
+  best_streak: number
+  followers_count: number
+  updated_at: string
+}
+
 export interface CreateTipRequest {
   match: number
   market_key: string

@@ -428,6 +428,20 @@ class TipPerformanceSerializer(serializers.ModelSerializer):
             cache.set(cache_key, rank, 300)  # 5 min cache
         
         return rank
+
+
+class TipStarSerializer(serializers.ModelSerializer):
+    """Public, performance-backed fields for the Tip Stars directory."""
+
+    user = UserMinimalSerializer(read_only=True)
+
+    class Meta:
+        model = TipPerformance
+        fields = [
+            "id", "user", "total_tips", "correct_tips", "accuracy_percentage",
+            "tipster_score", "current_streak", "best_streak", "followers_count",
+            "updated_at",
+        ]
     
     def get_recent_form_percentage(self, obj):
         """Get recent form as percentage"""

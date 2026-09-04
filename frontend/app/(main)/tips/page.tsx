@@ -7,7 +7,7 @@ import { TipCard } from '@/components/tips/TipCard'
 import { TipFilter } from '@/components/tips/TipFilter'
 import { TipstersLeaderboard } from '@/components/tips/TipstersLeaderboard'
 import { useRouter } from 'next/navigation'
-import { Loader, ArrowLeft, Plus, TrendingUp, Flame, Brain, Users, Target, Zap, Clock, Sparkles, Trophy, ChevronDown, ChevronUp, Filter } from 'lucide-react'
+import { Loader, ArrowLeft, Plus, TrendingUp, Flame, Brain, Users, Target, Zap, Clock, Sparkles, Trophy, ChevronDown, ChevronUp, Filter, Star } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 
 export default function TipsPage() {
@@ -99,6 +99,14 @@ export default function TipsPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/tips/tip-stars')}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition-all duration-200"
+              style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37' }}
+            >
+              <Star size={18} />
+              <span className="hidden sm:inline">Tip Stars</span>
+            </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200"

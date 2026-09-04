@@ -16,7 +16,7 @@ from .models import UserTip, TipPerformance, TipComment, TipVote, TipShare, TipS
 from .serializers import (
     UserTipSerializer, UserTipListSerializer, CreateTipSerializer,
     UpdateTipSerializer, TipPerformanceSerializer, TipCommentSerializer,
-    TipSlipSerializer, CreateTipSlipSerializer
+    TipSlipSerializer, CreateTipSlipSerializer, TipStarSerializer
 )
 from .permissions import IsTipOwnerOrReadOnly, CanViewTip
 from .cache import TipsCache
@@ -616,6 +616,43 @@ class LeaderboardView(APIView):
         TipsCache.cache_leaderboard(response_data)
         
         return Response(response_data)
+
+
+class TipStarsView(APIView):
+    """GET /tips/tip-stars/ - reliable public tipster directory."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
+    throttle_scope = "tips"
+
+    def get(self, request):
+        limit = min(max(int(request.query_params.get("limit", 20)), 1), 50)
+        offset = max(int(request.query_params.get("offset", 0)), 0)
+        verified_only = request.query_params.get("verified") == "true"
+
+        performances = TipPerformance.objects.filter(
+            total_tips__gte=10,
+            tipster_score__gt=0,
+            user__is_active=True,
+        ).select_related("user")
+        if verified_only:
+            performances = performances.filter(user__verified_tipster=True)
+
+        total = performances.count()
+        results = performances.order_by(
+            "-tipster_score",
+            "-accuracy_percentage",
+            "-total_tips",
+            "-user__verified_tipster",
+            "user__username",
+        )[offset:offset + limit]
+
+        return Response({
+            "count": total,
+            "next": offset + limit if offset + limit < total else None,
+            "previous": max(offset - limit, 0) if offset else None,
+            "results": TipStarSerializer(results, many=True).data,
+        })
 
 
 class UserTipsView(APIView):

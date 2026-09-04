@@ -10,6 +10,8 @@ interface AuthResponse {
   access: string;
   refresh: string;
   profile_complete: boolean;
+  onboarding_status: BashiriUser["onboarding_status"];
+  onboarding_completed_at: string | null;
   user: BashiriUser;
 }
 
@@ -58,7 +60,7 @@ export function logoutApi(refresh: string) {
   return apiClient("/auth/logout/", { method: "POST", body: JSON.stringify({ refresh }) });
 }
 
-export function saveOnboardingPreferences(preferences: { favorite_leagues: number[]; favorite_teams?: number[] }) {
+export function saveOnboardingPreferences(preferences: { action?: "complete" | "skip"; favorite_leagues?: number[]; favorite_teams?: number[]; tip_preferences?: string[] }) {
   return apiClient<BashiriUser>("/auth/onboarding/", {
     method: "POST",
     body: JSON.stringify(preferences),

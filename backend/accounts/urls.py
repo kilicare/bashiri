@@ -7,6 +7,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
+    CheckFollowStatusView,
     CompleteProfileView,
     DeleteAccountView,
     FavoriteLeaguesView,
@@ -45,6 +46,7 @@ urlpatterns = [
     # Follow/Unfollow endpoints
     path("follow/<str:username>/", FollowUserView.as_view(), name="follow-user"),
     path("unfollow/<str:username>/", UnfollowUserView.as_view(), name="unfollow-user"),
+    path("check-follow/<str:username>/", CheckFollowStatusView.as_view(), name="check-follow"),
     path("following/", FollowingListView.as_view(), name="following-list"),
     path("followers/", FollowersListView.as_view(), name="followers-list"),
 

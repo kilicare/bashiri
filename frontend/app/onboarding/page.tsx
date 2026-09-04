@@ -1,304 +1,108 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import clsx from "clsx";
-import { cloudinaryUrl } from "@/lib/cloudinary";
-import { LeagueCard } from "@/components/onboarding/LeagueCard";
+import { ArrowLeft, Check, ChevronRight, Search, ShieldCheck, Sparkles, Star } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { saveOnboardingPreferences, getMe } from "@/lib/api/auth";
-import { getLeagues, getTeams } from "@/lib/api/settings";
+import { PremiumButton } from "@/components/ui/Button";
+import { getMe, saveOnboardingPreferences } from "@/lib/api/auth";
+import { getFavoriteLeagues, getFavoriteTeams, getLeagues, getTeams } from "@/lib/api/settings";
+import { League, Team } from "@/lib/api/predictions";
 import { useAuthStore } from "@/stores/auth.store";
-import { CardSkeleton } from "@/components/ui/Skeleton";
 import { consumeReturnTo } from "@/lib/return-to";
+
+type Step = 0 | 1 | 2 | 3 | 4;
+type TipPreference = "high_confidence" | "hot_tips" | "best_value" | "top_tipsters" | "all_tips";
+type Draft = { step: Step; leagues: number[]; teams: number[]; preferences: TipPreference[] };
+
+const DRAFT_KEY = "bashiri-onboarding-draft";
+const emptyDraft: Draft = { step: 0, leagues: [], teams: [], preferences: [] };
+const tipOptions: Array<{ key: TipPreference; title: string; description: string }> = [
+  { key: "high_confidence", title: "High Confidence", description: "Show the strongest statistical signals first." },
+  { key: "hot_tips", title: "Hot Tips", description: "Keep an eye on tipsters in good recent form." },
+  { key: "best_value", title: "Best Value", description: "Surface opportunities where the numbers stand out." },
+  { key: "top_tipsters", title: "Top Tipsters", description: "Follow proven analysts and their latest tips." },
+  { key: "all_tips", title: "All Tips", description: "Keep the full tips experience in view." },
+];
+
+function readDraft(): Draft {
+  if (typeof window === "undefined") return emptyDraft;
+  const saved = sessionStorage.getItem(DRAFT_KEY);
+  if (!saved) return emptyDraft;
+  try { return { ...emptyDraft, ...JSON.parse(saved) }; } catch { sessionStorage.removeItem(DRAFT_KEY); return emptyDraft; }
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const setUser = useAuthStore((s) => s.setUser);
-  const user = useAuthStore((s) => s.user);
-  const [leagues, setLeagues] = useState<any[]>([]);
-  const [selectedLeagues, setSelectedLeagues] = useState<Set<number>>(new Set());
-  const [selectedTeams, setSelectedTeams] = useState<Set<number>>(new Set());
-  const [teamsByLeague, setTeamsByLeague] = useState<Record<number, any[]>>({});
-  const [loading, setLoading] = useState(false);
-  const [fetchingLeagues, setFetchingLeagues] = useState(true);
-  const [fetchingTeams, setFetchingTeams] = useState(false);
-
-  // Refresh user data from API to get fresh profile_complete status
-  useEffect(() => {
-    getMe().then((freshUser) => {
-      setUser(freshUser);
-      // If profile is already complete, redirect to home
-      if (freshUser.profile_complete) {
-        router.push(consumeReturnTo() || "/home");
-      }
-    }).catch(() => {
-      // If fetch fails, continue with cached user
-    });
-  }, []);
+  const setUser = useAuthStore((state) => state.setUser);
+  const [draft, setDraft] = useState<Draft>(readDraft);
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [leagueQuery, setLeagueQuery] = useState("");
+  const [teamQuery, setTeamQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    getLeagues().then((data) => {
-      setLeagues(data);
-      setFetchingLeagues(false);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (selectedLeagues.size === 0) {
-      setTeamsByLeague({});
-      setSelectedTeams(new Set());
-      setFetchingTeams(false);
-      return;
-    }
-
-    let active = true;
-    setFetchingTeams(true);
-
-    const selectedLeagueItems = leagues.filter((league) => selectedLeagues.has(league.id));
-    Promise.all(
-      selectedLeagueItems.map((league) =>
-        getTeams(league.poisson_key).then((teams) => [league.id, teams] as const)
-      )
-    ).then((results) => {
-      if (!active) return;
-      const nextTeamsByLeague: Record<number, any[]> = {};
-      const currentTeamIds = new Set<number>();
-      for (const [leagueId, teams] of results) {
-        nextTeamsByLeague[leagueId] = teams;
-        teams.forEach((team) => currentTeamIds.add(team.id));
-      }
-      setTeamsByLeague(nextTeamsByLeague);
-      setSelectedTeams((prev) => {
-        const next = new Set<number>();
-        for (const teamId of prev) {
-          if (currentTeamIds.has(teamId)) {
-            next.add(teamId);
-          }
-        }
-        return next;
-      });
-      setFetchingTeams(false);
-    }).catch(() => {
-      if (!active) return;
-      setFetchingTeams(false);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [selectedLeagues, leagues]);
-
-  const toggleLeague = (leagueId: number) => {
-    setSelectedLeagues((prev) => {
-      const next = new Set(prev);
-      if (next.has(leagueId)) {
-        next.delete(leagueId);
-        setSelectedTeams((current) => {
-          const nextTeams = new Set(current);
-          const leagueTeamIds = new Set((teamsByLeague[leagueId] || []).map((team) => team.id));
-          leagueTeamIds.forEach((teamId) => nextTeams.delete(teamId));
-          return nextTeams;
-        });
-      } else {
-        next.add(leagueId);
-      }
-      return next;
-    });
-  };
-
-  const toggleTeam = (teamId: number) => {
-    setSelectedTeams((prev) => {
-      const next = new Set(prev);
-      if (next.has(teamId)) {
-        next.delete(teamId);
-      } else {
-        next.add(teamId);
-      }
-      return next;
-    });
-  };
-
-  const handleContinue = async () => {
-    setLoading(true);
-    try {
-      const user = await saveOnboardingPreferences({
-        favorite_leagues: Array.from(selectedLeagues),
-        favorite_teams: Array.from(selectedTeams),
-      });
-      if (user) {
+    Promise.all([getMe(), getLeagues(), getTeams(), getFavoriteLeagues(), getFavoriteTeams()])
+      .then(([user, leagueData, teamData, favoriteLeagueData, favoriteTeamData]) => {
         setUser(user);
-      }
-      router.push(consumeReturnTo() || "/home");
-    } catch (error) {
-      console.error("Failed to save preferences:", error);
-      // Still redirect even if save fails
-      router.push(consumeReturnTo() || "/home");
-    } finally {
-      setLoading(false);
-    }
+        if (user.onboarding_status !== "not_started") { router.replace(consumeReturnTo() || "/home"); return; }
+        setLeagues(leagueData);
+        setTeams(teamData);
+        setDraft((current) => ({
+          ...current,
+          leagues: Array.from(new Set([...favoriteLeagueData.league_ids, ...current.leagues])),
+          teams: Array.from(new Set([...favoriteTeamData.team_ids, ...current.teams])),
+        }));
+      })
+      .catch(() => setError("We could not load your options. Please try again."))
+      .finally(() => setLoading(false));
+  }, [router, setUser]);
+
+  useEffect(() => { if (!loading) sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); }, [draft, loading]);
+
+  const visibleLeagues = useMemo(() => leagues.filter((league) => league.name.toLowerCase().includes(leagueQuery.toLowerCase())), [leagueQuery, leagues]);
+  const visibleTeams = useMemo(() => {
+    const selectedFirst = teams.filter((team) => draft.leagues.includes(team.league?.id ?? -1));
+    const remaining = teams.filter((team) => !draft.leagues.includes(team.league?.id ?? -1));
+    return [...selectedFirst, ...remaining].filter((team) => team.name.toLowerCase().includes(teamQuery.toLowerCase()));
+  }, [draft.leagues, teamQuery, teams]);
+
+  const toggle = (field: "leagues" | "teams", id: number) => setDraft((current) => ({ ...current, [field]: current[field].includes(id) ? current[field].filter((item) => item !== id) : [...current[field], id] }));
+  const togglePreference = (key: TipPreference) => setDraft((current) => ({ ...current, preferences: current.preferences.includes(key) ? current.preferences.filter((item) => item !== key) : [...current.preferences, key] }));
+  const skip = async () => {
+    setSaving(true); setError("");
+    try { const user = await saveOnboardingPreferences({ action: "skip" }); setUser(user); sessionStorage.removeItem(DRAFT_KEY); router.replace(consumeReturnTo() || "/home"); }
+    catch { setError("We could not save that yet. Please try again."); } finally { setSaving(false); }
+  };
+  const complete = async () => {
+    setSaving(true); setError("");
+    try { const user = await saveOnboardingPreferences({ action: "complete", favorite_leagues: draft.leagues, favorite_teams: draft.teams, tip_preferences: draft.preferences }); setUser(user); sessionStorage.removeItem(DRAFT_KEY); router.replace(consumeReturnTo() || "/home"); }
+    catch { setError("We could not save your preferences. Please try again."); } finally { setSaving(false); }
   };
 
-  const handleSkip = () => {
-    router.push(consumeReturnTo() || "/home");
-  };
+  if (loading) return <div className="min-h-dvh bg-[#08100f] flex items-center justify-center" aria-label="Loading onboarding" />;
+  const titles = ["Welcome to Bashiri", "Choose your favourite leagues", "Pick your favourite teams", "What kind of tips do you like?", "You're all set"];
+  const subtitles = ["Get smarter football tips, discover top tipsters, and follow the teams and leagues you care about.", "Choose as many as you like. You can change these later.", "Select any teams you want to keep close. This step is optional.", "Pick what you want to notice first. You can change this later.", "Your Bashiri experience is ready to go."];
 
-  return (
-    <div className="min-h-dvh flex flex-col relative overflow-hidden bg-[#050508]">
-      {/* Premium background effects */}
-      <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-yellow-500/20 blur-[150px]" />
-      <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-blue-600/20 blur-[180px]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-purple-500/10 blur-[200px]" />
-      
-      {/* Background image with overlay */}
-      <div
-        className="absolute inset-0 opacity-50"
-        style={{
-          backgroundImage: `url(https://res.cloudinary.com/dqgdsuok7/image/upload/v1783495293/onboardingpage_hmwakw.jpg)`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050508]/60 via-[#050508]/50 to-[#050508]/70" />
-      
-      {/* Content */}
-      <div className="relative z-10 min-h-dvh flex flex-col justify-between px-5 pt-10 pb-8 md:px-8 md:pt-12 md:pb-10">
-
-        {/* Header with Logo */}
-        <div className="flex flex-col items-center gap-6 mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#F5A623] to-[#E8892A] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(245,166,35,0.4)]">
-              <span className="text-2xl">⚽</span>
-            </div>
-            <span className="text-white font-black text-2xl tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
-              BASHIRI
-            </span>
-          </div>
-        </div>
-
-        {/* Premium title section */}
-        <div className="text-center mb-8">
-          <h1 className="text-white text-4xl md:text-5xl font-black mb-2 tracking-tight leading-none" style={{ fontFamily: "Poppins, sans-serif" }}>
-            Chagua Ligi
-          </h1>
-          <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5A623] to-[#E8892A] text-4xl md:text-5xl font-black mb-6 tracking-tight leading-none" style={{ fontFamily: "Poppins, sans-serif" }}>
-            Unazopenda
-          </h1>
-          <p className="text-white/50 text-sm md:text-base leading-relaxed max-w-md mx-auto" style={{ fontFamily: "Inter, sans-serif" }}>
-            Hii itasaidia kupanga Feed yako vizuri zaidi. Unaweza kubadilisha baadaye kwenye Settings.
-          </p>
-        </div>
-
-        {/* Premium League Cards Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8 w-full max-w-2xl md:max-w-4xl mx-auto">
-          {fetchingLeagues ? (
-            [1, 2, 3, 4].map((i) => <CardSkeleton key={i} />)
-          ) : (
-            leagues.map((league: any, index: number) => (
-              <div key={league.id} className="animate-slideUp" style={{ animationDelay: `${index * 100}ms` }}>
-                <LeagueCard
-                  id={league.id.toString()}
-                  name={league.name}
-                  logo={league.crest_url || ""}
-                  color="#00FF87"
-                  selected={selectedLeagues.has(league.id)}
-                  onSelect={() => toggleLeague(league.id)}
-                />
-              </div>
-            ))
-          )}
-        </div>
-
-        {selectedLeagues.size > 0 && (
-          <div className="mb-8 w-full max-w-2xl mx-auto space-y-4">
-            <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-white/50 mb-2">Chagua Timu</p>
-              <p className="text-sm text-white/50">Chagua timu unazopenda kwa kila ligi uliyoichagua. Hii itahifadhiwa kwa ushauri wa mechi za timu hizi.</p>
-            </div>
-
-            {fetchingTeams ? (
-              <div className="grid grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((i) => <CardSkeleton key={i} />)}
-              </div>
-            ) : (
-              leagues
-                .filter((league: any) => selectedLeagues.has(league.id))
-                .map((league: any) => (
-                  <div key={league.id} className="space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-white">{league.name}</p>
-                      <span className="text-xs text-white/40">{(teamsByLeague[league.id] || []).length} timu</span>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {(teamsByLeague[league.id] || []).map((team) => {
-                        const isSelected = selectedTeams.has(team.id);
-                        return (
-                          <GlassCard
-                            key={team.id}
-                            hover
-                            glow={isSelected}
-                            className={clsx(
-                              "cursor-pointer p-3 transition-all",
-                              isSelected
-                                ? "border-cyan-400/70 bg-cyan-500/10 shadow-[0_0_30px_rgba(45,212,255,0.16)]"
-                                : "border-white/10 hover:border-cyan-400/30 hover:shadow-[0_0_20px_rgba(45,212,255,0.08)]"
-                            )}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => toggleTeam(team.id)}
-                              className="w-full text-left"
-                              style={{
-                                background: "transparent",
-                                padding: 0,
-                              }}
-                            >
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="text-xs font-bold text-white truncate">{team.name}</span>
-                                {isSelected ? (
-                                  <span className="text-cyan-300 font-bold text-xs">✓</span>
-                                ) : (
-                                  <span className="text-cyan-200 text-xs">Select</span>
-                                )}
-                              </div>
-                            </button>
-                          </GlassCard>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))
-            )}
-          </div>
-        )}
-
-        {/* Premium Buttons */}
-        <div className="w-full max-w-md mx-auto space-y-4 mb-8">
-          <button 
-            onClick={handleContinue}
-            disabled={loading}
-            className="w-full h-[60px] rounded-full bg-gradient-to-r from-[#F5A623] to-[#E8892A] text-black font-black text-lg tracking-tight flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(245,166,35,0.4)] hover:shadow-[0_0_50px_rgba(245,166,35,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-3 border-black border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                Continue
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </>
-            )}
-          </button>
-          
-          <button 
-            onClick={handleSkip}
-            className="w-full py-4 text-white/40 text-sm font-medium hover:text-white/60 transition-all duration-300"
-          >
-            Skip for now
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return <main className="min-h-dvh bg-[#08100f] px-5 py-8 text-white sm:px-8"><div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-2xl flex-col">
+    <header className="flex items-center justify-between"><span className="flex items-center gap-2 text-sm font-bold tracking-[0.18em] text-amber-300"><Star size={17} /> BASHIRI</span><button type="button" onClick={skip} disabled={saving} className="text-sm text-white/55 hover:text-white">Skip</button></header>
+    <div className="mt-8 flex gap-2" aria-label={`Onboarding step ${draft.step + 1} of 5`}>{[0, 1, 2, 3, 4].map((item) => <span key={item} className={`h-1.5 flex-1 rounded-full ${item <= draft.step ? "bg-amber-300" : "bg-white/15"}`} />)}</div>
+    <section className="flex flex-1 flex-col justify-center py-10"><div className="mb-8 max-w-xl"><p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-emerald-300">Step {draft.step + 1} of 5</p><h1 className="text-3xl font-black tracking-tight sm:text-5xl">{titles[draft.step]}</h1><p className="mt-4 max-w-lg text-base leading-7 text-white/60">{subtitles[draft.step]}</p></div>
+      {draft.step === 0 && <GlassCard className="p-7 sm:p-10" texture><div className="flex items-start gap-4"><Sparkles className="mt-1 text-amber-300" /><div><h2 className="text-xl font-bold">A sharper way to follow football</h2><p className="mt-2 leading-7 text-white/60">Personalize only what matters, then get straight to the matches and tips.</p></div></div></GlassCard>}
+      {draft.step === 1 && <SelectorList query={leagueQuery} onQuery={setLeagueQuery} placeholder="Search leagues" empty="No leagues found" items={visibleLeagues.map((league) => ({ id: league.id, name: league.name, image: league.logo_url, selected: draft.leagues.includes(league.id) }))} onToggle={(id) => toggle("leagues", id)} />}
+      {draft.step === 2 && <SelectorList query={teamQuery} onQuery={setTeamQuery} placeholder="Search teams" empty="No teams found" items={visibleTeams.map((team) => ({ id: team.id, name: team.name, image: team.crest_url, selected: draft.teams.includes(team.id), meta: team.league?.name }))} onToggle={(id) => toggle("teams", id)} />}
+      {draft.step === 3 && <div className="grid gap-3 sm:grid-cols-2">{tipOptions.map((option) => <button key={option.key} type="button" onClick={() => togglePreference(option.key)} className={`rounded-2xl border p-4 text-left transition ${draft.preferences.includes(option.key) ? "border-amber-300/70 bg-amber-300/10" : "border-white/10 bg-white/[0.03] hover:bg-white/[0.07]"}`} aria-pressed={draft.preferences.includes(option.key)}><span className="flex items-center justify-between font-bold">{option.title}<span className={`flex h-6 w-6 items-center justify-center rounded-full border ${draft.preferences.includes(option.key) ? "border-amber-300 bg-amber-300 text-black" : "border-white/20"}`}>{draft.preferences.includes(option.key) && <Check size={15} />}</span></span><span className="mt-2 block text-sm leading-6 text-white/50">{option.description}</span></button>)}</div>}
+      {draft.step === 4 && <GlassCard className="grid gap-4 p-6 sm:grid-cols-3" texture><Summary label="Favourite leagues" value={draft.leagues.length} /><Summary label="Favourite teams" value={draft.teams.length} /><Summary label="Tip preferences" value={draft.preferences.length} /></GlassCard>}
+      {error && <p role="alert" className="mt-5 text-sm text-red-300">{error}</p>}</section>
+    <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-5"><button type="button" onClick={() => setDraft((current) => ({ ...current, step: Math.max(0, current.step - 1) as Step }))} disabled={draft.step === 0 || saving} className="flex items-center gap-2 px-2 py-3 text-sm font-bold text-white/60 disabled:invisible"><ArrowLeft size={18} /> Back</button>{draft.step < 4 ? <PremiumButton type="button" onClick={() => setDraft((current) => ({ ...current, step: (current.step + 1) as Step }))} disabled={saving} size="lg">Continue <ChevronRight size={18} /></PremiumButton> : <PremiumButton type="button" onClick={complete} loading={saving} size="lg">Start Exploring <ChevronRight size={18} /></PremiumButton>}</footer>
+  </div></main>;
 }
+
+function SelectorList({ query, onQuery, placeholder, empty, items, onToggle }: { query: string; onQuery: (value: string) => void; placeholder: string; empty: string; items: Array<{ id: number; name: string; image?: string; selected: boolean; meta?: string }>; onToggle: (id: number) => void }) {
+  return <div><label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3"><Search size={18} className="text-white/45" /><input value={query} onChange={(event) => onQuery(event.target.value)} placeholder={placeholder} className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/35" /></label><div className="mt-4 grid max-h-[48dvh] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">{items.map((item) => <button key={item.id} type="button" onClick={() => onToggle(item.id)} aria-pressed={item.selected} className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${item.selected ? "border-emerald-300/70 bg-emerald-300/10" : "border-white/10 bg-white/[0.03] hover:bg-white/[0.07]"}`}><span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10">{item.image ? <img src={item.image} alt="" className="h-full w-full object-contain" /> : <ShieldCheck size={18} className="text-white/40" />}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{item.name}</span>{item.meta && <span className="block truncate text-xs text-white/40">{item.meta}</span>}</span><span className={`flex h-6 w-6 items-center justify-center rounded-full border ${item.selected ? "border-emerald-300 bg-emerald-300 text-black" : "border-white/20"}`}>{item.selected && <Check size={15} />}</span></button>)}{items.length === 0 && <p className="col-span-full py-8 text-center text-sm text-white/45">{empty}</p>}</div></div>;
+}
+
+function Summary({ label, value }: { label: string; value: number }) { return <div className="rounded-2xl bg-white/[0.04] p-5"><p className="text-sm text-white/50">{label}</p><p className="mt-2 text-3xl font-black text-amber-300">{value}</p></div>; }
