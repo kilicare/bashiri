@@ -8,7 +8,7 @@ import { PulseIndicatorButton } from "@/components/pulse/PulseIndicatorButton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { getNotifications } from "@/lib/api/notifications";
 import { useAuthStore } from "@/stores/auth.store";
-import { Bell, Target, Search, X, TrendingUp, User } from "lucide-react";
+import { Bell, Target, Search, X, TrendingUp, User, Brain } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ReviewPromptModal } from "@/components/review/ReviewPromptModal";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
@@ -133,6 +133,14 @@ export default function HomePage() {
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
+              </button>
+              <button
+                type="button"
+                aria-label="Go to AI"
+                onClick={() => router.push("/ai")}
+                className="relative w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors flex-shrink-0"
+              >
+                <Brain size={18} style={{ color: "var(--brand-accent)" }} />
               </button>
               <h1 
                 className="flex-1 text-center" 

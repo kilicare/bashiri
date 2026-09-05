@@ -1,14 +1,14 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, CalendarDays, Sparkles, Trophy, Plus } from "lucide-react";
+import { Home, CalendarDays, CheckCircle, Trophy, Plus } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useEffect, useState, useRef } from "react";
 
 const NAV_ITEMS = [
   { href: "/home", icon: Home, label: "Home" },
   { href: "/matches", icon: CalendarDays, label: "Matches" },
-  { href: "/ai", icon: Sparkles, label: "AI" },
+  { href: "/ai-picks", icon: CheckCircle, label: "Picks" },
   { href: "/tips", icon: Trophy, label: "Tips" },
 ];
 

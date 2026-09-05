@@ -55,11 +55,14 @@ make_interval_task_seconds("Quick Sync Live Matches", "predictions.tasks.sync_li
 # Sync mechi zilizoisha hivi karibuni — kila dakika 5
 make_interval_task("Sync Recently Finished Matches", "predictions.tasks.sync_recently_finished_matches", 5)
 
-# AI Picks — kila siku asubuhi (NEW AI PICK SYSTEM)
-make_task("Generate Daily AI Picks", "predictions.ai_pick_tasks.generate_daily_ai_picks", {"minute": "0", "hour": "4"})
+# AI Picks — kila siku saa 12:00 (NEW AI PICK SYSTEM)
+make_task("Generate Daily AI Picks", "predictions.ai_pick_tasks.generate_daily_ai_picks", {"minute": "0", "hour": "12"})
 
 # Update AI Pick Status — kila dakika 10 (NEW AI PICK SYSTEM)
 make_interval_task("Update AI Pick Status", "predictions.ai_pick_tasks.update_pick_status_periodic", 10)
+
+# Generate AI Track Record — kila siku saa 12:00
+make_task("Generate AI Track Record", "predictions.tasks.generate_ai_track_record_snapshot", {"minute": "0", "hour": "12"})
 
 # Odds API tasks - Live odds every 5 minutes
 make_interval_task("Fetch Live Odds", "predictions.tasks.fetch_live_odds_task", 5)

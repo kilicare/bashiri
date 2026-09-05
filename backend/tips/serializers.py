@@ -428,6 +428,18 @@ class TipPerformanceSerializer(serializers.ModelSerializer):
             cache.set(cache_key, rank, 300)  # 5 min cache
         
         return rank
+    
+    def get_recent_form_percentage(self, obj):
+        """Get recent form as percentage"""
+        return obj.get_recent_form_percentage()
+    
+    def get_market_specialization(self, obj):
+        """Get market specialization"""
+        return obj.get_market_specialization()
+    
+    def get_league_specialization(self, obj):
+        """Get league specialization"""
+        return obj.get_league_specialization()
 
 
 class TipStarSerializer(serializers.ModelSerializer):

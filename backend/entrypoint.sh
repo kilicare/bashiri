@@ -15,6 +15,9 @@ if [ "$SERVICE_TYPE" = "web" ]; then
     echo "📦 Running database migrations..."
     python manage.py migrate --noinput
 
+    echo "⏰ Setting up Celery Beat schedules..."
+    python setup_celery_schedules.py || true
+
     echo "📁 Collecting static files..."
     python manage.py collectstatic --noinput
 fi

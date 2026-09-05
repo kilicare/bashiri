@@ -441,6 +441,15 @@ class LeaderboardView(APIView):
             'dnb': 'tips_dnb',
         }
         
+        # Accuracy field mapping
+        accuracy_field_map = {
+            '1x2': 'accuracy_1x2',
+            'btts': 'accuracy_btts',
+            'goals': 'accuracy_over_under',
+            'double_chance': 'accuracy_double_chance',
+            'dnb': 'accuracy_dnb',
+        }
+        
         # For period-specific filtering, we need to calculate from UserTip
         if period in ['week', 'month']:
             # Get users with tips in the period
@@ -587,7 +596,7 @@ class LeaderboardView(APIView):
         if market == 'all':
             order_by = ['-composite_score', '-accuracy_percentage', '-total_tips']
         else:
-            market_accuracy_field = f'accuracy_{market_field_map.get(market, "")}'
+            market_accuracy_field = accuracy_field_map.get(market, 'accuracy_percentage')
             market_tips_field = market_field_map.get(market, 'total_tips')
             order_by = [f'-{market_accuracy_field}', f'-{market_tips_field}', '-current_streak']
         
