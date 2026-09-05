@@ -87,7 +87,27 @@ export default function OnboardingPage() {
   const titles = ["Welcome to Bashiri", "Choose your favourite leagues", "Pick your favourite teams", "What kind of tips do you like?", "You're all set"];
   const subtitles = ["Get smarter football tips, discover top tipsters, and follow the teams and leagues you care about.", "Choose as many as you like. You can change these later.", "Select any teams you want to keep close. This step is optional.", "Pick what you want to notice first. You can change this later.", "Your Bashiri experience is ready to go."];
 
-  return <main className="min-h-dvh bg-[#08100f] px-5 py-8 text-white sm:px-8"><div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-2xl flex-col">
+  return (
+    <>
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        style={{ objectFit: "cover" }}
+      >
+        <source src="/splash-background.mp4" type="video/mp4" />
+      </video>
+
+      {/* Semi-transparent overlay */}
+      <div className="fixed inset-0 bg-black/60 z-10 pointer-events-none" />
+
+      <main className="relative z-20 min-h-dvh px-5 py-8 text-white sm:px-8">
+        <div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-2xl flex-col">
     <header className="flex items-center justify-between"><span className="flex items-center gap-2 text-sm font-bold tracking-[0.18em] text-amber-300"><Star size={17} /> BASHIRI</span><button type="button" onClick={skip} disabled={saving} className="text-sm text-white/55 hover:text-white">Skip</button></header>
     <div className="mt-8 flex gap-2" aria-label={`Onboarding step ${draft.step + 1} of 5`}>{[0, 1, 2, 3, 4].map((item) => <span key={item} className={`h-1.5 flex-1 rounded-full ${item <= draft.step ? "bg-amber-300" : "bg-white/15"}`} />)}</div>
     <section className="flex flex-1 flex-col justify-center py-10"><div className="mb-8 max-w-xl"><p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-emerald-300">Step {draft.step + 1} of 5</p><h1 className="text-3xl font-black tracking-tight sm:text-5xl">{titles[draft.step]}</h1><p className="mt-4 max-w-lg text-base leading-7 text-white/60">{subtitles[draft.step]}</p></div>
@@ -98,7 +118,9 @@ export default function OnboardingPage() {
       {draft.step === 4 && <GlassCard className="grid gap-4 p-6 sm:grid-cols-3" texture><Summary label="Favourite leagues" value={draft.leagues.length} /><Summary label="Favourite teams" value={draft.teams.length} /><Summary label="Tip preferences" value={draft.preferences.length} /></GlassCard>}
       {error && <p role="alert" className="mt-5 text-sm text-red-300">{error}</p>}</section>
     <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-5"><button type="button" onClick={() => setDraft((current) => ({ ...current, step: Math.max(0, current.step - 1) as Step }))} disabled={draft.step === 0 || saving} className="flex items-center gap-2 px-2 py-3 text-sm font-bold text-white/60 disabled:invisible"><ArrowLeft size={18} /> Back</button>{draft.step < 4 ? <PremiumButton type="button" onClick={() => setDraft((current) => ({ ...current, step: (current.step + 1) as Step }))} disabled={saving} size="lg">Continue <ChevronRight size={18} /></PremiumButton> : <PremiumButton type="button" onClick={complete} loading={saving} size="lg">Start Exploring <ChevronRight size={18} /></PremiumButton>}</footer>
-  </div></main>;
+  </div></main>
+    </>
+  );
 }
 
 function SelectorList({ query, onQuery, placeholder, empty, items, onToggle }: { query: string; onQuery: (value: string) => void; placeholder: string; empty: string; items: Array<{ id: number; name: string; image?: string; selected: boolean; meta?: string }>; onToggle: (id: number) => void }) {
